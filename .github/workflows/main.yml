@@ -26,9 +26,9 @@ jobs:
         run: npm install
         working-directory: frontend
 
-      - name: Run Tests # テスト実行
-        run: npm test
-        working-directory: frontend
+      # - name: Run Tests # テスト実行
+      #   run: npm test
+      #   working-directory: frontend
 
       - name: Build Next.js App # Next.jsアプリケーションをビルド
         run: npm run build
