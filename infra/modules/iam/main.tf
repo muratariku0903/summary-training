@@ -1,0 +1,72 @@
+# AWS アカウントIDを動的に取得
+data "aws_caller_identity" "current" {}
+
+# GitHub OIDCを信頼するIRMロール↓
+# Github　Actionsがこのロールを引き受ける。
+resource "aws_iam_role" "github_actions_role" {
+  name = "GitHubActionsTerraformRole"
+
+  # GitHubのOIDCプロバイダを信頼
+  # 前提としてAWSでは、信頼ポリシーを使ってロールを引き受ける主体を指定する　
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        #　GithubのIDプロバイダ(事前にAWS上に作成しておく)つまり、Github Actions
+        # 厳密にいうとGithub ActionsのOIDCプロバイダから発行されたトークンを保有している者
+        #　Github Actionsが以下のエンドポイントに対してOIDCトークンの発行をリクエストする。このトークンを保有していることがGithub上で動いていることを保証できる。
+        Principal = {
+          Federated = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/token.actions.githubusercontent.com"
+        }
+        #　OIDCトークンを使ってGithub actionsがIAMロールを引き受けるAPIを呼び出すことを許可
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Condition = {
+          StringLike = {
+            "token.actions.githubusercontent.com:sub" = "repo:${var.github_owner}/${var.github_repo}:ref:refs/heads/develop"
+          }
+        }
+      }
+    ]
+  })
+}
+
+# IAMポリシー（Terraformの実行に必要な最小限の権限）
+resource "aws_iam_policy" "terraform_policy" {
+  name        = "GitHubActionsTerraformPolicy"
+  description = "Least privilege policy for GitHub Actions running Terraform"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      # STS　認証確認
+      {
+        Effect = "Allow"
+        Action = [
+          "sts:GetCallerIdentity"
+        ]
+        Resource = "*"
+      },
+      # S3 のバックエンドに対する権限（Terraformのstate管理）
+      {
+        Effect = "Allow"
+        Action = ["s3:ListBucket", "s3:GetObject", "s3:PutObject"]
+        Resource = [
+          "arn:aws:s3:::${var.tf_state_bucket}",
+          "arn:aws:s3:::${var.tf_state_bucket}/*"
+        ]
+      },
+    ]
+  })
+}
+
+# IAM ROleにポリシーをアタッチ
+resource "aws_iam_role_policy_attachment" "terraform_policy_attach" {
+  role       = aws_iam_role.github_actions_role.name
+  policy_arn = aws_iam_policy.terraform_policy.arn
+}
+
+# IAM　RoleのARNを出力
+output "github_actions_role_arn" {
+  value = aws_iam_role.github_actions_role.arn
+}

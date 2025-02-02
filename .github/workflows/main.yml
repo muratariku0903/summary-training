@@ -1,0 +1,78 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - develop # developブランチにプッシュした時にトリガー
+
+permissions:
+  id-token: write # OIDCトークン取得を許可
+  contents: read # Githubリポジトリの読み取り権限
+
+jobs:
+  setup: # 開発環境の準備とNext.jsのビルド＆テスト
+    name: Setup Environment
+    runs-on: ubuntu-latest # GitHub提供の Ubuntu環境の仮想マシンで実行
+    steps:
+      - name: Checkout repository # GitHubリポジトリのソースコードを 仮想マシンにダウンロード
+        uses: actions/checkout@v3
+
+      - name: Install Node.js # Next.js 推奨の Node.js 18 をインストール
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install dependencies # 依存パッケージのインストール
+        run: npm install
+        working-directory: frontend
+
+      - name: Run Tests # テスト実行
+        run: npm test
+        working-directory: frontend
+
+      - name: Build Next.js App # Next.jsアプリケーションをビルド
+        run: npm run build
+        working-directory: frontend
+
+  deploy: # AWSリソースの作成とVercelへのデプロイ
+    name: Deploy Infrastructure and App
+    runs-on: ubuntu-latest # GitHub提供の Ubuntu環境の仮想マシンで実行
+    needs: setup # 「setup」ジョブが成功した場合にのみ実行
+    steps:
+      - name: Checkout repository # 「setup」ジョブとは異なるランナーが使用されるので再度ソースコードをダウンロード
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials # Github ActionsのAWS認証
+        uses: aws-actions/configure-aws-credentials@v2 # GitHub公式のAWS認証アクション を使う（OIDC経由の認証）
+        with:
+          role-to-assume: arn:aws:iam::${{secrets.TF_AWS_ACCOUNT_ID}}:role/GitHubActionsTerraformRole
+          role-session-name: GitHubActionsTerraformSession
+          aws-region: ap-northeast-1
+
+      - name: Setup Terraform # Terraform1.5.0をインストール
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Initialize Terraform # Terraform を 初期化 し、リモートバックエンド（S3など）やプロバイダー情報（AWSなど）を取得
+        run: terraform init
+        working-directory: infra/env/dev
+
+      - name: Plan Terraform # AWSにどのようなリソースが作成・変更されるかを確認
+        run: terraform plan
+        working-directory: infra/env/dev
+
+      - name: Apply Terraform # リソース作成(環境変数としてAWSの認証情報を設定)
+        run: terraform apply -auto-approve
+        working-directory: infra/env/dev
+        env:
+          TF_VAR_aws_account_id: ${{secrets.TF_AWS_ACCOUNT_ID}}
+          TF_VAR_github_owner: ${{vars.TF_GITHUB_OWNER}}
+          TF_VAR_github_repo: ${{vars.TF_GITHUB_REPO}}
+
+      - name: Deploy to Vercel # Vercelへのデプロイ
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel-token: ${{secrets.VERCEL_TOKEN}}
+          vercel-args: "--prod"
+          working-directory: frontend
