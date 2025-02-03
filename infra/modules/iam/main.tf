@@ -45,12 +45,15 @@ resource "aws_iam_policy" "terraform_policy" {
           "iam:GetRole",
           "iam:PassRole",
           "iam:GetPolicy",
+          "iam:GetPolicyVersion",
           "iam:ListRolePolicies",
+          "iam:ListAttachedRolePolicies",
           "sts:GetCallerIdentity",
           "s3:ListBucket",
           "s3:GetObject",
           "s3:PutObject",
-          "SNS:GetTopicAttributes"
+          "SNS:GetTopicAttributes",
+          "SNS:ListTagsForResource"
         ]
         Resource = "*"
       },
