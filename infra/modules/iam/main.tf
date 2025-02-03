@@ -44,7 +44,8 @@ resource "aws_iam_policy" "terraform_policy" {
         Effect = "Allow"
         Action = [
           "iam:GetRole",
-          "iam:PassRole"
+          "iam:PassRole",
+          "iam:GetPolicy"
         ]
         Resource = [
           # "GitHubActionsTerraformRole" だけを指定
