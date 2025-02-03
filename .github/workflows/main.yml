@@ -45,8 +45,7 @@ jobs:
       - name: Configure AWS Credentials # Github ActionsのAWS認証
         uses: aws-actions/configure-aws-credentials@v2 # GitHub公式のAWS認証アクション を使う（OIDC経由の認証）
         with:
-          role-to-assume: arn:aws:iam::262115391162:role/GitHubActionsTerraformRole
-          # role-to-assume: arn:aws:iam::${{secrets.TF_AWS_ACCOUNT_ID}}:role/GitHubActionsTerraformRole
+          role-to-assume: arn:aws:iam::${{secrets.TF_AWS_ACCOUNT_ID}}:role/GitHubActionsTerraformRole
           role-session-name: GitHubActionsTerraformSession
           aws-region: ap-northeast-1
 

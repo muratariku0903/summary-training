@@ -39,6 +39,18 @@ resource "aws_iam_policy" "terraform_policy" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
+      # Terraformがリソースを読み取る過程で、まず自分自身のロールをチェックするのでGetRoleの権限が必要
+      {
+        Effect = "Allow"
+        Action = [
+          "iam:GetRole",
+          "iam:PassRole"
+        ]
+        Resource = [
+          # "GitHubActionsTerraformRole" だけを指定
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/GitHubActionsTerraformRole"
+        ]
+      },
       # STS　認証確認
       {
         Effect = "Allow"
