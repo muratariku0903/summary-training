@@ -39,44 +39,20 @@ resource "aws_iam_policy" "terraform_policy" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      # Terraformがリソースを読み取る過程で、まず自分自身のロールをチェックするのでGetRoleの権限が必要
       {
         Effect = "Allow"
         Action = [
           "iam:GetRole",
           "iam:PassRole",
           "iam:GetPolicy",
-          "iam:ListRolePolicies"
-        ]
-        Resource = [
-          # "GitHubActionsTerraformRole" だけを指定
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/GitHubActionsTerraformRole"
-        ]
-      },
-      # STS　認証確認
-      {
-        Effect = "Allow"
-        Action = [
-          "sts:GetCallerIdentity"
+          "iam:ListRolePolicies",
+          "sts:GetCallerIdentity",
+          "s3:ListBucket",
+          "s3:GetObject",
+          "s3:PutObject",
+          "SNS:GetTopicAttributes"
         ]
         Resource = "*"
-      },
-      # S3 のバックエンドに対する権限（Terraformのstate管理）
-      {
-        Effect = "Allow"
-        Action = ["s3:ListBucket", "s3:GetObject", "s3:PutObject"]
-        Resource = [
-          "arn:aws:s3:::${var.tf_state_bucket}",
-          "arn:aws:s3:::${var.tf_state_bucket}/*"
-        ]
-      },
-      {
-        Effect = "Allow"
-        Action = ["SNS:GetTopicAttributes", "s3:GetObject", "s3:PutObject"]
-        Resource = [
-          "arn:aws:s3:::${var.tf_state_bucket}",
-          "arn:aws:s3:::${var.tf_state_bucket}/*"
-        ]
       },
     ]
   })
