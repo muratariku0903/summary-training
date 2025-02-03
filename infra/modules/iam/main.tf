@@ -45,7 +45,8 @@ resource "aws_iam_policy" "terraform_policy" {
         Action = [
           "iam:GetRole",
           "iam:PassRole",
-          "iam:GetPolicy"
+          "iam:GetPolicy",
+          "iam:ListRolePolicies"
         ]
         Resource = [
           # "GitHubActionsTerraformRole" だけを指定
@@ -64,6 +65,14 @@ resource "aws_iam_policy" "terraform_policy" {
       {
         Effect = "Allow"
         Action = ["s3:ListBucket", "s3:GetObject", "s3:PutObject"]
+        Resource = [
+          "arn:aws:s3:::${var.tf_state_bucket}",
+          "arn:aws:s3:::${var.tf_state_bucket}/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = ["SNS:GetTopicAttributes", "s3:GetObject", "s3:PutObject"]
         Resource = [
           "arn:aws:s3:::${var.tf_state_bucket}",
           "arn:aws:s3:::${var.tf_state_bucket}/*"
