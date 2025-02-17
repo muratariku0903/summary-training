@@ -52,7 +52,8 @@ resource "aws_iam_policy" "terraform_policy" {
           "s3:GetObject",
           "s3:PutObject",
           "SNS:GetTopicAttributes",
-          "SNS:ListTagsForResource"
+          "SNS:ListTagsForResource",
+          "SNS:DeleteTopic"
         ]
         Resource = "*"
       },
