@@ -31,6 +31,7 @@ resource "aws_iam_role" "github_actions_role" {
 }
 
 # IAMポリシー（Terraformの実行に必要な最小限の権限）
+# ポリシーを変更した際は、手動でAWSのロールに反映させる、その上で、Github ActionsのPipelineが正常に動作可能
 resource "aws_iam_policy" "terraform_policy" {
   name        = "GitHubActionsTerraformPolicy"
   description = "Least privilege policy for GitHub Actions running Terraform"
