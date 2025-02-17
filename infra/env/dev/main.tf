@@ -6,10 +6,3 @@ module "iam" {
   tf_state_bucket = "summary-training-tf-state"
 }
 
-
-
-resource "aws_sns_topic" "test" {
-  name = "test"
-}
-
-
