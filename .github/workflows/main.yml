@@ -65,10 +65,6 @@ jobs:
       - name: Apply Terraform # リソース作成(環境変数としてAWSの認証情報を設定)
         run: terraform apply -auto-approve
         working-directory: infra/env/dev
-        env:
-          TF_VAR_aws_account_id: ${{secrets.TF_AWS_ACCOUNT_ID}}
-          TF_VAR_github_owner: ${{vars.TF_GITHUB_OWNER}}
-          TF_VAR_github_repo: ${{vars.TF_GITHUB_REPO}}
 
       - name: Deploy to Vercel # Vercelへのデプロイ
         uses: amondnet/vercel-action@v20

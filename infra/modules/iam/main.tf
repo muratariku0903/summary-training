@@ -13,9 +13,8 @@ resource "aws_iam_role" "github_actions_role" {
     Statement = [
       {
         Effect = "Allow"
-        #　GithubのIDプロバイダ(事前にAWS上に作成しておく)つまり、Github Actions
-        # 厳密にいうとGithub ActionsのOIDCプロバイダから発行されたトークンを保有している者
-        #　Github Actionsが以下のエンドポイントに対してOIDCトークンの発行をリクエストする。このトークンを保有していることがGithub上で動いていることを保証できる。
+        # 厳密にいうとGithub ActionsのOIDCプロバイダ(事前にAWS上に作成しておく)から発行されたトークンを保有している者,つまりGithub Actions
+        #　Github Actionsが以下のエンドポイントに対してOIDCトークンの発行をリクエストする。このトークンを保有していることがGithub上で動いていることを保証する
         Principal = {
           Federated = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/token.actions.githubusercontent.com"
         }
