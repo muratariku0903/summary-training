@@ -1,9 +1,9 @@
 name: CI/CD Pipeline
 
 on:
-  push:
+  push: # PR をマージしたときも、GitHub 上では「マージ先ブランチへの push」が発生
     branches:
-      - develop # developブランチにプッシュした時にトリガー
+      - '*'
 
 permissions:
   id-token: write # OIDCトークン取得を許可
