@@ -1,4 +1,4 @@
-import ReversalButton from "@/components/elements/reversal-button/ReversalButton";
+import ReversalLink from "@/components/elements/reversal-link/ReversalLink";
 import { Spacer } from "@/components/elements/spacer/Spacer";
 import UnderlineButton from "@/components/elements/underline-link/UnderlineLink";
 
@@ -13,9 +13,9 @@ export default function Header() {
         <Spacer size={8} horizontal />
         <UnderlineButton label="メリット" />
         <Spacer size={40} horizontal />
-        <ReversalButton label="ログイン" />
+        <ReversalLink label="ログイン" />
         <Spacer size={8} horizontal />
-        <ReversalButton label="新規登録" />
+        <ReversalLink label="新規登録" />
       </div>
     </header>
   );
