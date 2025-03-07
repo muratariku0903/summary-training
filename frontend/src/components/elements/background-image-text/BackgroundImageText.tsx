@@ -13,6 +13,7 @@ type ImageSpace = {
   dire: "left" | "right" | "top" | "bottom";
   space: number;
   unit?: "%" | "px";
+  scale?: string;
 };
 
 const BackgroundImageText: React.FC<BackgroundImageTextProps> = ({
@@ -52,17 +53,29 @@ const imageClassName = (dire: ImageSpace["dire"]) => {
 };
 
 const imageStyle = (imageSpace: ImageSpace): React.CSSProperties | null => {
-  const { dire, space, unit = "px" } = imageSpace;
+  const { dire, space, unit = "px", scale = "100%" } = imageSpace;
 
   switch (dire) {
     case "top":
-      return { paddingTop: `${space}${unit}` };
+      return {
+        paddingTop: `${space}${unit}`,
+        backgroundSize: `auto ${scale}`,
+      };
     case "right":
-      return { paddingRight: `${space}${unit}` };
+      return {
+        paddingRight: `${space}${unit}`,
+        backgroundSize: `auto ${scale}`,
+      };
     case "bottom":
-      return { paddingBottom: `${space}${unit}` };
+      return {
+        paddingBottom: `${space}${unit}`,
+        backgroundSize: `auto ${scale}`,
+      };
     case "left":
-      return { paddingLeft: `${space}${unit}` };
+      return {
+        paddingLeft: `${space}${unit}`,
+        backgroundSize: `auto ${scale}`,
+      };
     default:
       return null;
   }
