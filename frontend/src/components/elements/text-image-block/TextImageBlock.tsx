@@ -29,7 +29,7 @@ const TextImageBlock: React.FC<TextImageBlockProps> = ({
     titleElement = (
       <BackgroundImageText
         as={titleAs}
-        imagePath="/1.svg"
+        imagePath={imagePath}
         className="text-black text-xl font-bold"
         imageSpace={{ dire: "left", space: 20, scale: "50%" }}
       >

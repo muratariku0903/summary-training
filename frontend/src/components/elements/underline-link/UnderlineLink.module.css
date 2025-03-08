@@ -16,5 +16,5 @@
 }
 
 .custom-underline:hover::after {
-  background-color: black; /* ホバー時にアンダーラインを黒に */
+  background-color: var(--bg-color);
 }
