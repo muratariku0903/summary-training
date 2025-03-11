@@ -60,6 +60,7 @@ export default function Home() {
                   </>
                 ),
                 imagePath: "/1.svg",
+                textClassName: "bg-white",
               }}
               image={
                 <Image
@@ -86,6 +87,7 @@ export default function Home() {
                   </>
                 ),
                 imagePath: "/2.svg",
+                textClassName: "bg-white",
               }}
               image={
                 <Image
@@ -110,6 +112,7 @@ export default function Home() {
                   </>
                 ),
                 imagePath: "/3.svg",
+                textClassName: "bg-white",
               }}
               image={
                 <Image

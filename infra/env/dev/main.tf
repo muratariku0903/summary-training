@@ -6,3 +6,7 @@ module "iam" {
   tf_state_bucket = "summary-training-tf-state"
 }
 
+module "supabase" {
+  source          = "../../modules/supabase"
+  supabase_org_id = env("SUPABASE_ORG_ID")
+}

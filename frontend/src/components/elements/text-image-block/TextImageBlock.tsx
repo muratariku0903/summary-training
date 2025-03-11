@@ -13,11 +13,12 @@ type TextProps = {
   titleAs?: keyof JSX.IntrinsicElements;
   description: React.ReactNode;
   imagePath?: string;
+  textClassName?: string;
 };
 
 const TextImageBlock: React.FC<TextImageBlockProps> = ({
   dire,
-  text: { title, titleAs = "h3", description, imagePath },
+  text: { title, titleAs = "h3", description, imagePath, textClassName = "" },
   image,
   className = "",
 }) => {
@@ -41,7 +42,9 @@ const TextImageBlock: React.FC<TextImageBlockProps> = ({
   const textElement = (
     <div className="flex flex-col justify-end items-center sm:w-1/2">
       <div>
-        <div className="border border-black px-8 py-2 rounded-lg inline-block">
+        <div
+          className={`border border-black px-8 py-2 rounded-lg inline-block ${textClassName}`}
+        >
           {titleElement}
         </div>
       </div>
