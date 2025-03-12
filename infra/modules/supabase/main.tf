@@ -7,6 +7,7 @@ terraform {
   }
 }
 
+# supabaseプロジェクトを作成
 resource "supabase_project" "summary_training" {
   name = "summary-training"
 

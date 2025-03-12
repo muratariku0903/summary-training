@@ -6,12 +6,12 @@ module "iam" {
   tf_state_bucket = "summary-training-tf-state"
 }
 
-module "supabase" {
-  source          = "../../modules/supabase"
-  supabase_org_id = var.supabase_org_id
-  supabase_database_password = var.supabase_database_password
+# module "supabase" {
+#   source          = "../../modules/supabase"
+#   supabase_org_id = var.supabase_org_id
+#   supabase_database_password = var.supabase_database_password
 
-  providers = {
-    supabase = supabase
-  }
-}
+#   providers = {
+#     supabase = supabase
+#   }
+# }

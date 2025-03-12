@@ -50,7 +50,7 @@ jobs:
           aws-region: ap-northeast-1
 
       - name: Setup Terraform # Terraform1.5.0をインストール
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.5.0
 
