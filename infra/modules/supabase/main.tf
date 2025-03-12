@@ -14,7 +14,7 @@ resource "supabase_project" "summary_training" {
 
   region = "ap-northeast-1"
 
-  database_password = "password"
+  database_password = "passw0rd"
 
   # optionalパラメータ（DBパスワードなどを指定したい場合）
   # db_pass = var.db_pass
