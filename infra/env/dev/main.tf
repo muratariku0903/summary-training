@@ -9,4 +9,8 @@ module "iam" {
 module "supabase" {
   source          = "../../modules/supabase"
   supabase_org_id = env("SUPABASE_ORG_ID")
+
+  providers = {
+    supabase = supabase
+  }
 }
