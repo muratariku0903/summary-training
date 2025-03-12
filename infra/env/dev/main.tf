@@ -9,6 +9,7 @@ module "iam" {
 module "supabase" {
   source          = "../../modules/supabase"
   supabase_org_id = var.supabase_org_id
+  supabase_database_password = var.supabase_database_password
 
   providers = {
     supabase = supabase

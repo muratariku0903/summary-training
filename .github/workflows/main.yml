@@ -64,6 +64,7 @@ jobs:
         env:
           TF_VAR_supabase_access_token: ${{secrets.SUPABASE_ACCESS_TOKEN}}
           TF_VAR_supabase_org_id: ${{secrets.SUPABASE_ORG_ID}}
+          TF_VAR_supabase_database_password: ${{secrets.SUPABASE_DATABASE_PASSWORD}}
 
       - name: Apply Terraform # リソース作成(環境変数としてAWSの認証情報を設定)
         run: terraform apply -auto-approve
@@ -71,6 +72,7 @@ jobs:
         env:
           TF_VAR_supabase_access_token: ${{secrets.SUPABASE_ACCESS_TOKEN}}
           TF_VAR_supabase_org_id: ${{secrets.SUPABASE_ORG_ID}}
+          TF_VAR_supabase_database_password: ${{secrets.SUPABASE_DATABASE_PASSWORD}}
 
       - name: Deploy to Vercel # Vercelへのデプロイ
         uses: amondnet/vercel-action@v20 # 内部でVercel CLIを自動インストール

@@ -8,3 +8,9 @@ variable "supabase_org_id" {
   type        = string
   description = "SupabaseのOrganization ID"
 }
+
+variable "supabase_database_password" {
+  type        = string
+  description = "DBのパスワード"
+  sensitive   = true
+}
