@@ -17,5 +17,5 @@ provider "aws" {
 }
 
 provider "supabase" {
-  access_token = env("SUPABASE_ACCESS_TOKEN")
+  access_token = var.supabase_access_token
 }
