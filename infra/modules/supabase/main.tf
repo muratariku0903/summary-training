@@ -1,3 +1,4 @@
+# 定義がprovider.tfと重複しているがmodule配下にも定義しないと参照するterraformレポジトリの場所が合わなくなる
 terraform {
   required_providers {
     supabase = {
