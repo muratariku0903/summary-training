@@ -8,8 +8,11 @@ terraform {
 }
 
 # supabaseプロジェクトを作成
+# 基本的プロジェクト作成後、変数を後から更新することはできない
+# そのため、プロジェクト設定を変更したい場合はモジュールを呼び出してる箇所をコメントアウトし一度リソース自体を削除して再作成する必要がある。
+# supabaseでは各環境ごとにプロジェクトを作成することが推奨されている
 resource "supabase_project" "summary_training" {
-  name = "summary-training"
+  name = "summary-training-dev"
 
   organization_id = var.supabase_org_id
 
@@ -17,6 +20,7 @@ resource "supabase_project" "summary_training" {
 
   database_password = var.supabase_database_password
 
-  # optionalパラメータ（DBパスワードなどを指定したい場合）
-  # db_pass = var.db_pass
+  lifecycle {
+    ignore_changes = [database_password]
+  }
 }
