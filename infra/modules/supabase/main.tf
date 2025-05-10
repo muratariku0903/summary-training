@@ -24,3 +24,8 @@ resource "supabase_project" "summary_training" {
     ignore_changes = [database_password]
   }
 }
+
+output "project_id" {
+  description = "The Supabase project ID"
+  value       = supabase_project.this.id
+}
