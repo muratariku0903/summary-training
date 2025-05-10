@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "env:dev": "cp supabase/config.dev.toml supabase/config.toml && cp supabase/.env.dev supabase/.env",
+    "env:prod": "cp supabase/config.prod.toml supabase/config.toml && cp supabase/.env.prod supabase/.env"
   },
   "dependencies": {
     "next": "15.1.5",

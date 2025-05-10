@@ -14,3 +14,8 @@ variable "supabase_database_password" {
   description = "DBのパスワード"
   sensitive   = true
 }
+
+variable "supabase_database_env" {
+  type        = string
+  description = "DBの環境"
+}

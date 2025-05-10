@@ -38,6 +38,11 @@ jobs:
     name: Deploy Infrastructure and App
     runs-on: ubuntu-latest # GitHub提供の Ubuntu環境の仮想マシンで実行
     needs: setup # 「setup」ジョブが成功した場合にのみ実行
+    env:
+      TF_VAR_supabase_access_token: ${{secrets.SUPABASE_ACCESS_TOKEN}}
+      TF_VAR_supabase_org_id: ${{secrets.SUPABASE_ORG_ID}}
+      TF_VAR_supabase_database_password: ${{secrets.SUPABASE_DATABASE_PASSWORD}}
+      TF_VAR_supabase_database_env: ${{ github.ref == 'refs/heads/prod' && 'prod' || 'dev' }}
     steps:
       - name: Checkout repository # 「setup」ジョブとは異なるランナーが使用されるので再度ソースコードをダウンロード
         uses: actions/checkout@v3
@@ -61,18 +66,10 @@ jobs:
       - name: Plan Terraform # AWSにどのようなリソースが作成・変更されるかを確認
         run: terraform plan
         working-directory: infra/env/dev
-        env:
-          TF_VAR_supabase_access_token: ${{secrets.SUPABASE_ACCESS_TOKEN}}
-          TF_VAR_supabase_org_id: ${{secrets.SUPABASE_ORG_ID}}
-          TF_VAR_supabase_database_password: ${{secrets.SUPABASE_DATABASE_PASSWORD}}
-
+        
       - name: Apply Terraform # リソース作成(環境変数としてAWSの認証情報を設定)
         run: terraform apply -auto-approve
         working-directory: infra/env/dev
-        env:
-          TF_VAR_supabase_access_token: ${{secrets.SUPABASE_ACCESS_TOKEN}}
-          TF_VAR_supabase_org_id: ${{secrets.SUPABASE_ORG_ID}}
-          TF_VAR_supabase_database_password: ${{secrets.SUPABASE_DATABASE_PASSWORD}}
 
       - name: Deploy to Vercel # Vercelへのデプロイ
         uses: amondnet/vercel-action@v20 # 内部でVercel CLIを自動インストール
