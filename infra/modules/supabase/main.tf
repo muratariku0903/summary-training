@@ -27,5 +27,5 @@ resource "supabase_project" "summary_training" {
 
 output "project_id" {
   description = "The Supabase project ID"
-  value       = supabase_project.this.id
+  value       = supabase_project.summary_training.id
 }
