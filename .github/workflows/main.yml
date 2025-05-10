@@ -43,6 +43,7 @@ jobs:
       TF_VAR_supabase_org_id: ${{secrets.SUPABASE_ORG_ID}}
       TF_VAR_supabase_database_password: ${{secrets.SUPABASE_DATABASE_PASSWORD}}
       TF_VAR_supabase_database_env: ${{ github.ref == 'refs/heads/prod' && 'prod' || 'dev' }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
     steps:
       - name: Checkout repository # 「setup」ジョブとは異なるランナーが使用されるので再度ソースコードをダウンロード
         uses: actions/checkout@v3
@@ -66,10 +67,32 @@ jobs:
       - name: Plan Terraform # AWSにどのようなリソースが作成・変更されるかを確認
         run: terraform plan
         working-directory: infra/env/dev
-        
+
       - name: Apply Terraform # リソース作成(環境変数としてAWSの認証情報を設定)
         run: terraform apply -auto-approve
         working-directory: infra/env/dev
+
+      - name: Export Supabase project_ref # 作成したSupabaseのプロジェクトIDをGithub環境変数にエクスポート（プロジェクトIDは後続のステップで参照）、事前にtfファイルでoutputを定義しておく
+        id: tf_out
+        run: |
+          echo "project_ref=$(terraform output -raw supabase_project_ref)" >> "$GITHUB_OUTPUT"
+        working-directory: infra/env/dev
+
+      - name: Install Supabase CLI # Supabase CLIをインストール
+        run: |
+          run: |
+          curl -sSL https://github.com/supabase/cli/releases/download/v2.41.0/supabase_2.41.0_linux_amd64.tar.gz -o sbcli.tgz
+          tar -xzf sbcli.tgz supabase && sudo mv supabase /usr/local/bin/
+          supabase --version
+      
+      - name: Link Supabase project (non-interactive) #  Supabaseに接続
+        run: |
+          supabase link --project-ref "${{ steps.tf_out.outputs.project_ref }}" \
+                        --password "${{ secrets.SUPABASE_DATABASE_PASSWORD }}"
+
+      - name: Run migrations + seed # Supabaseにマイグレーション実行
+        run: |
+          supabase db push --include-seed --project-ref "${{ steps.tf_out.outputs.project_ref }}"
 
       - name: Deploy to Vercel # Vercelへのデプロイ
         uses: amondnet/vercel-action@v20 # 内部でVercel CLIを自動インストール
