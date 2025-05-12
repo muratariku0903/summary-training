@@ -78,12 +78,16 @@ jobs:
           echo "project_ref=$(terraform output -raw supabase_project_ref)" >> "$GITHUB_OUTPUT"
         working-directory: infra/env/dev
 
-      - name: Install Supabase CLI # Supabase CLIをインストール
-        run: |
-          curl -sSL https://github.com/supabase/cli/releases/download/v2.41.0/supabase_2.41.0_linux_amd64.tar.gz -o sbcli.tgz
-          tar -xzf sbcli.tgz supabase && sudo mv supabase /usr/local/bin/
-          supabase --version
-      
+      # - name: Install Supabase CLI # Supabase CLIをインストール
+      #   run: |
+      #     curl -sSL https://github.com/supabase/cli/releases/download/v2.41.0/supabase_2.41.0_linux_amd64.tar.gz -o sbcli.tgz
+      #     tar -xzf sbcli.tgz supabase && sudo mv supabase /usr/local/bin/
+      #     supabase --version
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
       - name: Link Supabase project (non-interactive) #  Supabaseに接続
         run: |
           supabase link --project-ref "${{ steps.tf_out.outputs.project_ref }}" \
