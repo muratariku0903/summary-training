@@ -52,6 +52,7 @@ jobs:
       SUPABASE_PROJECT_ID: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_PROJECT_ID_PROD || secrets.SUPABASE_PROJECT_ID_DEV }}
       SUPABASE_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_URL_PROD || secrets.SUPABASE_URL_DEV }}
       SUPABASE_DATABASE_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_DATABASE_URL_PROD || secrets.SUPABASE_DATABASE_URL_DEV }}
+      SUPABASE_SESSION_POOLER_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_SESSION_POOLER_URL_PROD || secrets.SUPABASE_SESSION_POOLER_URL_DEV }}
       SUPABASE_ANON_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_ANON_KEY_PROD || secrets.SUPABASE_ANON_KEY_DEV }}
     steps:
       - name: Checkout repository # 「setup」ジョブとは異なるランナーが使用されるので再度ソースコードをダウンロード
@@ -105,7 +106,7 @@ jobs:
 
       - name: Run migrations + seed # Supabaseにマイグレーション実行
         run: |
-          supabase db push --include-seed --db-url "${{env.SUPABASE_DATABASE_URL}}"
+          supabase db push --include-seed --db-url "${{env.SUPABASE_SESSION_POOLER_URL}}"
         working-directory: frontend/supabase
 
       - name: Deploy to Vercel # Vercelへのデプロイ
