@@ -21,7 +21,8 @@ resource "supabase_project" "summary_training" {
   database_password = var.supabase_database_password
 
   lifecycle {
-    ignore_changes = [database_password]
+    prevent_destroy = true
+    ignore_changes  = [database_password]
   }
 }
 
