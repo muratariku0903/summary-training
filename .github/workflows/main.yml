@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 on:
   push: # PR をマージしたときも、GitHub 上では「マージ先ブランチへの push」が発生
     branches:
-      - '*'
+      - "*"
 
 permissions:
   id-token: write # OIDCトークン取得を許可
@@ -34,10 +34,26 @@ jobs:
         run: npm run build
         working-directory: frontend
 
+  # 本番環境のSupabaseプロジェクトは手動で作成する
+  #　それ以外の環境については全自動でTerraformにて管理する
   deploy: # AWSリソースの作成とVercelへのデプロイ
     name: Deploy Infrastructure and App
     runs-on: ubuntu-latest # GitHub提供の Ubuntu環境の仮想マシンで実行
     needs: setup # 「setup」ジョブが成功した場合にのみ実行
+    env:
+      # ↓　Terraformからsupabaseにアクセスする用
+      TF_VAR_supabase_access_token: ${{secrets.SUPABASE_ACCESS_TOKEN}}
+      TF_VAR_supabase_org_id: ${{secrets.SUPABASE_ORG_ID}}
+      TF_VAR_supabase_database_password: ${{secrets.SUPABASE_DATABASE_PASSWORD}}
+      TF_VAR_supabase_database_env: ${{ github.ref == 'refs/heads/prod' && 'prod' || 'dev' }}
+      # ↑　Terraformからsupabaseにアクセスする用
+      ENVIRONMENT: ${{ github.ref == 'refs/heads/prod' && 'prod' || 'dev' }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_ID: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_PROJECT_ID_PROD || secrets.SUPABASE_PROJECT_ID_DEV }}
+      SUPABASE_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_URL_PROD || secrets.SUPABASE_URL_DEV }}
+      SUPABASE_DATABASE_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_DATABASE_URL_PROD || secrets.SUPABASE_DATABASE_URL_DEV }}
+      SUPABASE_SESSION_POOLER_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_SESSION_POOLER_URL_PROD || secrets.SUPABASE_SESSION_POOLER_URL_DEV }}
+      SUPABASE_ANON_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_ANON_KEY_PROD || secrets.SUPABASE_ANON_KEY_DEV }}
     steps:
       - name: Checkout repository # 「setup」ジョブとは異なるランナーが使用されるので再度ソースコードをダウンロード
         uses: actions/checkout@v3
@@ -50,21 +66,48 @@ jobs:
           aws-region: ap-northeast-1
 
       - name: Setup Terraform # Terraform1.5.0をインストール
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.5.0
 
       - name: Initialize Terraform # Terraform を 初期化 し、リモートバックエンド（S3など）やプロバイダー情報（AWSなど）を取得
         run: terraform init
-        working-directory: infra/env/dev
+        working-directory: infra/env/${{env.ENVIRONMENT}}
 
       - name: Plan Terraform # AWSにどのようなリソースが作成・変更されるかを確認
         run: terraform plan
-        working-directory: infra/env/dev
+        working-directory: infra/env/${{env.ENVIRONMENT}}
 
       - name: Apply Terraform # リソース作成(環境変数としてAWSの認証情報を設定)
         run: terraform apply -auto-approve
-        working-directory: infra/env/dev
+        working-directory: infra/env/${{env.ENVIRONMENT}}
+
+      - name: Setup Supabase CLI # Supabase CLIをインストール
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Prepare Supabase config # Supabaseのconfig.tomlと.envをセットアップ
+        run: |
+          echo "Using Supabase config for '${{env.ENVIRONMENT}}'"
+          cp config.${{env.ENVIRONMENT}}.toml config.toml
+          cat <<EOF > .env
+          SUPABASE_URL=${{env.SUPABASE_URL}}
+          SUPABASE_ANON_KEY=${{env.SUPABASE_ANON_KEY}}
+          DATABASE_URL=${{env.SUPABASE_DATABASE_URL}}
+          EOF
+        working-directory: frontend/supabase
+
+      - name: Link Supabase project (non-interactive) #  Supabaseに接続
+        run: |
+          supabase link --project-ref "${{ env.SUPABASE_PROJECT_ID}}" \
+                        --password "${{ secrets.SUPABASE_DATABASE_PASSWORD }}"
+        working-directory: frontend/supabase
+
+      - name: Run migrations + seed # Supabaseにマイグレーション実行
+        run: |
+          supabase db push --include-seed --db-url "${{env.SUPABASE_SESSION_POOLER_URL}}"
+        working-directory: frontend/supabase
 
       - name: Deploy to Vercel # Vercelへのデプロイ
         uses: amondnet/vercel-action@v20 # 内部でVercel CLIを自動インストール

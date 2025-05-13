@@ -1,0 +1,17 @@
+.full-screen {
+  position: relative;
+}
+
+.full-screen:after {
+  position: absolute;
+  display: block;
+  content: "";
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100%;
+  margin-right: calc(50% - 50vw);
+  margin-left: calc(50% - 50vw);
+  background-color: var(--bg-color);
+  z-index: -1;
+}

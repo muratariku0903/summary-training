@@ -1,0 +1,5 @@
+project_id = "summary-training-dev"
+
+[db.seed]
+enabled   = true
+sql_paths = ['./seeds/*.sql']

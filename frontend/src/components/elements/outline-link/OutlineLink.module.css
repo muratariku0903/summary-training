@@ -1,0 +1,13 @@
+.outline-link {
+  text-decoration: none;
+  color: black;
+  font-weight: bold;
+  padding: 8px 16px;
+  border: 2px solid black;
+}
+
+.outline-link:hover {
+  background-color: black;
+  color: white;
+  cursor: pointer;
+}

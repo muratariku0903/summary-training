@@ -1,0 +1,13 @@
+.backgroundImageTextRight {
+  display: inline-block;
+  background-size: contain;
+  background-position: right center;
+  background-repeat: no-repeat;
+}
+
+.backgroundImageTextLeft {
+  display: inline-block;
+  background-size: contain;
+  background-position: left center;
+  background-repeat: no-repeat;
+}

@@ -1,0 +1,20 @@
+.custom-underline {
+  position: relative;
+  cursor: pointer;
+}
+
+.custom-underline::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0; 
+  width: 80%;
+  height: 2px;
+  background-color: transparent; /* 初期状態では透明 */
+  display: inline-block;
+}
+
+.custom-underline:hover::after {
+  background-color: var(--bg-color);
+}
