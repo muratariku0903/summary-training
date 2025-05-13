@@ -93,16 +93,18 @@ jobs:
           SUPABASE_ANON_KEY=${{env.SUPABASE_ANON_KEY}}
           DATABASE_URL=${{env.SUPABASE_DATABASE_URL}}
           EOF
-        working-directory: supabase
+        working-directory: frontend/supabase
 
       - name: Link Supabase project (non-interactive) #  Supabaseに接続
         run: |
           supabase link --project-ref "${{ env.SUPABASE_PROJECT_ID}}" \
                         --password "${{ secrets.SUPABASE_DATABASE_PASSWORD }}"
+        working-directory: frontend/supabase
 
       - name: Run migrations + seed # Supabaseにマイグレーション実行
         run: |
           supabase db push --include-seed --project-ref "${{ env.SUPABASE_PROJECT_ID }}"
+        working-directory: frontend/supabase
 
       - name: Deploy to Vercel # Vercelへのデプロイ
         uses: amondnet/vercel-action@v20 # 内部でVercel CLIを自動インストール
