@@ -41,10 +41,12 @@ jobs:
     runs-on: ubuntu-latest # GitHub提供の Ubuntu環境の仮想マシンで実行
     needs: setup # 「setup」ジョブが成功した場合にのみ実行
     env:
+      # ↓　Terraformからsupabaseにアクセスする用
       TF_VAR_supabase_access_token: ${{secrets.SUPABASE_ACCESS_TOKEN}}
       TF_VAR_supabase_org_id: ${{secrets.SUPABASE_ORG_ID}}
       TF_VAR_supabase_database_password: ${{secrets.SUPABASE_DATABASE_PASSWORD}}
       TF_VAR_supabase_database_env: ${{ github.ref == 'refs/heads/prod' && 'prod' || 'dev' }}
+      # ↑　Terraformからsupabaseにアクセスする用
       ENVIRONMENT: ${{ github.ref == 'refs/heads/prod' && 'prod' || 'dev' }}
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_PROJECT_ID: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_PROJECT_ID_PROD || secrets.SUPABASE_PROJECT_ID_DEV }}
@@ -103,7 +105,7 @@ jobs:
 
       - name: Run migrations + seed # Supabaseにマイグレーション実行
         run: |
-          supabase db push --include-seed --project-ref "${{ env.SUPABASE_PROJECT_ID }}"
+          supabase db push --include-seed"
         working-directory: frontend/supabase
 
       - name: Deploy to Vercel # Vercelへのデプロイ
