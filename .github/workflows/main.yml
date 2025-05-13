@@ -105,7 +105,7 @@ jobs:
 
       - name: Run migrations + seed # Supabaseにマイグレーション実行
         run: |
-          supabase db push --include-seed
+          supabase db push --include-seed --db-url "${{env.SUPABASE_DATABASE_URL}}"
         working-directory: frontend/supabase
 
       - name: Deploy to Vercel # Vercelへのデプロイ
