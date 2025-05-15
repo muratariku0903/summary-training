@@ -5,7 +5,8 @@
       "*": false,
       "feat-*": true,
       "develop": true,
-      "main": true
+      "main": true,
+      "prod": true
     }
   }
 }
