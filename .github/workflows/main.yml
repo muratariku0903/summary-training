@@ -104,7 +104,7 @@ jobs:
                         --password "${{ secrets.SUPABASE_DATABASE_PASSWORD }}"
         working-directory: frontend/supabase
 
-      - name: Run migrations + seed # Supabaseにマイグレーション実行
+      - name: Run migrations + seed # Supabaseにマイグレーション実行 DB接続はマイグレーション用にSessionPooler（port 5432）を使用
         run: |
           supabase db push --include-seed --db-url "${{env.SUPABASE_SESSION_POOLER_URL}}"
         working-directory: frontend/supabase
