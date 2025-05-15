@@ -115,5 +115,7 @@ jobs:
           vercel-token: ${{secrets.VERCEL_TOKEN}}
           vercel-org-id: ${{secrets.VERCEL_TEAM_ID}}
           vercel-project-id: ${{secrets.VERCEL_PROJECT_ID}}
-          vercel-args: "--yes"
+          # main または prod ブランチなら --prod を付けて本番デプロイ
+          # それ以外（develop, feat-…）はプレビュー (--yes のみ)
+          vercel-args: ${{(github.ref == 'refs/heads/main' || github.ref == 'refs/heads/prod') && '--prod --yes' || '--yes' }}
           working-directory: frontend
