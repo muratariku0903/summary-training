@@ -1,0 +1,30 @@
+name: Remove Vercel Preview on Branch Deletion
+
+on:
+  delete:
+
+jobs:
+  cleanup-preview:
+    # ブランチ削除イベントかつ feat/ で始まるブランチのみ実行
+    if: >
+      github.event.ref_type == 'branch' &&
+      startsWith(github.event.ref, 'feat-')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Delete Vercel Preview Deployment
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          # ご自身の Vercel プロジェクト名（vercel.json の "name" と同じ）
+          VERCEL_PROJECT_NAME: summary-training
+        run: |
+          # ブランチ名取得 (例: feat-awesome-feature)
+          BRANCH="${{ github.event.ref }}"
+          # URL 用にスラッシュをハイフンに置換 (feat-awesome-feature)
+          SAFE_BRANCH="${BRANCH//\//-}"
+          # フル URL を組み立て
+          DEPLOY_URL="${SAFE_BRANCH}.${VERCEL_PROJECT_NAME}.vercel.app"
+          echo "Removing deployment: $DEPLOY_URL"
+          vercel remove "$DEPLOY_URL" --token "$VERCEL_TOKEN" --yes

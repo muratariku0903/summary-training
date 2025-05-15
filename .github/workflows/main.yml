@@ -113,5 +113,7 @@ jobs:
         uses: amondnet/vercel-action@v20 # 内部でVercel CLIを自動インストール
         with:
           vercel-token: ${{secrets.VERCEL_TOKEN}}
-          vercel-args: "--prod --yes --name=summary-training"
+          vercel-org-id: ${{secrets.VERCEL_TEAM_ID}}
+          vercel-project-id: ${{secrets.VERCEL_PROJECT_ID}}
+          vercel-args: "--yes"
           working-directory: frontend
