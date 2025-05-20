@@ -208,9 +208,7 @@ export default function Home() {
           </div>
         </div>
       </Main>
-      <FullScreenBGC backgroundColor='bg-gray-800'>
-        <Footer />
-      </FullScreenBGC>
+      <Footer />
     </div>
   );
 }
