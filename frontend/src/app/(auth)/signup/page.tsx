@@ -1,67 +1,83 @@
-'use client';
+'use client'
 
-import { FormEvent, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Header from '@/components/layouts/header/Header';
-import Footer from '@/components/layouts/footer/Footer';
-import Main from '@/components/layouts/main/Main';
-import ReversalButton from '@/components/elements/reversal-button/ReversalButton';
-import TextInput from '@/components/elements/text-input/TextInput';
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Header from '@/components/layouts/header/Header'
+import Footer from '@/components/layouts/footer/Footer'
+import Main from '@/components/layouts/main/Main'
+import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
+import TextInput from '@/components/elements/text-input/TextInput'
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Spacer } from '@/components/elements/spacer/Spacer'
 // import { supabase } from "@/lib/supabase";
 
 export default function SignUpPage() {
-  const router = useRouter();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<SignUpInput>({ resolver: zodResolver(signUpSchema) })
+
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
+  // const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const onSubmit = async (data: SignUpInput) => {
+    setSubmitError(null)
+    // const { error } = await supabase.auth.signUp({
+    //   email: data.email,
+    //   password: data.password,
+    //   options: { data: { username: data.username } }, // 任意メタデータ
+    // })
+
+    // if (error) {
+    //   setSubmitError(error.message)
+    //   return
+    // }
+    // router.push('/auth/mfa/enroll')
+  }
 
   return (
     <>
       <Header enableMenu={false} />
       <Main>
-        <div className='flex justify-center'>
+        <div className='flex justify-center py-4'>
           <form
-            onSubmit={handleSubmit}
+            onSubmit={handleSubmit(onSubmit)}
             className='w-full max-w-sm space-y-4 bg-white p-6 border-2 border-black'
           >
             <h1 className='text-center text-2xl font-semibold'>新規登録</h1>
             <TextInput
-              id='name'
               labelText='ユーザーネーム'
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              {...register('userName')}
+              errorMessage={errors['userName']?.message}
             />
             <TextInput
-              id='email'
-              type='email'
               labelText='メールアドレス'
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              {...register('email')}
+              errorMessage={errors['email']?.message}
             />
             <TextInput
-              id='password'
-              type='password'
               labelText='パスワード'
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              {...register('password')}
+              errorMessage={errors['password']?.message}
             />
             <TextInput
-              id='confirmPassword'
-              type='password'
               labelText='パスワード（確認用）'
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              {...register('confirmPassword')}
+              errorMessage={errors['confirmPassword']?.message}
             />
-            {error && <p className='text-sm text-red-600'>{error}</p>}
-            <ReversalButton label='登録' className='w-full' />
+            <Spacer size={4} />
+            <ReversalButton label='登録' className='w-full' border />
             <p className='text-center text-sm'>
               すでにアカウントをお持ちの方は{' '}
               <a
                 href='/auth/login'
-                className='font-medium text-indigo-600 hover:underline'
+                className='text-xs font-medium text-indigo-600 hover:underline'
               >
                 こちら
               </a>
@@ -71,21 +87,23 @@ export default function SignUpPage() {
       </Main>
       <Footer />
     </>
-  );
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-
-    const { error } = await supabase.auth.signUp({ email, password });
-
-    setLoading(false);
-    if (error) {
-      setError(error.message);
-      return;
-    }
-    // 成功 → TOTP 登録ページへ
-    router.push('/auth/mfa/enroll');
-  }
+  )
 }
+
+const signUpSchema = z
+  .object({
+    userName: z.string().min(2, '2文字以上で入力してください'),
+    email: z.string().email('メール形式で入力してください'),
+    password: z
+      .string()
+      .min(8, '8 文字以上で入力してください')
+      .regex(/[A-Z]/, '大文字を1文字以上含めてください')
+      .regex(/[a-z]/, '小文字を1文字以上含めてください')
+      .regex(/[0-9]/, '数字を1文字以上含めてください'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'パスワードが一致しません',
+    path: ['confirmPassword'],
+  })
+type SignUpInput = z.infer<typeof signUpSchema>
