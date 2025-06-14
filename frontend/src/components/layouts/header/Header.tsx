@@ -1,10 +1,10 @@
-import ReversalLink from '@/components/elements/reversal-link/ReversalLink';
-import { Spacer } from '@/components/elements/spacer/Spacer';
-import UnderlineLink from '@/components/elements/underline-link/UnderlineLink';
+import ReversalLink from '@/components/elements/reversal-link/ReversalLink'
+import { Spacer } from '@/components/elements/spacer/Spacer'
+import UnderlineLink from '@/components/elements/underline-link/UnderlineLink'
 
 type HeaderProps = {
-  enableMenu?: boolean;
-};
+  enableMenu?: boolean
+}
 
 const Header: React.FC<HeaderProps> = ({ enableMenu = true }) => {
   return (
@@ -18,13 +18,13 @@ const Header: React.FC<HeaderProps> = ({ enableMenu = true }) => {
           <Spacer size={8} horizontal />
           <UnderlineLink label='メリット' href='#' />
           <Spacer size={40} horizontal />
-          <ReversalLink label='ログイン' />
+          <ReversalLink label='ログイン' href='/login' />
           <Spacer size={8} horizontal />
-          <ReversalLink label='新規登録' />
+          <ReversalLink label='新規登録' href='/signup' />
         </div>
       )}
     </header>
-  );
-};
+  )
+}
 
 export default Header

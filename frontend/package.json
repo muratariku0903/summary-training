@@ -2,16 +2,21 @@
   "name": "summary-training",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "env:dev": "cp supabase/config.dev.toml supabase/config.toml && cp supabase/.env.dev supabase/.env",
-    "env:prod": "cp supabase/config.prod.toml supabase/config.toml && cp supabase/.env.prod supabase/.env"
+    "env:prod": "cp supabase/config.prod.toml supabase/config.toml && cp supabase/.env.prod supabase/.env",
+    "generate-openapi": "cross-env  GENERATE_OPENAPI=true tsx scripts/generate-openapi.ts"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^7.3.2",
     "@hookform/resolvers": "^5.0.1",
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.49.8",
     "next": "^15.3.2",
     "next-auth": "^4.24.11",
     "react": "^19.0.0",
@@ -24,10 +29,14 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^7.0.3",
     "eslint": "^9",
     "eslint-config-next": "15.1.5",
+    "openapi-typescript": "^7.8.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.4",
     "typescript": "^5"
   }
 }

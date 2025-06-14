@@ -11,6 +11,9 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Spacer } from '@/components/elements/spacer/Spacer'
+import { ApiError } from 'next/dist/server/api-utils'
+import { isRequestError, post } from '@/lib/api/client'
+import { SignUpPostRequest, SignUpPostResponse } from '@/app/api/auth/signup/route'
 // import { supabase } from "@/lib/supabase";
 
 export default function SignUpPage() {
@@ -27,13 +30,29 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null)
 
   const onSubmit = async (data: SignUpInput) => {
-    setSubmitError(null)
+    // setSubmitError(null)
+    const request: SignUpPostRequest = {
+      userName: data.userName,
+      email: data.email,
+      password: data.password,
+    }
+    try {
+      const res = await post('/auth/signup', request)
+      if (isRequestError(res)) {
+        console.log(res)
+
+        return
+      }
+      console.log('data', res.data)
+    } catch (e) {
+      console.log(e)
+    }
+
     // const { error } = await supabase.auth.signUp({
     //   email: data.email,
     //   password: data.password,
     //   options: { data: { username: data.username } }, // 任意メタデータ
     // })
-
     // if (error) {
     //   setSubmitError(error.message)
     //   return
@@ -76,7 +95,7 @@ export default function SignUpPage() {
             <p className='text-center text-sm'>
               すでにアカウントをお持ちの方は{' '}
               <a
-                href='/auth/login'
+                href='/login'
                 className='text-xs font-medium text-indigo-600 hover:underline'
               >
                 こちら

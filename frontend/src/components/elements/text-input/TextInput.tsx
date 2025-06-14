@@ -13,8 +13,6 @@ const TextInput: React.FC<TextInputProps> = ({
   errorMessage,
   ...rest
 }) => {
-  console.log(`errorMessage: ${errorMessage}`)
-
   return (
     <>
       {labelText && (
