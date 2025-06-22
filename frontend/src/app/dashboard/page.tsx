@@ -9,6 +9,8 @@ import Footer from '@/components/layouts/footer/Footer'
 import type { User } from '@supabase/supabase-js'
 
 export default function DashboardPage() {
+  return <h1>this is dashboard</h1>
+
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)

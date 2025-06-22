@@ -6,6 +6,7 @@ import { browserClient as supabaseBrowserClient } from '@/lib/supabase/browserCl
 import Header from '@/components/layouts/header/Header'
 import Main from '@/components/layouts/main/Main'
 import Footer from '@/components/layouts/footer/Footer'
+import { PROTECTED_PATHS } from '@/lib/constants/routes'
 
 // この画面はSupabaseからの確認メールのリンクを押下した際に遷移
 export default function CallbackPage() {
@@ -149,7 +150,7 @@ export default function CallbackPage() {
     })
 
     // 完了後、ダッシュボードなどへリダイレクト
-    router.replace('/dashboard')
+    router.replace(PROTECTED_PATHS.DASHBOARD)
   }
 
   return (

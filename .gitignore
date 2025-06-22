@@ -45,3 +45,5 @@ next-env.d.ts
 /infra/**/.terraform
 *.tfstate
 *.tfstate.backup
+
+tmp/
