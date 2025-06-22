@@ -78,7 +78,6 @@ export const post = async <P extends PathWithPost, M extends 'get' | 'post' = 'p
   const { headers, ...rest } = options
 
   try {
-
     console.log('start post')
     const res = await fetch(`/api${url}`, {
       method: 'POST',

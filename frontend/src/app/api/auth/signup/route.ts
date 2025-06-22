@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-// import { serverClient } from '@/lib/supabase/serverClient'
+import { serverClient } from '@/lib/supabase/serverClient'
 import { z } from 'zod'
 import { BadRequest, Created, InternalError } from '@/lib/api/response'
 
@@ -25,17 +25,26 @@ export const POST = async (req: NextRequest): Promise<NextResponse> => {
 
   const { email, password, userName } = parse.data
 
-  return Created({ userId: 'userId' }).toResponse()
-  /* ① Supabase signUp -> メール確認メールが自動送信 */
-  // const { data, error } = await serverClient.auth.signUp({
-  //   email,
-  //   password,
-  //   options: { data: { userName } },
-  // })
+  // リクエストヘッダーからホストを取得
+  const host = req.headers.get('host')
+  const protocol = req.headers.get('x-forwarded-proto') || 'http'
+  const baseUrl = `${protocol}://${host}`
 
-  // if (error) {
-  //   return InternalError('Internal server error', error.message).toResponse()
-  // }
+  // Supabase signUp -> メール確認メールが自動送信
+  // ↓によると、既に登録済みのメールアドレスが指定されいる場合でもエラーが返却されないみたい。ただこれは意図的なセキュリティ対策としている
+  // https://github.com/supabase/auth-js/issues/513
+  const { data, error } = await serverClient.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { userName },
+      emailRedirectTo: `${baseUrl}/callback`,
+    },
+  })
+
+  if (error) {
+    return InternalError('Internal server error', error.message).toResponse()
+  }
   /* pending user が戻るだけ。フロントではメール確認案内へ遷移 */
-  return Created({ userId: 'userId' }).toResponse()
+  return Created({ userId: data.user?.id }).toResponse()
 }

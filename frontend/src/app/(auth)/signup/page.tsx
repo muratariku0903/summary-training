@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Header from '@/components/layouts/header/Header'
 import Footer from '@/components/layouts/footer/Footer'
 import Main from '@/components/layouts/main/Main'
@@ -11,13 +10,13 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Spacer } from '@/components/elements/spacer/Spacer'
-import { ApiError } from 'next/dist/server/api-utils'
 import { isRequestError, post } from '@/lib/api/client'
-import { SignUpPostRequest, SignUpPostResponse } from '@/app/api/auth/signup/route'
-// import { supabase } from "@/lib/supabase";
+import {
+  MessageType,
+  OutlineMessage,
+} from '@/components/elements/outline-message/OutlineMessage'
 
 export default function SignUpPage() {
-  const router = useRouter()
   const {
     register,
     handleSubmit,
@@ -25,13 +24,12 @@ export default function SignUpPage() {
   } = useForm<SignUpInput>({ resolver: zodResolver(signUpSchema) })
 
   const [submitError, setSubmitError] = useState<string | null>(null)
-
-  // const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [isSuccess, setIsSuccess] = useState(false)
 
   const onSubmit = async (data: SignUpInput) => {
-    // setSubmitError(null)
-    const request: SignUpPostRequest = {
+    setSubmitError(null)
+
+    const request = {
       userName: data.userName,
       email: data.email,
       password: data.password,
@@ -40,24 +38,38 @@ export default function SignUpPage() {
       const res = await post('/auth/signup', request)
       if (isRequestError(res)) {
         console.log(res)
-
+        setSubmitError('登録に失敗しました。入力内容をご確認ください。')
         return
       }
       console.log('data', res.data)
+      setIsSuccess(true)
     } catch (e) {
       console.log(e)
+      setSubmitError(
+        '予期しないエラーが発生しました。しばらく時間をおいて再度お試しください。'
+      )
     }
+  }
 
-    // const { error } = await supabase.auth.signUp({
-    //   email: data.email,
-    //   password: data.password,
-    //   options: { data: { username: data.username } }, // 任意メタデータ
-    // })
-    // if (error) {
-    //   setSubmitError(error.message)
-    //   return
-    // }
-    // router.push('/auth/mfa/enroll')
+  if (isSuccess) {
+    return (
+      <>
+        <Header enableMenu={false} />
+        <Main>
+          <div className='flex justify-center py-4'>
+            <div className='w-full max-w-sm bg-white p-6 border-2 border-black text-center'>
+              <h1 className='text-2xl font-semibold mb-4'>メール送信完了</h1>
+              <p className='text-gray-700 mb-6'>
+                確認メールを送信しました。
+                <br />
+                メールボックスをご確認ください。
+              </p>
+            </div>
+          </div>
+        </Main>
+        <Footer />
+      </>
+    )
   }
 
   return (
@@ -91,7 +103,15 @@ export default function SignUpPage() {
               errorMessage={errors['confirmPassword']?.message}
             />
             <Spacer size={4} />
-            <ReversalButton label='登録' className='w-full' border />
+            {submitError && (
+              <OutlineMessage message={submitError} type={MessageType.ERROR} />
+            )}
+            <ReversalButton
+              label={isSubmitting ? '登録中...' : '登録'}
+              className='w-full'
+              border
+              disable={isSubmitting}
+            />
             <p className='text-center text-sm'>
               すでにアカウントをお持ちの方は{' '}
               <a

@@ -54,6 +54,7 @@ jobs:
       SUPABASE_DATABASE_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_DATABASE_URL_PROD || secrets.SUPABASE_DATABASE_URL_DEV }}
       SUPABASE_SESSION_POOLER_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_SESSION_POOLER_URL_PROD || secrets.SUPABASE_SESSION_POOLER_URL_DEV }}
       SUPABASE_ANON_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_ANON_KEY_PROD || secrets.SUPABASE_ANON_KEY_DEV }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_SERVICE_ROLE_KEY_PROD || secrets.SUPABASE_SERVICE_ROLE_KEY_DEV }}
     steps:
       - name: Checkout repository # 「setup」ジョブとは異なるランナーが使用されるので再度ソースコードをダウンロード
         uses: actions/checkout@v3
@@ -94,6 +95,7 @@ jobs:
           cat <<EOF > .env
           SUPABASE_URL=${{env.SUPABASE_URL}}
           SUPABASE_ANON_KEY=${{env.SUPABASE_ANON_KEY}}
+          SUPABASE_SERVICE_ROLE_KEY=${{env.SUPABASE_SERVICE_ROLE_KEY}}
           DATABASE_URL=${{env.SUPABASE_DATABASE_URL}}
           EOF
         working-directory: frontend/supabase
