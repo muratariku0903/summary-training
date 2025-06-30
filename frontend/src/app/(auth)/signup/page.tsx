@@ -1,60 +1,50 @@
 'use client'
 
 import { useState } from 'react'
-import Header from '@/components/layouts/header/Header'
+import Header, { HeaderMenuType } from '@/components/layouts/header/Header'
 import Footer from '@/components/layouts/footer/Footer'
 import Main from '@/components/layouts/main/Main'
 import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
 import TextInput from '@/components/elements/text-input/TextInput'
-import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Spacer } from '@/components/elements/spacer/Spacer'
-import { isRequestError, post } from '@/lib/api/client'
 import {
   MessageType,
   OutlineMessage,
 } from '@/components/elements/outline-message/OutlineMessage'
+import { SignupInput, signupSchema } from '@/lib/supabase/auth/types'
+import { signUp } from '@/lib/supabase/auth/auth'
+import { UI_MESSAGES } from '@/lib/constants/ui'
 
 export default function SignUpPage() {
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<SignUpInput>({ resolver: zodResolver(signUpSchema) })
+  } = useForm<SignupInput>({ resolver: zodResolver(signupSchema) })
 
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isSuccess, setIsSuccess] = useState(false)
 
-  const onSubmit = async (data: SignUpInput) => {
+  const onSubmit = async (input: SignupInput) => {
     setSubmitError(null)
 
-    const request = {
-      userName: data.userName,
-      email: data.email,
-      password: data.password,
+    const { success, message } = await signUp(input)
+    console.log(message)
+    if (!success) {
+      setSubmitError(UI_MESSAGES.UNEXPECTED_ERROR)
+
+      return
     }
-    try {
-      const res = await post('/auth/signup', request)
-      if (isRequestError(res)) {
-        console.log(res)
-        setSubmitError('登録に失敗しました。入力内容をご確認ください。')
-        return
-      }
-      console.log('data', res.data)
-      setIsSuccess(true)
-    } catch (e) {
-      console.log(e)
-      setSubmitError(
-        '予期しないエラーが発生しました。しばらく時間をおいて再度お試しください。'
-      )
-    }
+
+    setIsSuccess(true)
   }
 
   if (isSuccess) {
     return (
       <>
-        <Header enableMenu={false} />
+        <Header menuType={HeaderMenuType.HIDDEN} />
         <Main>
           <div className='flex justify-center py-4'>
             <div className='w-full max-w-sm bg-white p-6 border-2 border-black text-center'>
@@ -74,7 +64,7 @@ export default function SignUpPage() {
 
   return (
     <>
-      <Header enableMenu={false} />
+      <Header menuType={HeaderMenuType.HIDDEN} />
       <Main>
         <div className='flex justify-center py-4'>
           <form
@@ -128,21 +118,3 @@ export default function SignUpPage() {
     </>
   )
 }
-
-const signUpSchema = z
-  .object({
-    userName: z.string().min(2, '2文字以上で入力してください'),
-    email: z.string().email('メール形式で入力してください'),
-    password: z
-      .string()
-      .min(8, '8 文字以上で入力してください')
-      .regex(/[A-Z]/, '大文字を1文字以上含めてください')
-      .regex(/[a-z]/, '小文字を1文字以上含めてください')
-      .regex(/[0-9]/, '数字を1文字以上含めてください'),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'パスワードが一致しません',
-    path: ['confirmPassword'],
-  })
-type SignUpInput = z.infer<typeof signUpSchema>

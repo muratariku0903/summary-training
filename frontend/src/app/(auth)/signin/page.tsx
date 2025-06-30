@@ -1,137 +1,126 @@
 'use client'
 
 import { useState } from 'react'
-import Header from '@/components/layouts/header/Header'
+import Header, { HeaderMenuType } from '@/components/layouts/header/Header'
 import Footer from '@/components/layouts/footer/Footer'
 import Main from '@/components/layouts/main/Main'
 import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
 import TextInput from '@/components/elements/text-input/TextInput'
-import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Spacer } from '@/components/elements/spacer/Spacer'
-import { isRequestError, post } from '@/lib/api/client'
 import {
   MessageType,
   OutlineMessage,
 } from '@/components/elements/outline-message/OutlineMessage'
+import { MfaFactor, SigninInput, signinSchema } from '@/lib/supabase/auth/types'
+import { signIn } from '@/lib/supabase/auth/auth'
+import { useRouter } from 'next/navigation'
+import { PROTECTED_PATHS } from '@/lib/constants/routes'
+import { UI_MESSAGES } from '@/lib/constants/ui'
+import MfaVerification from '@/components/features/auth/MfaVerification'
+import MfaSelection from '@/components/features/auth/MfaSelection'
 
 export default function SignInPage() {
+  const router = useRouter()
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<SignInInput>({ resolver: zodResolver(signInSchema) })
+  } = useForm<SigninInput>({ resolver: zodResolver(signinSchema) })
 
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const [isSuccess, setIsSuccess] = useState(false)
+  const [showMfaSelection, setShowMfaSelection] = useState(false)
+  const [selectableMFAList, setSelectableMFAList] = useState<MfaFactor[]>([])
+  const [selectedMFA, setSelectedMFA] = useState<MfaFactor | null>(null)
 
-  const onSubmit = async (data: SignInInput) => {
+  const onSubmit = async (input: SigninInput) => {
     setSubmitError(null)
 
-    const request = {
-      email: data.email,
-      password: data.password,
+    // サインイン処理
+    const { success, message, requiresMfa, mfaFactors } = await signIn(input)
+    if (!success) {
+      console.error(message)
+      setSubmitError(UI_MESSAGES.SIGNIN_FAILED_MESSAGE)
+      return
     }
 
-    try {
-      const res = await post('/auth/signin', request)
-      if (isRequestError(res)) {
-        console.log(res)
-        setSubmitError(
-          'ログインに失敗しました。メールアドレスまたはパスワードをご確認ください。'
-        )
-        return
-      }
-      console.log('data', res.data)
-      setIsSuccess(true)
-      // 成功時の処理（例：リダイレクト）
-      // router.push('/dashboard')
-    } catch (e) {
-      console.log(e)
-      setSubmitError('ログインに失敗しました。しばらく経ってからもう一度お試しください。')
+    // MFA設定をしてない場合はそのままログイン成功とみなし、ダッシュボードなどへリダイレクト
+    if (!requiresMfa) {
+      router.replace(PROTECTED_PATHS.DASHBOARD)
+      return
     }
+
+    // MFAが設定されている場合、そしてそのMFAが複数存在する場合ユーザーに検証パターンを選択させる
+    if (mfaFactors.length >= 2) {
+      setSelectableMFAList(mfaFactors)
+      setShowMfaSelection(true)
+      return
+    }
+
+    // 設定されているMFAが一つしかない場合は強制的にその検証パターンのステップに進む
+    setSelectedMFA(mfaFactors[0])
   }
 
-  if (isSuccess) {
+  // MFAの検証方法が選択されている場合はそれぞれに合わせた検証画面を表示
+  if (selectedMFA) {
     return (
       <>
-        <Header />
+        <Header menuType={HeaderMenuType.HIDDEN} />
         <Main>
-          <div className='container mx-auto max-w-md px-4 py-8'>
-            <OutlineMessage
-              message='ログインに成功しました。'
-              type={MessageType.success}
-            />
-          </div>
+          <MfaVerification selectedMFA={selectedMFA} />
         </Main>
         <Footer />
       </>
     )
   }
 
+  // MFA選択画面の表示
+  if (showMfaSelection) {
+    return (
+      <MfaSelection
+        selectableMFAList={selectableMFAList}
+        selectedMFA={selectedMFA}
+        onMfaSelect={setSelectedMFA}
+      />
+    )
+  }
+
+  // ログイン情報入力画面
   return (
     <>
-      <Header enableMenu={false} />
+      <Header menuType={HeaderMenuType.HIDDEN} />
       <Main>
-        <div className='container mx-auto max-w-md px-4 py-8'>
-          <h1 className='text-2xl font-bold text-center mb-8'>ログイン</h1>
-
-          <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-            <div>
-              <TextInput
-                label='メールアドレス'
-                type='email'
-                placeholder='example@example.com'
-                {...register('email')}
-                error={errors.email?.message}
-              />
-            </div>
-
-            <div>
-              <TextInput
-                label='パスワード'
-                type='password'
-                placeholder='パスワードを入力'
-                {...register('password')}
-                error={errors.password?.message}
-              />
-            </div>
-
-            <Spacer size={24} />
-
+        <div className='flex justify-center py-4'>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className='w-full max-w-sm space-y-4 bg-white p-6 border-2 border-black'
+          >
+            <h1 className='text-center text-2xl font-semibold'>ログイン</h1>
+            <TextInput
+              labelText='メールアドレス'
+              {...register('email')}
+              errorMessage={errors['email']?.message}
+            />
+            <TextInput
+              labelText='パスワード'
+              {...register('password')}
+              errorMessage={errors['password']?.message}
+            />
+            <Spacer size={4} />
             {submitError && (
-              <>
-                <OutlineMessage message={submitError} type={MessageType.error} />
-                <Spacer size={16} />
-              </>
+              <OutlineMessage message={submitError} type={MessageType.ERROR} />
             )}
-
-            <ReversalButton type='submit' disabled={isSubmitting} className='w-full'>
-              {isSubmitting ? 'ログイン中...' : 'ログイン'}
-            </ReversalButton>
+            <ReversalButton
+              label={isSubmitting ? 'ログイン中...' : 'ログイン'}
+              className='w-full'
+              border
+              disable={isSubmitting}
+            />
           </form>
-
-          <Spacer size={32} />
-
-          <div className='text-center'>
-            <p className='text-sm text-gray-600'>
-              アカウントをお持ちでない方は{' '}
-              <a href='/signup' className='text-blue-600 hover:text-blue-800 underline'>
-                新規登録
-              </a>
-            </p>
-          </div>
         </div>
       </Main>
       <Footer />
     </>
   )
 }
-
-const signInSchema = z.object({
-  email: z.string().email('メール形式で入力してください'),
-  password: z.string().min(1, 'パスワードを入力してください'),
-})
-
-type SignInInput = z.infer<typeof signInSchema>

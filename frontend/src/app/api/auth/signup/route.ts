@@ -13,9 +13,6 @@ export const responseSchema = z.object({
   userId: z.string(),
 })
 
-export type SignUpPostRequest = z.infer<typeof requestSchema>
-export type SignUpPostResponse = z.infer<typeof responseSchema>
-
 export const POST = async (req: NextRequest): Promise<NextResponse> => {
   const body = await req.json()
   const parse = requestSchema.safeParse(body)

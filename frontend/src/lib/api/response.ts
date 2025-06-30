@@ -87,8 +87,8 @@ export const Created = <T extends z.ZodTypeAny>(
 export const BadRequest = (msg = 'Bad request', details?: unknown) =>
   new ApiError(400, ERROR_CODES.BAD_REQUEST, msg, details)
 
-export const Unauthorized = (msg = 'Unauthorized') =>
-  new ApiError(401, ERROR_CODES.UNAUTHORIZED, msg)
+export const Unauthorized = (msg = 'Unauthorized', details?: unknown) =>
+  new ApiError(401, ERROR_CODES.UNAUTHORIZED, msg, details)
 
 export const InternalError = (msg = 'Internal server error', details?: unknown) =>
   new ApiError(500, ERROR_CODES.INTERNAL_SERVER, msg, details)
