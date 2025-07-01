@@ -1,4 +1,5 @@
 // src/lib/supabase/auth/auth.ts - 修正版
+import { PUBLIC_PATHS } from '@/lib/constants/routes'
 import { browserClient } from '../browserClient'
 import { getAvailableMfaFactors } from './mfa'
 import {
@@ -103,6 +104,8 @@ export async function signUp(input: SignupInput): Promise<SignupResponse> {
 
     const baseUrl = window.location.origin
 
+    console.log(`emailRedirectTo: ${baseUrl}${PUBLIC_PATHS.CALLBACK}`)
+
     const { data, error } = await browserClient.auth.signUp({
       email: validatedInput.email,
       password: validatedInput.password,
@@ -110,7 +113,7 @@ export async function signUp(input: SignupInput): Promise<SignupResponse> {
         data: {
           userName: validatedInput.userName,
         },
-        emailRedirectTo: `${baseUrl}/callback`,
+        emailRedirectTo: `${baseUrl}${PUBLIC_PATHS.CALLBACK}`,
       },
     })
     if (error) {
