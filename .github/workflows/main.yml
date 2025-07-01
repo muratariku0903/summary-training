@@ -22,6 +22,14 @@ jobs:
         with:
           node-version: "18"
 
+      - name: Create frontend environment file # フロントエンド用の.envファイルを生成
+        run: |
+          cat <<EOF > .env
+          NEXT_PUBLIC_SUPABASE_URL=${{env.SUPABASE_URL}}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{env.SUPABASE_ANON_KEY}}
+          EOF
+        working-directory: frontend
+
       - name: Install dependencies # 依存パッケージのインストール
         run: npm install
         working-directory: frontend
