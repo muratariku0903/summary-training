@@ -10,7 +10,7 @@
     "lint": "next lint",
     "env:dev": "cp supabase/config.dev.toml supabase/config.toml && cp supabase/.env.dev supabase/.env",
     "env:prod": "cp supabase/config.prod.toml supabase/config.toml && cp supabase/.env.prod supabase/.env",
-    "generate-openapi": "cross-env  GENERATE_OPENAPI=true tsx scripts/generate-openapi.ts"
+    "generate-openapi": "tsx scripts/generate-openapi.ts"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.2",
