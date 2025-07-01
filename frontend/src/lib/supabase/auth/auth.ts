@@ -113,6 +113,7 @@ export async function signUp(input: SignupInput): Promise<SignupResponse> {
         data: {
           userName: validatedInput.userName,
         },
+        // supabase側でリダイレクトの許可URL追加するのを忘れずに
         emailRedirectTo: `${baseUrl}${PUBLIC_PATHS.CALLBACK}`,
       },
     })
