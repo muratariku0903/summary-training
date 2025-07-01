@@ -13,6 +13,10 @@ jobs:
   setup: # 開発環境の準備とNext.jsのビルド＆テスト
     name: Setup Environment
     runs-on: ubuntu-latest # GitHub提供の Ubuntu環境の仮想マシンで実行
+    env:
+      SUPABASE_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_URL_PROD || secrets.SUPABASE_URL_DEV }}
+      SUPABASE_ANON_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_ANON_KEY_PROD || secrets.SUPABASE_ANON_KEY_DEV }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_SERVICE_ROLE_KEY_PROD || secrets.SUPABASE_SERVICE_ROLE_KEY_DEV }}
     steps:
       - name: Checkout repository # GitHubリポジトリのソースコードを 仮想マシンにダウンロード
         uses: actions/checkout@v3
