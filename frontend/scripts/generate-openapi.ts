@@ -5,10 +5,6 @@ import {
   extendZodWithOpenApi,
   OpenApiGeneratorV3,
 } from '@asteasolutions/zod-to-openapi'
-import {
-  requestSchema as SignupRequestSchema,
-  responseSchema as SignupResponseSchema,
-} from '../src/app/api/auth/signup/route.ts'
 import { responseSchema as DeleteUserResponseSchema } from '../src/app/api/user/delete/route.ts'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -70,38 +66,6 @@ registry.registerComponent('securitySchemes', 'BearerAuth', {
   description: 'Supabase JWT Token (Authorization: Bearer <token>)',
 })
 
-registry.registerPath({
-  method: 'post',
-  path: '/auth/signup',
-  summary: '新規登録',
-  request: { params: SignupRequestSchema },
-  responses: {
-    200: {
-      description: 'ユーザーID',
-      content: {
-        'application/json': {
-          schema: apiSuccessObjectSchema(SignupResponseSchema),
-        },
-      },
-    },
-    400: {
-      description: '不正リクエスト',
-      content: {
-        'application/json': {
-          schema: apiErrorObjectSchema,
-        },
-      },
-    },
-    500: {
-      description: 'サーバーエラー',
-      content: {
-        'application/json': {
-          schema: apiErrorObjectSchema,
-        },
-      },
-    },
-  },
-})
 registry.registerPath({
   method: 'delete',
   path: '/user/delete',
