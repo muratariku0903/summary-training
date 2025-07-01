@@ -16,7 +16,7 @@ import {
 import { MfaFactor, SigninInput, signinSchema } from '@/lib/supabase/auth/types'
 import { signIn } from '@/lib/supabase/auth/auth'
 import { useRouter } from 'next/navigation'
-import { PROTECTED_PATHS } from '@/lib/constants/routes'
+import { PROTECTED_PATHS, PUBLIC_PATHS } from '@/lib/constants/routes'
 import { UI_MESSAGES } from '@/lib/constants/ui'
 import MfaVerification from '@/components/features/auth/MfaVerification'
 import MfaSelection from '@/components/features/auth/MfaSelection'
@@ -120,7 +120,7 @@ export default function SignInPage() {
             />
             <div className='text-center pt-4'>
               <Link
-                href='/signup'
+                href={PUBLIC_PATHS.SIGNUP}
                 className='text-sm text-blue-600 hover:text-blue-800 underline'
               >
                 新規会員登録はこちら

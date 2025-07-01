@@ -16,6 +16,7 @@ import {
 import { SignupInput, signupSchema } from '@/lib/supabase/auth/types'
 import { signUp } from '@/lib/supabase/auth/auth'
 import { UI_MESSAGES } from '@/lib/constants/ui'
+import { PUBLIC_PATHS } from '@/lib/constants/routes'
 
 export default function SignUpPage() {
   const {
@@ -105,7 +106,7 @@ export default function SignUpPage() {
             <p className='text-center text-sm'>
               すでにアカウントをお持ちの方は{' '}
               <a
-                href='/login'
+                href={PUBLIC_PATHS.SIGNIN}
                 className='text-xs font-medium text-indigo-600 hover:underline'
               >
                 こちら
