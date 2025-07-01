@@ -5,7 +5,7 @@ import {
   extendZodWithOpenApi,
   OpenApiGeneratorV3,
 } from '@asteasolutions/zod-to-openapi'
-import { responseSchema as DeleteUserResponseSchema } from '../src/app/api/user/delete/route.ts'
+import { responseSchema as DeleteUserResponseSchema } from '../src/app/api/user/delete/schema.ts'
 import * as fs from 'fs'
 import * as path from 'path'
 import { apiErrorObjectSchema, apiSuccessObjectSchema } from '../src/lib/api/response.ts'

@@ -1,16 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { serverClient } from '@/lib/supabase/serverClient'
-import { z } from 'zod'
 import { Success, InternalError, Unauthorized } from '@/lib/api/response'
-
-export const requestSchema = z.object({
-  // リクエストボディは不要（認証ヘッダーからユーザーを特定）
-})
-
-export const responseSchema = z.object({
-  message: z.string(),
-  deletedUserId: z.string(),
-})
 
 export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
   try {
