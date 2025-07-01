@@ -113,7 +113,6 @@ export async function signUp(input: SignupInput): Promise<SignupResponse> {
         emailRedirectTo: `${baseUrl}/callback`,
       },
     })
-
     if (error) {
       console.error(AUTH_LOG_MESSAGES.SIGNUP_ERROR, error.message)
       return {
@@ -121,7 +120,6 @@ export async function signUp(input: SignupInput): Promise<SignupResponse> {
         message: error.message,
       }
     }
-
     if (!data.user) {
       return {
         success: false,

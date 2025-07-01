@@ -20,6 +20,7 @@ import { PROTECTED_PATHS } from '@/lib/constants/routes'
 import { UI_MESSAGES } from '@/lib/constants/ui'
 import MfaVerification from '@/components/features/auth/MfaVerification'
 import MfaSelection from '@/components/features/auth/MfaSelection'
+import Link from 'next/link'
 
 export default function SignInPage() {
   const router = useRouter()
@@ -117,6 +118,14 @@ export default function SignInPage() {
               border
               disable={isSubmitting}
             />
+            <div className='text-center pt-4'>
+              <Link
+                href='/signup'
+                className='text-sm text-blue-600 hover:text-blue-800 underline'
+              >
+                新規会員登録はこちら
+              </Link>
+            </div>
           </form>
         </div>
       </Main>

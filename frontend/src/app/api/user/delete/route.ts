@@ -1,0 +1,64 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { serverClient } from '@/lib/supabase/serverClient'
+import { z } from 'zod'
+import { Success, InternalError, Unauthorized } from '@/lib/api/response'
+
+export const requestSchema = z.object({
+  // リクエストボディは不要（認証ヘッダーからユーザーを特定）
+})
+
+export const responseSchema = z.object({
+  message: z.string(),
+  deletedUserId: z.string(),
+})
+
+export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
+  try {
+    console.log('🗑️ [DELETE-USER] Starting user deletion process')
+
+    // 認証ヘッダーからアクセストークンを取得
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.error('❌ [DELETE-USER] No valid authorization header')
+      return Unauthorized('Authorization header required').toResponse()
+    }
+
+    const accessToken = authHeader.replace('Bearer ', '')
+
+    // アクセストークンからユーザー情報を取得
+    const {
+      data: { user },
+      error: userError,
+    } = await serverClient.auth.getUser(accessToken)
+
+    if (userError || !user) {
+      console.error('❌ [DELETE-USER] Invalid access token:', userError?.message)
+      return Unauthorized('Invalid access token').toResponse()
+    }
+
+    console.log('✅ [DELETE-USER] User authenticated:', user.id)
+
+    // CASCADE設定により、user_profilesの手動削除は不要
+    // auth.usersを削除すると自動的にuser_profilesも削除される
+
+    // メインのユーザーアカウント削除
+    const { error: deleteError } = await serverClient.auth.admin.deleteUser(user.id)
+    if (deleteError) {
+      console.error('❌ [DELETE-USER] User deletion failed:', deleteError.message)
+      return InternalError(
+        'Failed to delete user account',
+        deleteError.message
+      ).toResponse()
+    }
+
+    console.log('✅ [DELETE-USER] User account successfully deleted:', user.id)
+
+    return Success({
+      message: 'User account has been successfully deleted',
+      deletedUserId: user.id,
+    }).toResponse()
+  } catch (error) {
+    console.error('❌ [DELETE-USER] Unexpected error:', error)
+    return InternalError('Internal server error during user deletion').toResponse()
+  }
+}

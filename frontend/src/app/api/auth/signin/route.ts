@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { serverClient } from '@/lib/supabase/serverClient'
 import { z } from 'zod'
-import {
-  BadRequest,
-  Success,
-  InternalError,
-  Unauthor,
-  Successized,
-} from '@/lib/api/response'
+import { BadRequest, Success, InternalError, Unauthorized } from '@/lib/api/response'
 
 export const requestSchema = z.object({
   email: z.string().email(),
