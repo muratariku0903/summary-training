@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect, FormEvent } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { browserClient as supabaseBrowserClient } from '@/lib/supabase/browserClient'
+import { useForm } from 'react-hook-form'
 import Header, { HeaderMenuType } from '@/components/layouts/header/Header'
 import Main from '@/components/layouts/main/Main'
 import Footer from '@/components/layouts/footer/Footer'
 import { PROTECTED_PATHS } from '@/lib/constants/routes'
-import { enrollTotpFactor, verifyTotp } from '@/lib/supabase/auth/mfa'
+import { MfaType } from '@/lib/supabase/auth/types'
+import { MFA_TYPES } from '@/lib/constants/auth'
+import TotpSetup from '@/components/features/auth/TotpSetup'
 
 // この画面はSupabaseからの確認メールのリンクを押下した際に遷移
 /**
@@ -26,7 +28,7 @@ import { enrollTotpFactor, verifyTotp } from '@/lib/supabase/auth/mfa'
  *    access_token / refresh_token saved to Cookies
  *    then history.replaceState() removes ?code from URL.
  *
- * 4. User’s view:
+ * 4. User's view:
  *    Page shows plain /callback and user is already logged-in.
  *
  * 5. To disable auto-exchange:
@@ -35,97 +37,212 @@ import { enrollTotpFactor, verifyTotp } from '@/lib/supabase/auth/mfa'
  *    });
  *    // then call supabase.auth.exchangeCodeForSession(code) manually.
  */
+
 export default function CallbackPage() {
   const router = useRouter()
 
-  const [factorId, setFactorId] = useState<string | null>(null)
-  const [qrCodeSvg, setQrCodeSvg] = useState<string | null>(null)
-  const [code, setCode] = useState<string>('')
+  const [setupMfa, setSetupMfa] = useState<SetupMfa>(SETUP_MFA.UNSELECTED)
+  const [selectedMfaType, setSelectedMfaType] = useState<MfaType | null>(null)
 
-  useEffect(() => {
-    const handleCallback = async () => {
-      // TOTP設定開始
-      // この画面に遷移した段階で既に認証情報がブラウザに保存されている前提
-      const { success, factorId, qrCode, message } = await enrollTotpFactor()
-      if (!success) {
-        console.error(message)
-        return
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<{ mfaType: MfaType }>({ mode: 'onChange' })
+
+  const renderContent = () => {
+    //　2段階認証を設定するか選択してもらう
+    if (setupMfa === SETUP_MFA.UNSELECTED) {
+      return (
+        <div style={{ maxWidth: 500, margin: '2rem auto', textAlign: 'center' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
+          <h2>会員登録が完了しました！</h2>
+          <p style={{ margin: '1.5rem 0', fontSize: '1.1rem', lineHeight: '1.6' }}>
+            ご登録いただき、ありがとうございます。
+            <br />
+            メールアドレスの確認が完了し、アカウントが有効になりました。
+          </p>
+
+          <div
+            style={{
+              margin: '2rem 0',
+              padding: '1.5rem',
+              backgroundColor: '#f8f9fa',
+              borderRadius: '8px',
+            }}
+          >
+            <div style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>🔐</div>
+            <h3 style={{ marginBottom: '1rem' }}>セキュリティ設定</h3>
+            <p
+              style={{
+                fontSize: '0.95rem',
+                lineHeight: '1.5',
+                color: '#666',
+                marginBottom: '1rem',
+              }}
+            >
+              アカウントのセキュリティを向上させるために、
+              <br />
+              2段階認証の設定をお勧めします。
+            </p>
+            <p style={{ fontSize: '0.85rem', color: '#888', marginBottom: '1.5rem' }}>
+              ※ 後からアカウント設定で変更・設定することも可能です
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <button
+                onClick={() => setSetupMfa(SETUP_MFA.YES)}
+                style={{
+                  padding: '0.75rem 1.25rem',
+                  fontSize: '0.95rem',
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                }}
+              >
+                2段階認証を設定する（推奨）
+              </button>
+
+              <button
+                onClick={() => router.replace(PROTECTED_PATHS.DASHBOARD)}
+                style={{
+                  padding: '0.75rem 1.25rem',
+                  fontSize: '0.95rem',
+                  backgroundColor: 'transparent',
+                  color: '#666',
+                  border: '1px solid #ddd',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                }}
+              >
+                今はスキップして始める
+              </button>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    // 2段階認証の設定をする場合、検証方式を選択させる
+    if (setupMfa === SETUP_MFA.YES && !selectedMfaType) {
+      return (
+        <div style={{ maxWidth: 500, margin: '2rem auto', textAlign: 'center' }}>
+          <h2>2段階認証の方法を選択</h2>
+          <p style={{ margin: '1.5rem 0', color: '#666' }}>
+            どの方法で2段階認証を設定しますか？
+          </p>
+
+          <form
+            onSubmit={handleSubmit((input) => setSelectedMfaType(input.mfaType))}
+            style={{ margin: '2rem 0' }}
+          >
+            <div style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
+              <label
+                htmlFor='mfaMethod'
+                style={{
+                  display: 'block',
+                  marginBottom: '0.5rem',
+                  fontSize: '1rem',
+                  fontWeight: 'bold',
+                }}
+              >
+                認証方法を選択してください:
+              </label>
+              <select
+                id='mfaMethod'
+                {...register('mfaType', {
+                  required: '認証方法を選択してください',
+                })}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  fontSize: '1rem',
+                  border: errors.mfaType ? '2px solid #dc3545' : '2px solid #ddd',
+                  borderRadius: '8px',
+                  backgroundColor: 'white',
+                  cursor: 'pointer',
+                }}
+              >
+                <option value=''>選択してください</option>
+                <option value={MFA_TYPES.TOTP}>
+                  TOTP アプリ（Google Authenticator、Authy など）
+                </option>
+                <option value={MFA_TYPES.EMAIL} disabled>
+                  メール認証（近日対応予定）
+                </option>
+                <option value={MFA_TYPES.SMS} disabled>
+                  SMS認証（近日対応予定）
+                </option>
+              </select>
+              {errors.mfaType && (
+                <span
+                  style={{ color: '#dc3545', fontSize: '0.875rem', marginTop: '0.25rem' }}
+                >
+                  {errors.mfaType.message}
+                </span>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+              <button
+                type='submit'
+                disabled={!isValid}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  fontSize: '1rem',
+                  backgroundColor: isValid ? '#007bff' : '#ccc',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: isValid ? 'pointer' : 'not-allowed',
+                }}
+              >
+                次へ
+              </button>
+
+              <button
+                type='button'
+                onClick={() => setSetupMfa(SETUP_MFA.UNSELECTED)}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  fontSize: '1rem',
+                  backgroundColor: 'transparent',
+                  color: '#666',
+                  border: '1px solid #ddd',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                }}
+              >
+                戻る
+              </button>
+            </div>
+          </form>
+        </div>
+      )
+    }
+
+    if (selectedMfaType) {
+      if (selectedMfaType === MFA_TYPES.TOTP) {
+        return <TotpSetup onBack={() => setSetupMfa(SETUP_MFA.UNSELECTED)} />
       }
 
-      setFactorId(factorId)
-      setQrCodeSvg(qrCode) // SVG 形式の QR
+      return <h1>hello world</h1>
     }
-
-    handleCallback()
-  }, [])
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    if (!factorId) return
-
-    // TOTP設定完了
-    const { success, message, verify_data } = await verifyTotp({
-      factorId,
-      totpCode: code,
-    })
-    if (!success) {
-      console.error(message)
-      return
-    }
-
-    // セッションを上書き（AAL2 JWT を取得）
-    await supabaseBrowserClient.auth.setSession({
-      access_token: verify_data.access_token,
-      refresh_token: verify_data.refresh_token,
-    })
-
-    // 完了後、ダッシュボードなどへリダイレクト
-    router.replace(PROTECTED_PATHS.DASHBOARD)
   }
 
   return (
     <>
       <Header menuType={HeaderMenuType.HIDDEN} />
-      <Main>
-        <div style={{ maxWidth: 400, margin: '2rem auto', textAlign: 'center' }}>
-          {!qrCodeSvg && <p>認証処理中…</p>}
-
-          {qrCodeSvg && (
-            <>
-              <p>
-                ① 下の QR をお手持ちの TOTP アプリ（Google Authenticator
-                など）で読み込んでください。
-              </p>
-              <div
-                // Supabase から返ってくる SVG をそのまま埋め込み
-                dangerouslySetInnerHTML={{ __html: qrCodeSvg }}
-              />
-              {/* UIをもっとわかりやすくしたい */}
-              <form onSubmit={handleSubmit} style={{ marginTop: '1.5rem' }}>
-                <label htmlFor='code'>② アプリに表示された 6 桁のコードを入力：</label>
-                <input
-                  id='code'
-                  type='text'
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  pattern='\d{6}'
-                  required
-                  style={{
-                    display: 'block',
-                    width: '100%',
-                    padding: '0.5rem',
-                    margin: '0.5rem 0',
-                  }}
-                />
-                <button type='submit' style={{ padding: '0.5rem 1rem' }}>
-                  登録して完了
-                </button>
-              </form>
-            </>
-          )}
-        </div>
-      </Main>
+      <Main>{renderContent()}</Main>
       <Footer />
     </>
   )
 }
+
+const SETUP_MFA = {
+  UNSELECTED: 'UNSELECTED',
+  YES: 'YES',
+  NO: 'NO',
+} as const
+export type SetupMfa = (typeof SETUP_MFA)[keyof typeof SETUP_MFA]

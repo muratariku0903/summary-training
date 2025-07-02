@@ -13,7 +13,7 @@ import { PROTECTED_PATHS } from '@/lib/constants/routes'
 import { MFA_TYPES } from '@/lib/constants/auth'
 
 interface MfaVerificationProps {
-  selectedMFA: MfaFactor
+  selectedMFA: Omit<MfaFactor, 'status' | 'createdAt'>
   onBack?: () => void
 }
 
