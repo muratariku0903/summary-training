@@ -10,6 +10,7 @@ import { PROTECTED_PATHS } from '@/lib/constants/routes'
 import { MfaType } from '@/lib/supabase/auth/types'
 import { MFA_TYPES } from '@/lib/constants/auth'
 import TotpSetup from '@/components/features/auth/TotpSetup'
+import { enrollTotpFactor } from '@/lib/supabase/auth/mfa'
 
 // この画面はSupabaseからの確認メールのリンクを押下した際に遷移
 /**
@@ -41,14 +42,36 @@ import TotpSetup from '@/components/features/auth/TotpSetup'
 export default function CallbackPage() {
   const router = useRouter()
 
-  const [setupMfa, setSetupMfa] = useState<SetupMfa>(SETUP_MFA.UNSELECTED)
-  const [selectedMfaType, setSelectedMfaType] = useState<MfaType | null>(null)
-
   const {
     register,
     handleSubmit,
     formState: { errors, isValid },
   } = useForm<{ mfaType: MfaType }>({ mode: 'onChange' })
+
+  const [setupMfa, setSetupMfa] = useState<SetupMfa>(SETUP_MFA.UNSELECTED)
+  const [selectedMfaType, setSelectedMfaType] = useState<MfaType | null>(null)
+  const [mfaData, setMfaData] = useState<MfaData | null>(null)
+  const [error, setError] = useState<Error | null>(null)
+
+  const onSubmit = async (input: { mfaType: MfaType }) => {
+    const mfaType = input.mfaType
+
+    if (mfaType === MFA_TYPES.TOTP) {
+      const { success, factorId, qrCode, message } = await enrollTotpFactor()
+      if (!success) {
+        setError({ message })
+
+        return
+      }
+
+      setMfaData({
+        type: mfaType,
+        data: { factorId, qrCode },
+      })
+    }
+
+    setSelectedMfaType(input.mfaType)
+  }
 
   const renderContent = () => {
     //　2段階認証を設定するか選択してもらう
@@ -132,11 +155,7 @@ export default function CallbackPage() {
           <p style={{ margin: '1.5rem 0', color: '#666' }}>
             どの方法で2段階認証を設定しますか？
           </p>
-
-          <form
-            onSubmit={handleSubmit((input) => setSelectedMfaType(input.mfaType))}
-            style={{ margin: '2rem 0' }}
-          >
+          <form onSubmit={handleSubmit(onSubmit)} style={{ margin: '2rem 0' }}>
             <div style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
               <label
                 htmlFor='mfaMethod'
@@ -218,13 +237,20 @@ export default function CallbackPage() {
               </button>
             </div>
           </form>
+          {error && <div>{error.message}</div>}
         </div>
       )
     }
 
-    if (selectedMfaType) {
+    if (selectedMfaType && mfaData) {
       if (selectedMfaType === MFA_TYPES.TOTP) {
-        return <TotpSetup onBack={() => setSetupMfa(SETUP_MFA.UNSELECTED)} />
+        return (
+          <TotpSetup
+            factorId={mfaData.data.factorId}
+            qrCode={mfaData.data.qrCode}
+            onBack={() => setSetupMfa(SETUP_MFA.UNSELECTED)}
+          />
+        )
       }
 
       return <h1>hello world</h1>
@@ -245,4 +271,18 @@ const SETUP_MFA = {
   YES: 'YES',
   NO: 'NO',
 } as const
-export type SetupMfa = (typeof SETUP_MFA)[keyof typeof SETUP_MFA]
+type SetupMfa = (typeof SETUP_MFA)[keyof typeof SETUP_MFA]
+
+type MfaData = {
+  type: MfaType
+  data: TotpMFaData
+}
+
+type TotpMFaData = {
+  factorId: string
+  qrCode: string
+}
+
+type Error = {
+  message: string
+}
