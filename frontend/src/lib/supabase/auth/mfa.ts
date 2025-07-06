@@ -1,5 +1,5 @@
 // src/lib/supabase/auth/mfa.ts - 型安全性を向上
-import { browserClient } from '../browserClient'
+import { browserClient } from '../client/browserClient'
 import {
   totpSetupVerificationSchema,
   TotpSetupVerificationInput,

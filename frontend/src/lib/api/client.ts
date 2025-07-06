@@ -6,7 +6,7 @@ import type {
 } from '@/lib/api/generated/openapi-types'
 import { ERROR_CODES, ErrorCode } from './errorCodes'
 import { ApiError } from './response'
-import { browserClient } from '../supabase/browserClient'
+import { browserClient } from '../supabase/client/browserClient'
 
 type Path = keyof paths
 type Method = 'get' | 'post' | 'patch' | 'delete'

@@ -1,6 +1,6 @@
 // src/lib/supabase/auth/auth.ts - 修正版
 import { PUBLIC_PATHS } from '@/lib/constants/routes'
-import { browserClient } from '../browserClient'
+import { browserClient } from '../client/browserClient'
 import { getAvailableMfaFactors } from './mfa'
 import {
   signinSchema,

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { serverClient } from '@/lib/supabase/serverClient'
+import { adminClient } from '@/lib/supabase/client/adminClient'
 import { Success, InternalError, Unauthorized } from '@/lib/api/response'
 
 export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
@@ -19,7 +19,7 @@ export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
     const {
       data: { user },
       error: userError,
-    } = await serverClient.auth.getUser(accessToken)
+    } = await adminClient.auth.getUser(accessToken)
 
     if (userError || !user) {
       console.error('❌ [DELETE-USER] Invalid access token:', userError?.message)
@@ -32,7 +32,7 @@ export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
     // auth.usersを削除すると自動的にuser_profilesも削除される
 
     // メインのユーザーアカウント削除
-    const { error: deleteError } = await serverClient.auth.admin.deleteUser(user.id)
+    const { error: deleteError } = await adminClient.auth.admin.deleteUser(user.id)
     if (deleteError) {
       console.error('❌ [DELETE-USER] User deletion failed:', deleteError.message)
       return InternalError(

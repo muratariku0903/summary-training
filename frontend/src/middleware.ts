@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { createMiddlewareSupabaseClient } from '@/lib/supabase/middlewareClient'
+import { createMiddlewareSupabaseClient } from '@/lib/supabase/client/middlewareClient'
 import {
   PROTECTED_PATHS,
   PUBLIC_PATHS,
