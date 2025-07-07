@@ -15,6 +15,7 @@ import ProfileSideMenu, { MenuKey } from './ProfileSideMenu'
 
 import { formatDate, formatDateTime } from '@/utils/date'
 import { User } from '@supabase/supabase-js'
+import { updateProfile } from '@/lib/actions/profile'
 
 type ProfileClientProps = {
   user: User
@@ -23,6 +24,8 @@ type ProfileClientProps = {
 
 export default function ProfileClient({ user, profile }: ProfileClientProps) {
   const router = useRouter()
+  const [profileData, setProfileData] = useState(profile)
+
   const [isPending, startTransition] = useTransition()
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -31,26 +34,6 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-
-  // プロフィール更新処理
-  const handleUpdateProfile = async (formData: FormData) => {
-    setError(null)
-    setSuccessMessage(null)
-
-    // startTransition(async () => {
-    //   const result = await updateProfile(formData)
-
-    //   if (result.success && result.data) {
-    //     setProfile(result.data)
-    //     setIsEditing(false)
-    //     setSuccessMessage('プロフィールを更新しました')
-    //     // 成功メッセージを3秒後に消去
-    //     setTimeout(() => setSuccessMessage(null), 3000)
-    //   } else {
-    //     setError(result.error || 'プロフィールの更新に失敗しました')
-    //   }
-    // })
-  }
 
   // 基本情報コンテンツ
   const BasicInfoContent = () => (
@@ -85,9 +68,9 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
         <div className='flex items-center space-x-4'>
           {/* プロフィール画像 */}
           <div className='w-20 h-20 bg-gray-300 border-2 border-black flex items-center justify-center'>
-            {profile.avatar_url ? (
+            {profileData.avatar_url ? (
               <Image
-                src={profile.avatar_url}
+                src={profileData.avatar_url}
                 alt='プロフィール画像'
                 className='w-full h-full object-cover'
                 priority={false}
@@ -107,8 +90,8 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
             )}
           </div>
           <div>
-            <h1 className='text-2xl font-bold'>{profile.display_name}</h1>
-            <p className='text-gray-600'>ID: {profile.id}</p>
+            <h1 className='text-2xl font-bold'>{profileData.display_name}</h1>
+            <p className='text-gray-600'>ID: {profileData.id}</p>
           </div>
         </div>
 
@@ -146,7 +129,29 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
         </div>
       </div>
 
-      <form id='profile-form' action={handleUpdateProfile}>
+      <form
+        id='profile-form'
+        action={async (formData: FormData) => {
+          setError(null)
+          setSuccessMessage(null)
+
+          console.log('formData:', formData)
+
+          startTransition(async () => {
+            const result = await updateProfile(formData)
+
+            if (result.success && result.data) {
+              setProfileData(result.data)
+              setIsEditing(false)
+              setSuccessMessage('プロフィールを更新しました')
+              // 成功メッセージを3秒後に消去
+              setTimeout(() => setSuccessMessage(null), 3000)
+            } else {
+              setError(result.error || 'プロフィールの更新に失敗しました')
+            }
+          })
+        }}
+      >
         <div className='space-y-4'>
           <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
             <div className='space-y-2'>
@@ -156,14 +161,14 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
               {isEditing ? (
                 <input
                   type='text'
-                  name='username'
-                  defaultValue={profile.user_name ?? ''}
+                  name='user_name'
+                  defaultValue={profileData.user_name ?? ''}
                   className='w-full p-3 border-2 border-black focus:outline-none focus:ring-2 focus:ring-black'
                   required
                 />
               ) : (
                 <div className='p-3 border-2 border-black bg-gray-50'>
-                  <span>{profile.user_name}</span>
+                  <span>{profileData.user_name}</span>
                 </div>
               )}
             </div>
@@ -174,13 +179,13 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
                 <input
                   type='text'
                   name='display_name'
-                  defaultValue={profile.display_name ?? ''}
+                  defaultValue={profileData.display_name ?? ''}
                   className='w-full p-3 border-2 border-black focus:outline-none focus:ring-2 focus:ring-black'
                   required
                 />
               ) : (
                 <div className='p-3 border-2 border-black bg-gray-50'>
-                  <span>{profile.display_name}</span>
+                  <span>{profileData.display_name}</span>
                 </div>
               )}
             </div>
@@ -188,14 +193,14 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
             <div className='space-y-2'>
               <label className='block text-sm font-medium text-gray-700'>登録日</label>
               <div className='p-3 border-2 border-black bg-gray-50'>
-                <span>{formatDate(profile.created_at)}</span>
+                <span>{formatDate(profileData.created_at)}</span>
               </div>
             </div>
 
             <div className='space-y-2'>
               <label className='block text-sm font-medium text-gray-700'>最終更新</label>
               <div className='p-3 border-2 border-black bg-gray-50'>
-                <span>{formatDateTime(profile.updated_at)}</span>
+                <span>{formatDateTime(profileData.updated_at)}</span>
               </div>
             </div>
           </div>
@@ -205,15 +210,15 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
             {isEditing ? (
               <textarea
                 name='bio'
-                defaultValue={profile.bio || ''}
+                defaultValue={profileData.bio || ''}
                 className='w-full p-3 border-2 border-black focus:outline-none focus:ring-2 focus:ring-black min-h-[100px]'
                 placeholder='自己紹介を入力してください'
                 rows={4}
               />
             ) : (
               <div className='p-3 border-2 border-black bg-gray-50 min-h-[100px]'>
-                <span className={profile.bio ? 'text-black' : 'text-gray-500'}>
-                  {profile.bio || '自己紹介を入力してください'}
+                <span className={profileData.bio ? 'text-black' : 'text-gray-500'}>
+                  {profileData.bio || '自己紹介を入力してください'}
                 </span>
               </div>
             )}

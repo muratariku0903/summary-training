@@ -1,15 +1,17 @@
 'use server'
 
-import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { UserProfile, UserProfileUpdate } from '../supabase/schema/utils'
+import { PROTECTED_PATHS, PUBLIC_PATHS } from '../constants/routes'
+import { createClient } from '../supabase/client/serverComponentClient'
 import { z } from 'zod'
-import { Tables } from '../supabase/schema/schema'
-import { UserProfile } from '../supabase/schema/utils'
+import { ActionResult } from './types'
+import { validateFormData } from './utils'
 
 // バリデーションスキーマ
 const updateProfileSchema = z.object({
-  username: z
+  user_name: z
     .string()
     .min(1, 'ユーザー名は必須です')
     .max(50, 'ユーザー名は50文字以内で入力してください'),
@@ -20,59 +22,49 @@ const updateProfileSchema = z.object({
   bio: z.string().max(500, '自己紹介は500文字以内で入力してください').optional(),
 })
 
-export interface ActionResult<T = void> {
-  success: boolean
-  data?: T
-  error?: string
-}
-
 // プロフィール更新のサーバーアクション
-export async function updateProfile(
+export const updateProfile = async (
   formData: FormData
-): Promise<ActionResult<UserProfile>> {
+): Promise<ActionResult<UserProfile>> => {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const serverComponentClient = await createClient()
 
     // 認証チェック
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser()
-
+    } = await serverComponentClient.auth.getUser()
     if (authError || !user) {
-      redirect('/login')
+      console.error(authError)
+      redirect(PUBLIC_PATHS.SIGNIN)
     }
 
-    // フォームデータを解析
-    const rawData = {
-      username: formData.get('username') as string,
-      display_name: formData.get('display_name') as string,
-      bio: (formData.get('bio') as string) || '',
-    }
-
-    // バリデーション
-    const result = updateProfileSchema.safeParse(rawData)
-
-    if (!result.success) {
+    // フォームデータを解析&バリデーション
+    const {
+      success,
+      data: validatedFormData,
+      error: validateError,
+    } = validateFormData(formData, updateProfileSchema)
+    if (!success) {
+      console.error(validateError)
       return {
         success: false,
-        error: result.error.issues[0].message,
+        error: validateError,
       }
     }
 
     // データベースを更新
-    const { data, error } = await supabase
-      .from('profiles')
-      .update({
-        username: result.data.username,
-        display_name: result.data.display_name,
-        bio: result.data.bio,
-        updated_at: new Date().toISOString(),
-      })
+    const updateData: UserProfileUpdate = {
+      user_name: validatedFormData.user_name,
+      display_name: validatedFormData.display_name,
+      bio: validatedFormData.bio || null,
+    }
+    const { data, error } = await serverComponentClient
+      .from('user_profiles')
+      .update(updateData)
       .eq('id', user.id)
       .select()
       .single()
-
     if (error) {
       console.error('Profile update error:', error)
       return {
@@ -82,22 +74,9 @@ export async function updateProfile(
     }
 
     // キャッシュを更新
-    revalidatePath('/profile')
+    revalidatePath(PROTECTED_PATHS.PROFILE)
 
-    return {
-      success: true,
-      data: {
-        id: data.id,
-        username: data.username,
-        display_name: data.display_name,
-        email: user.email || '',
-        bio: data.bio,
-        created_at: data.created_at,
-        updated_at: data.updated_at,
-        avatar_url: data.avatar_url,
-        two_factor_enabled: data.two_factor_enabled || false,
-      },
-    }
+    return { success: true, data }
   } catch (error) {
     console.error('Server action error:', error)
     return {
