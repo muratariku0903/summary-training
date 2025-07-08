@@ -1,6 +1,6 @@
-import React, { InputHTMLAttributes } from 'react'
+import React, { TextareaHTMLAttributes } from 'react'
 
-type TextInputProps = InputHTMLAttributes<HTMLInputElement> & {
+type TextAreaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
   showValue?: string | null
   edit?: boolean
   labelText?: string
@@ -8,7 +8,7 @@ type TextInputProps = InputHTMLAttributes<HTMLInputElement> & {
   errorMessage?: string | null
 }
 
-const TextInput: React.FC<TextInputProps> = ({
+const TextArea: React.FC<TextAreaProps> = ({
   showValue = '',
   id,
   labelText,
@@ -31,16 +31,18 @@ const TextInput: React.FC<TextInputProps> = ({
       )}
 
       {edit ? (
-        <input
+        <textarea
           id={id}
           {...rest}
           className={`w-full rounded border ${
             errorMessage ? 'border-red-600' : 'border-black'
-          } px-3 py-2 focus:outline-none focus:ring ${rest.className || ''}`}
+          } px-3 py-2 focus:outline-none focus:ring resize-vertical ${
+            rest.className || ''
+          }`}
         />
       ) : (
-        <div className='p-3 border-1 border-black bg-gray-50'>
-          <span>{showValue}</span>
+        <div className='p-3 border-1 border-black bg-gray-50 min-h-20'>
+          <span className='whitespace-pre-wrap'>{showValue}</span>
         </div>
       )}
 
@@ -49,4 +51,4 @@ const TextInput: React.FC<TextInputProps> = ({
   )
 }
 
-export default TextInput
+export default TextArea

@@ -2,7 +2,6 @@ import ProfileClient from './ProfileClient'
 import { redirect } from 'next/navigation'
 import { PUBLIC_PATHS } from '@/lib/constants/routes'
 import { UserProfile } from '@/lib/supabase/schema/utils'
-// import { User } from 'next-auth'
 import { createClient } from '@/lib/supabase/client/serverComponentClient'
 import { User } from '@supabase/supabase-js'
 

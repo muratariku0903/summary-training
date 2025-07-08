@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useActionState, useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Header from '@/components/layouts/header/Header'
@@ -15,7 +15,12 @@ import ProfileSideMenu, { MenuKey } from './ProfileSideMenu'
 
 import { formatDate, formatDateTime } from '@/utils/date'
 import { User } from '@supabase/supabase-js'
-import { updateProfile } from '@/lib/actions/profile'
+import { updateProfileAction } from '@/lib/actions/profile/action'
+import TextInput from '@/components/elements/text-input/TextInput'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { updateProfileSchema } from '@/lib/actions/profile/schema'
+import TextArea from '@/components/elements/text-area/TextArea'
 
 type ProfileClientProps = {
   user: User
@@ -24,9 +29,19 @@ type ProfileClientProps = {
 
 export default function ProfileClient({ user, profile }: ProfileClientProps) {
   const router = useRouter()
-  const [profileData, setProfileData] = useState(profile)
 
-  const [isPending, startTransition] = useTransition()
+  const [state, formAction, isPending] = useActionState(updateProfileAction, {
+    status: 'none',
+    data: profile,
+  })
+  const [transactioPending, startTransition] = useTransition()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    clearErrors,
+  } = useForm({ resolver: zodResolver(updateProfileSchema) })
+
   const [isDeleting, setIsDeleting] = useState(false)
 
   const [activeMenu, setActiveMenu] = useState<MenuKey>('basic')
@@ -34,6 +49,15 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (state.status === 'success') {
+      setSuccessMessage('プロフィールを編集しました')
+    }
+    if (state.status === 'error') {
+      setError(state.error)
+    }
+  }, [state])
 
   // 基本情報コンテンツ
   const BasicInfoContent = () => (
@@ -68,9 +92,9 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
         <div className='flex items-center space-x-4'>
           {/* プロフィール画像 */}
           <div className='w-20 h-20 bg-gray-300 border-2 border-black flex items-center justify-center'>
-            {profileData.avatar_url ? (
+            {state.data.avatar_url ? (
               <Image
-                src={profileData.avatar_url}
+                src={state.data.avatar_url}
                 alt='プロフィール画像'
                 className='w-full h-full object-cover'
                 priority={false}
@@ -90,137 +114,102 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
             )}
           </div>
           <div>
-            <h1 className='text-2xl font-bold'>{profileData.display_name}</h1>
-            <p className='text-gray-600'>ID: {profileData.id}</p>
+            <h1 className='text-2xl font-bold'>{state.data.display_name}</h1>
+            <p className='text-gray-600'>ID: {state.data.id}</p>
           </div>
-        </div>
-
-        {/* 編集ボタン */}
-        <div className='flex space-x-2'>
-          {isEditing ? (
-            <>
-              <button
-                onClick={() => {
-                  setIsEditing(false)
-                  setError(null)
-                }}
-                disabled={isPending}
-                className='px-4 py-2 text-sm border-2 border-black bg-white hover:bg-gray-100 transition-colors disabled:opacity-50'
-              >
-                キャンセル
-              </button>
-              <button
-                type='submit'
-                form='profile-form'
-                disabled={isPending}
-                className='px-4 py-2 text-sm border-2 border-black bg-black text-white hover:bg-gray-800 transition-colors disabled:opacity-50'
-              >
-                {isPending ? '保存中...' : '保存'}
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={() => setIsEditing(true)}
-              className='px-4 py-2 text-sm border-2 border-black bg-white hover:bg-gray-100 transition-colors'
-            >
-              編集
-            </button>
-          )}
         </div>
       </div>
 
       <form
-        id='profile-form'
-        action={async (formData: FormData) => {
-          setError(null)
-          setSuccessMessage(null)
-
-          console.log('formData:', formData)
-
-          startTransition(async () => {
-            const result = await updateProfile(formData)
-
-            if (result.success && result.data) {
-              setProfileData(result.data)
-              setIsEditing(false)
-              setSuccessMessage('プロフィールを更新しました')
-              // 成功メッセージを3秒後に消去
-              setTimeout(() => setSuccessMessage(null), 3000)
-            } else {
-              setError(result.error || 'プロフィールの更新に失敗しました')
-            }
+        onSubmit={handleSubmit((data) => {
+          startTransition(() => {
+            formAction(data)
+            setIsEditing(false)
           })
-        }}
+        })}
       >
         <div className='space-y-4'>
           <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
             <div className='space-y-2'>
-              <label className='block text-sm font-medium text-gray-700'>
-                ユーザー名
-              </label>
-              {isEditing ? (
-                <input
-                  type='text'
-                  name='user_name'
-                  defaultValue={profileData.user_name ?? ''}
-                  className='w-full p-3 border-2 border-black focus:outline-none focus:ring-2 focus:ring-black'
-                  required
-                />
-              ) : (
-                <div className='p-3 border-2 border-black bg-gray-50'>
-                  <span>{profileData.user_name}</span>
-                </div>
-              )}
+              <TextInput
+                labelText='ユーザー名'
+                edit={isEditing}
+                showValue={state.data.user_name}
+                {...register('user_name')}
+                defaultValue={state.data.user_name ?? ''}
+                errorMessage={errors['user_name']?.message}
+              />
             </div>
 
             <div className='space-y-2'>
-              <label className='block text-sm font-medium text-gray-700'>表示名</label>
-              {isEditing ? (
-                <input
-                  type='text'
-                  name='display_name'
-                  defaultValue={profileData.display_name ?? ''}
-                  className='w-full p-3 border-2 border-black focus:outline-none focus:ring-2 focus:ring-black'
-                  required
-                />
-              ) : (
-                <div className='p-3 border-2 border-black bg-gray-50'>
-                  <span>{profileData.display_name}</span>
-                </div>
-              )}
+              <TextInput
+                labelText='表示名'
+                edit={isEditing}
+                showValue={state.data.display_name}
+                {...register('display_name')}
+                defaultValue={state.data.display_name ?? ''}
+                errorMessage={errors['display_name']?.message}
+              />
             </div>
-
             <div className='space-y-2'>
-              <label className='block text-sm font-medium text-gray-700'>登録日</label>
-              <div className='p-3 border-2 border-black bg-gray-50'>
-                <span>{formatDate(profileData.created_at)}</span>
-              </div>
+              <TextInput
+                labelText='登録日'
+                edit={false}
+                showValue={formatDate(state.data.created_at)}
+              />
             </div>
-
             <div className='space-y-2'>
-              <label className='block text-sm font-medium text-gray-700'>最終更新</label>
-              <div className='p-3 border-2 border-black bg-gray-50'>
-                <span>{formatDateTime(profileData.updated_at)}</span>
-              </div>
+              <TextInput
+                labelText='最終更新'
+                edit={false}
+                showValue={formatDateTime(state.data.updated_at)}
+              />
             </div>
           </div>
 
           <div className='space-y-2'>
-            <label className='block text-sm font-medium text-gray-700'>自己紹介</label>
+            <TextArea
+              labelText='自己紹介'
+              edit={isEditing}
+              showValue={state.data.bio}
+              {...register('bio')}
+              defaultValue={state.data.bio || ''}
+              className='w-full p-3 border-2 border-black focus:outline-none focus:ring-2 focus:ring-black min-h-[100px]'
+              placeholder='自己紹介を入力してください'
+              rows={4}
+              errorMessage={errors['bio']?.message}
+            />
+          </div>
+          {/* 編集ボタン */}
+          <div className='flex space-x-2'>
             {isEditing ? (
-              <textarea
-                name='bio'
-                defaultValue={profileData.bio || ''}
-                className='w-full p-3 border-2 border-black focus:outline-none focus:ring-2 focus:ring-black min-h-[100px]'
-                placeholder='自己紹介を入力してください'
-                rows={4}
-              />
+              <>
+                <button
+                  onClick={() => {
+                    setIsEditing(false)
+                    setError(null)
+                    clearErrors()
+                  }}
+                  disabled={isPending}
+                  className='px-4 py-2 text-sm border-2 border-black bg-white hover:bg-gray-100 transition-colors disabled:opacity-50'
+                >
+                  キャンセル
+                </button>
+                <button
+                  type='submit'
+                  disabled={isPending}
+                  className='px-4 py-2 text-sm border-2 border-black bg-black text-white hover:bg-gray-800 transition-colors disabled:opacity-50'
+                >
+                  {isPending ? '保存中...' : '保存'}
+                </button>
+              </>
             ) : (
-              <div className='p-3 border-2 border-black bg-gray-50 min-h-[100px]'>
-                <span className={profileData.bio ? 'text-black' : 'text-gray-500'}>
-                  {profileData.bio || '自己紹介を入力してください'}
-                </span>
-              </div>
+              <button
+                onClick={() => setIsEditing(true)}
+                className='px-4 py-2 text-sm border-2 border-black bg-white hover:bg-gray-100 transition-colors'
+              >
+                編集
+              </button>
             )}
           </div>
         </div>
