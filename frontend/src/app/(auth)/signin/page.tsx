@@ -113,6 +113,7 @@ export default function SignInPage() {
               <OutlineMessage message={submitError} type={MessageType.ERROR} />
             )}
             <ReversalButton
+              type='submit'
               label={isSubmitting ? 'ログイン中...' : 'ログイン'}
               className='w-full'
               border

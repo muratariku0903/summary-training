@@ -10,7 +10,6 @@ import { UpdateProfileSchema } from './schema'
 
 // プロフィール更新のサーバーアクション
 export const updateProfileAction = async (
-  prev: ActionResult<UserProfile>,
   input: UpdateProfileSchema
 ): Promise<ActionResult<UserProfile>> => {
   try {
@@ -41,8 +40,7 @@ export const updateProfileAction = async (
     if (error) {
       console.error('Profile update error:', error)
       return {
-        status: 'error',
-        data: prev.data,
+        success: false,
         error: 'プロフィールの更新に失敗しました',
       }
     }
@@ -50,13 +48,12 @@ export const updateProfileAction = async (
     // キャッシュを更新
     revalidatePath(PROTECTED_PATHS.PROFILE)
 
-    return { status: 'success', data }
+    return { success: true, data }
   } catch (error) {
     console.error('Server action error:', error)
 
     return {
-      status: 'error',
-      data: prev.data,
+      success: false,
       error: 'サーバーエラーが発生しました',
     }
   }

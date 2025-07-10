@@ -1,16 +1,11 @@
 export type ActionResult<T = void> =
   | {
-      status: 'none'
+      success: true
       data: T
       error?: never
     }
   | {
-      status: 'success'
-      data: T
-      error?: never
-    }
-  | {
-      status: 'error'
-      data: T
+      success: false
+      data?: never
       error: string
     }

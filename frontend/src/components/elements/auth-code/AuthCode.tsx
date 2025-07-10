@@ -130,6 +130,7 @@ export default function AuthCodeInput({
 
       <div className='space-y-2'>
         <ReversalButton
+          type='submit'
           label={isSubmitting ? submittingLabel : submitLabel}
           className='w-full'
           border
