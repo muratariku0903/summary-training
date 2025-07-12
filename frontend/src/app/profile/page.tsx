@@ -1,4 +1,4 @@
-import ProfileClient from './ProfileClient'
+import ProfileClient from './components/ProfileClient'
 import { redirect } from 'next/navigation'
 import { PUBLIC_PATHS } from '@/lib/constants/routes'
 import { UserProfile } from '@/lib/supabase/schema/utils'

@@ -15,7 +15,7 @@ export const updateProfileAction = async (
   try {
     const serverComponentClient = await createClient()
 
-    // 認証チェック
+    // 認証チェック(JWTの改ざんチェック)
     const {
       data: { user },
       error: authError,
