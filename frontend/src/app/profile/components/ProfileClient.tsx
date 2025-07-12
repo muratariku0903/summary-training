@@ -25,7 +25,6 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
   const router = useRouter()
 
   const [activeMenu, setActiveMenu] = useState<MenuKey>('basic')
-  const [isDeleting, setIsDeleting] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   // メインコンテンツの表示切り替え
@@ -69,7 +68,6 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
         isOpen={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}
         onConfirm={async () => {
-          setIsDeleting(true)
           const { success: delSuccess, error } = await request(
             '/user/delete',
             'delete',
@@ -84,15 +82,13 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
             return
           }
 
-          setIsDeleting(false)
           router.replace(PUBLIC_PATHS.HOME)
         }}
         title='アカウントを削除'
         message={`アカウントを削除すると、すべてのデータが完全に削除されます。\n\nこの操作は取り消すことができません。\n\n本当にアカウントを削除しますか？`}
         confirmLabel='削除する'
         cancelLabel='キャンセル'
-        confirmVariant='danger'
-        isProcessing={isDeleting}
+        variant='danger'
       />
     </>
   )

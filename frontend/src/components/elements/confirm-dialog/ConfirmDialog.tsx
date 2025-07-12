@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
 
 interface ConfirmDialogProps {
@@ -19,9 +19,7 @@ interface ConfirmDialogProps {
   /** キャンセルボタンのラベル（デフォルト: キャンセル） */
   cancelLabel?: string
   /** 確認ボタンの色（デフォルト: danger） */
-  confirmVariant?: 'danger' | 'primary'
-  /** 処理中かどうか */
-  isProcessing?: boolean
+  variant?: 'danger' | 'primary'
 }
 
 export default function ConfirmDialog({
@@ -32,10 +30,12 @@ export default function ConfirmDialog({
   message,
   confirmLabel = '削除',
   cancelLabel = 'キャンセル',
-  confirmVariant = 'danger',
-  isProcessing = false,
+  variant = 'primary',
 }: ConfirmDialogProps) {
   // ESCキーでダイアログを閉じる
+  // TODO　　DOMにuseEffectを使ってイベントを追加するのはアンチパターンなので修正する
+  const [isProcessing, setIsProcessing] = useState(false)
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !isProcessing) {
@@ -58,7 +58,9 @@ export default function ConfirmDialog({
   if (!isOpen) return null
 
   const handleConfirm = async () => {
+    setIsProcessing(true)
     await onConfirm()
+    setIsProcessing(false)
   }
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -81,23 +83,19 @@ export default function ConfirmDialog({
           <p className='text-gray-700 text-center whitespace-pre-line'>{message}</p>
 
           {/* ボタン */}
-          <div className='flex gap-3 pt-4'>
+          <div className='flex justify-center gap-3 pt-4'>
             <ReversalButton
               label={cancelLabel}
-              className='flex-1'
               onClick={onClose}
               disable={isProcessing}
             />
             <ReversalButton
               label={isProcessing ? '処理中...' : confirmLabel}
-              className={`flex-1 ${
-                confirmVariant === 'danger'
-                  ? 'bg-red-600 text-white border-red-600 hover:bg-red-700'
-                  : 'bg-black text-white border-black hover:bg-gray-800'
-              }`}
               onClick={handleConfirm}
               disable={isProcessing}
               border
+              reverse
+              variant={variant}
             />
           </div>
         </div>
