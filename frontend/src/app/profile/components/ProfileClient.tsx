@@ -14,6 +14,7 @@ import ProfileSideMenu, { MenuKey } from './ProfileSideMenu'
 
 import { User } from '@supabase/supabase-js'
 import ProfileBasicInfo from './ProfileBasicInfo'
+import ProfileAccountInfo from './ProfileAccountInfo'
 
 type ProfileClientProps = {
   user: User
@@ -27,72 +28,18 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
-  // アカウント情報コンテンツ
-  const AccountContent = () => (
-    <div className='space-y-6'>
-      <h2 className='text-xl font-semibold'>アカウント情報</h2>
-
-      <div className='space-y-4'>
-        <div className='space-y-2'>
-          <label className='block text-sm font-medium text-gray-700'>
-            メールアドレス
-          </label>
-          <div className='flex items-center justify-between p-3 border-2 border-black bg-gray-50'>
-            <span>{user.email}</span>
-            <button className='px-3 py-1 text-sm border-2 border-black bg-white hover:bg-gray-100 transition-colors'>
-              編集
-            </button>
-          </div>
-        </div>
-
-        <div className='space-y-2'>
-          <label className='block text-sm font-medium text-gray-700'>パスワード</label>
-          <div className='flex items-center justify-between p-3 border-2 border-black bg-gray-50'>
-            <span>••••••••</span>
-            <button className='px-3 py-1 text-sm border-2 border-black bg-white hover:bg-gray-100 transition-colors'>
-              変更
-            </button>
-          </div>
-        </div>
-
-        <div className='space-y-2'>
-          <label className='block text-sm font-medium text-gray-700'>二段階認証</label>
-          <div className='flex items-center justify-between p-3 border-2 border-black bg-gray-50'>
-            <div>
-              <span className='block'>TOTP認証</span>
-              <span
-                className={`text-sm ${
-                  user.factors && user.factors.length ? 'text-green-600' : 'text-red-600'
-                }`}
-              >
-                {user.factors && user.factors.length > 0 ? '有効' : '無効'}
-              </span>
-            </div>
-            <button className='px-3 py-1 text-sm border-2 border-black bg-white hover:bg-gray-100 transition-colors'>
-              管理
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className='pt-6 border-t-2 border-gray-200'>
-        <button
-          onClick={() => setShowDeleteDialog(true)}
-          className='px-4 py-2 bg-red-600 text-white border-2 border-red-600 hover:bg-red-700 transition-colors'
-        >
-          アカウントを削除
-        </button>
-      </div>
-    </div>
-  )
-
   // メインコンテンツの表示切り替え
   const renderMainContent = () => {
     switch (activeMenu) {
       case 'basic':
         return <ProfileBasicInfo profile={profile} />
       case 'account':
-        return <AccountContent />
+        return (
+          <ProfileAccountInfo
+            user={user}
+            onClickDeleteAccount={() => setShowDeleteDialog(true)}
+          />
+        )
       default:
         return <ProfileBasicInfo profile={profile} />
     }

@@ -8,7 +8,7 @@ export const PUBLIC_PATHS = {
 export const PROTECTED_PATHS = {
   DASHBOARD: '/dashboard',
   PROFILE: '/profile',
-  SETTINGS: '/settings',
+  TWO_FACTOR_AUTHENTICATION: '/profile/two-factor-authentication',
 } as const
 
 /**
