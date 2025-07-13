@@ -7,9 +7,12 @@ import {
   TotpSetupResponse,
   MfaFactor,
   GetAvailableMfaFactorsResponse,
+  MfaType,
 } from './types'
 import { AUTH_MESSAGES, AUTH_LOG_MESSAGES, MFA_TYPES } from '@/lib/constants/auth'
 import { ZodError } from 'zod'
+
+// 移行の処理はSupabaseのクライアントSDKを使用しており、裏側でJWT検証をしてるのでフロント側から呼び出しても問題ない
 
 /**
  * TOTP　Enroll処理
@@ -231,6 +234,77 @@ export async function getAvailableMfaFactors(): Promise<GetAvailableMfaFactorsRe
       success: true,
       message: 'MFA設定を取得しました',
       factors: mfaFactors,
+    }
+  } catch (error) {
+    console.error(AUTH_LOG_MESSAGES.UNEXPECTED_MFA_ERROR, error)
+    return {
+      success: false,
+      message: AUTH_MESSAGES.UNEXPECTED_ERROR,
+    }
+  }
+}
+
+/**
+ * 　Enrollリセット処理（すべての TOTP factor を削除）
+ */
+export type TotpResetResponse = {
+  success: boolean
+  message: string
+}
+
+export async function resetUnverifiedEnrollment(
+  type: MfaType
+): Promise<TotpResetResponse> {
+  console.log(type)
+  try {
+    // 1. 認証チェック
+    const { data: user } = await browserClient.auth.getUser()
+    if (!user.user) {
+      return {
+        success: false,
+        message: AUTH_MESSAGES.USER_NOT_AUTHENTICATED,
+      }
+    }
+
+    // 2. 現在登録中の MFA 要素を取得
+    const { data: factors, error: listError } = await browserClient.auth.mfa.listFactors()
+    if (listError) {
+      return {
+        success: false,
+        message: listError.message,
+      }
+    }
+    console.log(factors)
+
+    // 3. 指定したMFAタイプで未認証のものを抽出
+    console.log(factors[type])
+    const allFactors = [...factors.all, ...factors.phone, ...factors.totp]
+    const targetFactors = allFactors.filter(
+      (f) => f.status === 'unverified' && f.factor_type === type
+    )
+    if (targetFactors.length === 0) {
+      return {
+        success: true,
+        message: 'Not found enrollment',
+      }
+    }
+
+    // 4. MFAファクターエンロールを削除
+    for (const factor of targetFactors) {
+      const { error: unenrollErr } = await browserClient.auth.mfa.unenroll({
+        factorId: factor.id,
+      })
+      if (unenrollErr) {
+        return {
+          success: false,
+          message: 'Fail Unverified enrollment',
+        }
+      }
+    }
+
+    return {
+      success: true,
+      message: 'Success Unverified enrollment',
     }
   } catch (error) {
     console.error(AUTH_LOG_MESSAGES.UNEXPECTED_MFA_ERROR, error)
