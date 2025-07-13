@@ -17,8 +17,6 @@ type HeaderProps = {
 const Header: React.FC<HeaderProps> = ({ menuType }) => {
   const router = useRouter()
 
-  console.log(menuType)
-
   // ユーザーメニューの設定
   const userMenuItems = [
     {
