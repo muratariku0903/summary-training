@@ -69,7 +69,10 @@ export default function SignInPage() {
       <>
         <Header />
         <Main>
-          <MfaVerification selectedMFA={selectedMFA} />
+          <MfaVerification
+            selectedMFA={selectedMFA}
+            onVerifyComplete={() => router.replace(PROTECTED_PATHS.DASHBOARD)}
+          />
         </Main>
         <Footer />
       </>
