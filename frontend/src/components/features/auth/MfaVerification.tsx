@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import AuthCodeInput, {
   AUTH_CODE_VALIDATIONS,
   INPUT_FORMATTERS,
@@ -9,16 +8,19 @@ import AuthCodeInput, {
 import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
 import { MfaFactor } from '@/lib/supabase/auth/types'
 import { verifyTotp } from '@/lib/supabase/auth/mfa'
-import { PROTECTED_PATHS } from '@/lib/constants/routes'
 import { MFA_TYPES } from '@/lib/constants/auth'
 
 interface MfaVerificationProps {
   selectedMFA: Omit<MfaFactor, 'status' | 'createdAt'>
+  onVerifyComplete: () => void
   onBack?: () => void
 }
 
-export default function MfaVerification({ selectedMFA, onBack }: MfaVerificationProps) {
-  const router = useRouter()
+export default function MfaVerification({
+  selectedMFA,
+  onVerifyComplete,
+  onBack,
+}: MfaVerificationProps) {
   const [mfaError, setMfaError] = useState<string | null>(null)
 
   // MFA認証画面の表示
@@ -81,7 +83,7 @@ export default function MfaVerification({ selectedMFA, onBack }: MfaVerification
         return
       }
 
-      router.replace(PROTECTED_PATHS.DASHBOARD)
+      onVerifyComplete()
     } catch (e) {
       console.error(e)
       setMfaError('認証処理中にエラーが発生しました')
@@ -97,13 +99,13 @@ export default function MfaVerification({ selectedMFA, onBack }: MfaVerification
         この認証方法はまだサポートされていません
       </p>
 
-      <ReversalButton label='戻る' className='w-full' onClick={onBack} />
+      <ReversalButton label='戻る' onClick={onBack} />
     </div>
   )
 
   return (
     <>
-      <div className='flex justify-center py-4'>{renderMfaContent()}</div>
+      <div className='flex justify-center'>{renderMfaContent()}</div>
     </>
   )
 }
