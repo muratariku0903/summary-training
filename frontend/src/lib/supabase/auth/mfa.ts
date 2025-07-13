@@ -252,10 +252,10 @@ export type TotpResetResponse = {
   message: string
 }
 
-export async function resetUnverifiedEnrollment(
-  type: MfaType
+export async function resetEnrollment(
+  type: MfaType,
+  status?: 'verified' | 'unverified'
 ): Promise<TotpResetResponse> {
-  console.log(type)
   try {
     // 1. 認証チェック
     const { data: user } = await browserClient.auth.getUser()
@@ -274,13 +274,11 @@ export async function resetUnverifiedEnrollment(
         message: listError.message,
       }
     }
-    console.log(factors)
 
     // 3. 指定したMFAタイプで未認証のものを抽出
-    console.log(factors[type])
     const allFactors = [...factors.all, ...factors.phone, ...factors.totp]
     const targetFactors = allFactors.filter(
-      (f) => f.status === 'unverified' && f.factor_type === type
+      (f) => f.status === status && f.factor_type === type
     )
     if (targetFactors.length === 0) {
       return {
