@@ -4,15 +4,22 @@ import MfaVerification from './MfaVerification'
 import { MFA_TYPES } from '@/lib/constants/auth'
 import QrCodeDisplay from '@/components/elements/qr-code-display/QrCodeDisplay'
 import { Spacer } from '@/components/elements/spacer/Spacer'
+import { resetUnverifiedEnrollment } from '@/lib/supabase/auth/mfa'
+import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
 
 type TotpSetupProps = {
   factorId: string
   qrCode: string
+  onComplete: () => void
   onBack?: () => void
-  onComplete?: () => void
 }
 
-export default function TotpSetup({ factorId, qrCode, onBack }: TotpSetupProps) {
+export default function TotpSetup({
+  factorId,
+  qrCode,
+  onComplete,
+  onBack,
+}: TotpSetupProps) {
   return (
     <div style={{ maxWidth: 400, margin: '2rem auto', textAlign: 'center' }}>
       <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📱</div>
@@ -22,12 +29,15 @@ export default function TotpSetup({ factorId, qrCode, onBack }: TotpSetupProps) 
       <QrCodeDisplay qrCodeSvg={qrCode} />
 
       {/* 認証コード入力セクション */}
-      <MfaVerification selectedMFA={{ id: factorId, type: MFA_TYPES.TOTP }} />
+      <MfaVerification
+        selectedMFA={{ id: factorId, type: MFA_TYPES.TOTP }}
+        onVerifyComplete={onComplete}
+      />
 
       {/* ヒントセクション */}
       <div
         style={{
-          marginTop: '2rem',
+          marginTop: '1rem',
           padding: '1rem',
           backgroundColor: '#e9ecef',
           borderRadius: '8px',
@@ -42,21 +52,23 @@ export default function TotpSetup({ factorId, qrCode, onBack }: TotpSetupProps) 
           <li>入力したコードが無効な場合は、新しいコードをお試しください</li>
         </ul>
       </div>
-      <Spacer size={10} />
-      <button
-        onClick={onBack}
-        style={{
-          padding: '0.75rem 1.5rem',
-          fontSize: '1rem',
-          backgroundColor: '#6c757d',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
+      <Spacer size={20} />
+      <ReversalButton
+        label='キャンセル'
+        onClick={async () => {
+          // TOTPエンロールをリセット
+          const { success, message } = await resetUnverifiedEnrollment(MFA_TYPES.TOTP)
+          if (!success) {
+            // TODO エラー処理
+          }
+          console.log(message)
+
+          if (onBack) {
+            onBack()
+          }
         }}
-      >
-        戻る
-      </button>
+        border
+      />
     </div>
   )
 }
