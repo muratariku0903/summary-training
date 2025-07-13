@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminClient } from '@/lib/supabase/client/adminClient'
 import { Success, InternalError, Unauthorized } from '@/lib/api/response'
+import { getAccessTokenFromHeader } from '@/lib/api/utils'
 
 export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
   try {
     console.log('🗑️ [DELETE-USER] Starting user deletion process')
 
     // 認証ヘッダーからアクセストークンを取得
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const accessToken = getAccessTokenFromHeader(req)
+    if (!accessToken) {
       console.error('❌ [DELETE-USER] No valid authorization header')
       return Unauthorized('Authorization header required').toResponse()
     }
-
-    const accessToken = authHeader.replace('Bearer ', '')
 
     // アクセストークンからユーザー情報を取得
     const {
