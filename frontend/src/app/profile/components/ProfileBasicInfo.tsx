@@ -1,7 +1,10 @@
 'use client'
 
-import { updateProfileAction } from '@/lib/actions/profile/action'
-import { updateProfileSchema, UpdateProfileSchema } from '@/lib/actions/profile/schema'
+import { updateProfileAction } from '@/lib/actions/user/profile/update/action'
+import {
+  updateProfileSchema,
+  UpdateProfileSchema,
+} from '@/lib/actions/user/profile/update/schema'
 import { UserProfile } from '@/lib/supabase/schema/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useActionState, useState, useTransition } from 'react'

@@ -8,20 +8,16 @@ import { PROTECTED_PATHS, PUBLIC_PATHS } from '@/lib/constants/routes'
 import { signOut } from '@/lib/supabase/auth/auth'
 import { useRouter } from 'next/navigation'
 import { SettingsIcon, SignOutIcon } from '@/components/icons/icons'
-
-// メニュータイプの定義
-export enum HeaderMenuType {
-  GUEST = 'guest', // 非会員
-  MEMBER = 'member', // 会員
-  HIDDEN = 'hidden', // メニュー非表示
-}
+import Link from 'next/link'
 
 type HeaderProps = {
-  menuType?: HeaderMenuType
+  menuType?: 'guest' | 'member' | 'hidden'
 }
 
-const Header: React.FC<HeaderProps> = ({ menuType = HeaderMenuType.GUEST }) => {
+const Header: React.FC<HeaderProps> = ({ menuType }) => {
   const router = useRouter()
+
+  console.log(menuType)
 
   // ユーザーメニューの設定
   const userMenuItems = [
@@ -73,11 +69,13 @@ const Header: React.FC<HeaderProps> = ({ menuType = HeaderMenuType.GUEST }) => {
   return (
     <header className='flex justify-between items-center p-8 text-black'>
       <div className='flex items-center'>
-        <h1 className='ml-2 text-xl font-bold'>要約訓練</h1>
+        <Link href={PUBLIC_PATHS.HOME} aria-label='ホームへ'>
+          <h1 className='ml-2 text-xl font-bold'>要約訓練</h1>
+        </Link>
       </div>
 
-      {menuType === HeaderMenuType.GUEST && renderGuestMenu()}
-      {menuType === HeaderMenuType.MEMBER && renderMemberMenu()}
+      {menuType === 'guest' && renderGuestMenu()}
+      {menuType === 'member' && renderMemberMenu()}
       {/* HeaderMenuType.HIDDEN の場合は何も表示しない */}
     </header>
   )

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
-import Header, { HeaderMenuType } from '@/components/layouts/header/Header'
+import Header from '@/components/layouts/header/Header'
 import Main from '@/components/layouts/main/Main'
 import Footer from '@/components/layouts/footer/Footer'
 import { PROTECTED_PATHS } from '@/lib/constants/routes'
@@ -187,11 +187,8 @@ export default function CallbackPage() {
                 <option value={MFA_TYPES.TOTP}>
                   TOTP アプリ（Google Authenticator、Authy など）
                 </option>
-                <option value={MFA_TYPES.EMAIL} disabled>
-                  メール認証（近日対応予定）
-                </option>
                 <option value={MFA_TYPES.SMS} disabled>
-                  SMS認証（近日対応予定）
+                  メール認証（近日対応予定）
                 </option>
               </select>
               {errors.mfaType && (
@@ -259,7 +256,7 @@ export default function CallbackPage() {
 
   return (
     <>
-      <Header menuType={HeaderMenuType.HIDDEN} />
+      <Header />
       <Main>{renderContent()}</Main>
       <Footer />
     </>

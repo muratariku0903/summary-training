@@ -1,17 +1,17 @@
-import React from 'react';
-import Image from 'next/image';
-import BackgroundImageText from '@/components/elements/background-image-text/BackgroundImageText';
-import Header from '../components/layouts/header/Header';
-import Footer from '@/components/layouts/footer/Footer';
-import OutlineLink from '@/components/elements/outline-link/OutlineLink';
-import TextImageBlock from '@/components/elements/text-image-block/TextImageBlock';
-import FullScreenBGC from '@/components/elements/full-screen/FullScreenBGC';
-import Main from '@/components/layouts/main/Main';
+import React from 'react'
+import Image from 'next/image'
+import BackgroundImageText from '@/components/elements/background-image-text/BackgroundImageText'
+import Header from '../components/layouts/header/Header'
+import Footer from '@/components/layouts/footer/Footer'
+import OutlineLink from '@/components/elements/outline-link/OutlineLink'
+import TextImageBlock from '@/components/elements/text-image-block/TextImageBlock'
+import FullScreenBGC from '@/components/elements/full-screen/FullScreenBGC'
+import Main from '@/components/layouts/main/Main'
 
 export default function Home() {
   return (
     <div>
-      <Header />
+      <Header menuType='guest' />
       <Main>
         <div className='flex flex-col row-start-2 items-center sm:items-start py-32 w-full'>
           <div className='flex flex-col sm:flex-row items-center sm:items-start gap-16 w-full px-8 pb-16'>
@@ -210,5 +210,5 @@ export default function Home() {
       </Main>
       <Footer />
     </div>
-  );
+  )
 }

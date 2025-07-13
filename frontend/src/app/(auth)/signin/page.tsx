@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Header, { HeaderMenuType } from '@/components/layouts/header/Header'
+import Header from '@/components/layouts/header/Header'
 import Footer from '@/components/layouts/footer/Footer'
 import Main from '@/components/layouts/main/Main'
 import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
@@ -67,7 +67,7 @@ export default function SignInPage() {
   if (selectedMFA) {
     return (
       <>
-        <Header menuType={HeaderMenuType.HIDDEN} />
+        <Header />
         <Main>
           <MfaVerification selectedMFA={selectedMFA} />
         </Main>
@@ -90,7 +90,7 @@ export default function SignInPage() {
   // ログイン情報入力画面
   return (
     <>
-      <Header menuType={HeaderMenuType.HIDDEN} />
+      <Header />
       <Main>
         <div className='flex justify-center py-4'>
           <form
@@ -115,7 +115,6 @@ export default function SignInPage() {
             <ReversalButton
               type='submit'
               label={isSubmitting ? 'ログイン中...' : 'ログイン'}
-              className='w-full'
               border
               disable={isSubmitting}
             />

@@ -1,6 +1,6 @@
 'use client'
 
-import Header, { HeaderMenuType } from '@/components/layouts/header/Header'
+import Header from '@/components/layouts/header/Header'
 import Footer from '@/components/layouts/footer/Footer'
 import Main from '@/components/layouts/main/Main'
 import { MfaFactor } from '@/lib/supabase/auth/types'
@@ -24,7 +24,7 @@ export default function MfaSelection({
 
   return (
     <>
-      <Header menuType={HeaderMenuType.HIDDEN} />
+      <Header />
       <Main>
         <div className='flex justify-center py-4'>
           <div className='w-full max-w-sm space-y-4 bg-white p-6 border-2 border-black'>

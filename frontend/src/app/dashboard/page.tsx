@@ -1,13 +1,13 @@
 'use client'
 
-import Header, { HeaderMenuType } from '@/components/layouts/header/Header'
+import Header from '@/components/layouts/header/Header'
 import Main from '@/components/layouts/main/Main'
 import Footer from '@/components/layouts/footer/Footer'
 
 export default function DashboardPage() {
   return (
     <>
-      <Header menuType={HeaderMenuType.MEMBER} />
+      <Header menuType='member' />
       <Main>
         <div style={{ maxWidth: 800, margin: '2rem auto', padding: '1rem' }}>
           <h1>ダッシュボード</h1>

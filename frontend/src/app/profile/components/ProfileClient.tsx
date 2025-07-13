@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import Header from '@/components/layouts/header/Header'
 import Footer from '@/components/layouts/footer/Footer'
 import Main from '@/components/layouts/main/Main'
-import { HeaderMenuType } from '@/components/layouts/header/Header'
 import ConfirmDialog from '@/components/elements/confirm-dialog/ConfirmDialog'
 import { PUBLIC_PATHS } from '@/lib/constants/routes'
 import { UserProfile } from '@/lib/supabase/schema/utils'
@@ -46,7 +45,7 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
 
   return (
     <>
-      <Header menuType={HeaderMenuType.MEMBER} />
+      <Header menuType='member' />
       <Main>
         <div className='flex gap-6 py-6'>
           {/* サイドメニュー */}
