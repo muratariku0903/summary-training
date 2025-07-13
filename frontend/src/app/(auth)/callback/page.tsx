@@ -245,6 +245,7 @@ export default function CallbackPage() {
           <TotpSetup
             factorId={mfaData.data.factorId}
             qrCode={mfaData.data.qrCode}
+            onComplete={() => router.replace(PROTECTED_PATHS.DASHBOARD)}
             onBack={() => setSetupMfa(SETUP_MFA.UNSELECTED)}
           />
         )
