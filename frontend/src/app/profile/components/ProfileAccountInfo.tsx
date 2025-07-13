@@ -54,12 +54,16 @@ export default function ProfileAccountInfo({
               <div>
                 <span
                   className={`text-sm ${
-                    user.factors && user.factors.length > 0
+                    user.factors &&
+                    user.factors.filter((f) => f.status === 'verified').length > 0
                       ? 'text-green-600'
                       : 'text-red-600'
                   }`}
                 >
-                  {user.factors && user.factors.length > 0 ? '有効' : '無効'}
+                  {user.factors &&
+                  user.factors.filter((f) => f.status === 'verified').length > 0
+                    ? '有効'
+                    : '無効'}
                 </span>
               </div>
               <OutlineButton
@@ -69,7 +73,8 @@ export default function ProfileAccountInfo({
               />
             </div>
 
-            {user.factors && user.factors.length > 0 ? (
+            {user.factors &&
+            user.factors.filter((f) => f.status === 'verified').length > 0 ? (
               <div className='border-t border-gray-300 pt-3'>
                 <span className='block text-sm font-medium text-gray-700 mb-2'>
                   設定済み認証方法
