@@ -90,5 +90,8 @@ export const BadRequest = (msg = 'Bad request', details?: unknown) =>
 export const Unauthorized = (msg = 'Unauthorized', details?: unknown) =>
   new ApiError(401, ERROR_CODES.UNAUTHORIZED, msg, details)
 
+export const NotFound = (msg = 'Not found', details?: unknown) =>
+  new ApiError(404, ERROR_CODES.NOT_FOUND, msg, details)
+
 export const InternalError = (msg = 'Internal server error', details?: unknown) =>
   new ApiError(500, ERROR_CODES.INTERNAL_SERVER, msg, details)

@@ -4,7 +4,7 @@ import MfaVerification from './MfaVerification'
 import { MFA_TYPES } from '@/lib/constants/auth'
 import QrCodeDisplay from '@/components/elements/qr-code-display/QrCodeDisplay'
 import { Spacer } from '@/components/elements/spacer/Spacer'
-import { resetUnverifiedEnrollment } from '@/lib/supabase/auth/mfa'
+import { resetEnrollment } from '@/lib/supabase/auth/mfa'
 import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
 
 type TotpSetupProps = {
@@ -57,11 +57,10 @@ export default function TotpSetup({
         label='キャンセル'
         onClick={async () => {
           // TOTPエンロールをリセット
-          const { success, message } = await resetUnverifiedEnrollment(MFA_TYPES.TOTP)
+          const { success } = await resetEnrollment(MFA_TYPES.TOTP, 'unverified')
           if (!success) {
             // TODO エラー処理
           }
-          console.log(message)
 
           if (onBack) {
             onBack()

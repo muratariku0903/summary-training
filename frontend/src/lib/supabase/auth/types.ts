@@ -1,6 +1,7 @@
 // src/lib/supabase/auth/types.ts - 修正版
 import { z } from 'zod'
 import { MFA_TYPES, VALIDATION_MESSAGES } from '@/lib/constants/auth'
+import { User } from '@supabase/supabase-js'
 
 // バリデーションスキーマ（定数使用）
 export const signinSchema = z.object({
@@ -176,3 +177,20 @@ export type GetAvailableMfaFactorsResponse = {
   message: string
   factors?: MfaFactor[]
 }
+
+export type TotpResetResponse = {
+  success: boolean
+  message: string
+}
+
+export type ListMfaResponse =
+  | {
+      success: true
+      data: User['factors']
+      error?: never
+    }
+  | {
+      success: false
+      data?: never
+      error: string
+    }

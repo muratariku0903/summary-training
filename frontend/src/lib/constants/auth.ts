@@ -92,6 +92,5 @@ export const AUTH_LOG_MESSAGES = {
 // MFA方式の定義
 export const MFA_TYPES = {
   TOTP: 'totp',
-  SMS: 'sms',
-  EMAIL: 'email',
+  SMS: 'phone',
 } as const

@@ -1,63 +1,200 @@
 'use client'
 
-import Header from '@/components/layouts/header/Header'
-import Footer from '@/components/layouts/footer/Footer'
-import Main from '@/components/layouts/main/Main'
-import { HeaderMenuType } from '@/components/layouts/header/Header'
-
 import { User } from '@supabase/supabase-js'
 import { MfaType } from '@/lib/supabase/auth/types'
-import TwoFactorAuthenticationMethodList, {
-  AuthenticationMethodItem,
-} from './TwoFactorAuthenticationMethodList'
+import TwoFactorAuthenticationMethodList from './TwoFactorAuthenticationMethodList'
 import { MFA_TYPES } from '@/lib/constants/auth'
+import { useState } from 'react'
+import ConfirmDialog from '@/components/elements/confirm-dialog/ConfirmDialog'
+import TotpSetup from '@/components/features/auth/TotpSetup'
+import { enrollTotpFactor, listMfa, resetEnrollment } from '@/lib/supabase/auth/mfa'
+import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
+import { useRouter } from 'next/navigation'
+import { PROTECTED_PATHS } from '@/lib/constants/routes'
 
 type TwoFactorAuthenticationSettingProps = {
-  user: User
+  factors: User['factors']
 }
 
 export default function TwoFactorAuthenticationSetting({
-  user,
+  factors,
 }: TwoFactorAuthenticationSettingProps) {
-  const items: AuthenticationMethodItem[] = [
+  const router = useRouter()
+
+  const [settingMode, setSettingMode] = useState<SettingMode | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [mfaData, setMfaData] = useState<MfaData | null>(null)
+  const [state, setState] = useState(factors)
+
+  const methodItems = [
     {
       type: MFA_TYPES.TOTP,
       name: 'TOTP認証',
       desc: '認証アプリを使用した時間ベースのワンタイムパスワード',
-      enable: isMethodEnabled(user, MFA_TYPES.TOTP),
-      onClickSetting: () => console.log(''),
-      onClickReset: () => console.log(''),
+      enable: isMethodEnabled(state, MFA_TYPES.TOTP),
+      onClickUpdate: async () => {
+        const { success, factorId, qrCode, message } = await enrollTotpFactor()
+        if (!success) {
+          setError(message)
+
+          return
+        }
+
+        setMfaData({ type: MFA_TYPES.TOTP, data: { factorId, qrCode } })
+        setSettingMode({ type: MFA_TYPES.TOTP, mode: 'update' })
+      },
+      onClickReset: () => setSettingMode({ type: MFA_TYPES.TOTP, mode: 'delete' }),
     },
     {
       type: MFA_TYPES.SMS,
       name: 'SMS認証',
       desc: 'SMS経由でのワンタイムパスワード',
-      enable: isMethodEnabled(user, MFA_TYPES.SMS),
-      onClickSetting: () => console.log(''),
+      enable: isMethodEnabled(state, MFA_TYPES.SMS),
+      onClickUpdate: () => console.log(''),
       onClickReset: () => console.log(''),
     },
   ]
 
+  if (
+    settingMode &&
+    settingMode.type === MFA_TYPES.TOTP &&
+    settingMode.mode === 'delete'
+  ) {
+    // TOTP無効にする場合
+
+    return (
+      <>
+        <TwoFactorAuthenticationMethodList items={methodItems} />
+        <ConfirmDialog
+          isOpen={true}
+          onClose={() => setSettingMode(null)}
+          onConfirm={async () => {
+            console.log('start reset enroll')
+            const { success, message } = await resetEnrollment(
+              settingMode.type,
+              'verified'
+            )
+            console.log('end reset enroll')
+            if (!success) {
+              setError(message)
+              return
+            }
+            const {
+              success: listSuccess,
+              data: listData,
+              error: listError,
+            } = await listMfa()
+            if (!listSuccess) {
+              console.log(listError)
+              setError(listError)
+              return
+            }
+            setState(listData)
+            setError(null)
+            setSettingMode(null)
+            setSuccessMessage('MFAを無効にしました')
+          }}
+          title='TOTP設定を無効にする'
+          message={`TOTPの設定を削除しますが、本当によろしいですか？`}
+          confirmLabel='無効にする'
+          cancelLabel='キャンセル'
+          variant='danger'
+        />
+      </>
+    )
+  }
+
+  if (
+    settingMode &&
+    mfaData?.type === MFA_TYPES.TOTP &&
+    settingMode.type === MFA_TYPES.TOTP &&
+    settingMode.mode === 'update'
+  ) {
+    // TOTP有効にする場合
+    return (
+      <TotpSetup
+        factorId={mfaData.data.factorId}
+        qrCode={mfaData.data.qrCode}
+        onComplete={async () => {
+          const {
+            success: listSuccess,
+            data: listData,
+            error: listError,
+          } = await listMfa()
+          if (!listSuccess) {
+            setError(listError)
+            return
+          }
+          setState(listData)
+          setSettingMode(null)
+          setSuccessMessage('TOTPを有効にしました')
+        }}
+        onBack={() => setSettingMode(null)}
+      />
+    )
+  }
+
   return (
     <>
-      <Header menuType={HeaderMenuType.MEMBER} />
-      <Main>
-        <div className='max-w-2xl mx-auto p-6 space-y-6'>
-          <div>
-            <h2 className='text-2xl font-bold mb-2'>二段階認証</h2>
-            <p className='text-gray-600'>
-              アカウントのセキュリティを強化するため、二段階認証を設定してください。
-            </p>
-          </div>
-          <TwoFactorAuthenticationMethodList items={items} />
+      {/* エラーメッセージ */}
+      {error && (
+        <div className='p-4 bg-red-100 border-2 border-red-500 text-red-700 rounded'>
+          <button
+            onClick={() => setError(null)}
+            className='float-right text-red-500 hover:text-red-700'
+          >
+            ×
+          </button>
+          {error}
         </div>
-      </Main>
-      <Footer />
+      )}
+
+      {/* 成功メッセージ */}
+      {successMessage && (
+        <div className='p-4 bg-green-100 border-2 border-green-500 text-green-700 rounded'>
+          <button
+            onClick={() => setSuccessMessage(null)}
+            className='float-right text-green-500 hover:text-green-700'
+          >
+            ×
+          </button>
+          {successMessage}
+        </div>
+      )}
+      <TwoFactorAuthenticationMethodList items={methodItems} />
+      <ReversalButton
+        label='戻る'
+        onClick={() => router.replace(PROTECTED_PATHS.PROFILE)}
+        border
+      />
     </>
   )
 }
 
-const isMethodEnabled = (user: User, methodType: MfaType) => {
-  if (!user.factors || user.factors.length === 0) return false
-  return user.factors.some((factor) => factor.factor_type === methodType)
+const isMethodEnabled = (factors: User['factors'], methodType: MfaType) => {
+  if (!factors || factors.length === 0) return false
+  return factors.some(
+    (factor) => factor.factor_type === methodType && factor.status === 'verified'
+  )
+}
+
+type SettingMode = {
+  type: MfaType
+  mode: 'update' | 'delete'
+}
+
+type MfaData =
+  | {
+      type: typeof MFA_TYPES.TOTP
+      data: TotpMFaData
+    }
+  | {
+      type: typeof MFA_TYPES.SMS
+      data: null
+    }
+
+type TotpMFaData = {
+  factorId: string
+  qrCode: string
 }

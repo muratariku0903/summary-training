@@ -9,7 +9,7 @@ export type AuthenticationMethodItem = {
   name: string
   desc: string
   enable: boolean
-  onClickSetting: () => void
+  onClickUpdate: () => void
   onClickReset: () => void
 }
 type TwoFactorAuthenticationMethodListProps = {
@@ -39,11 +39,15 @@ export default function TwoFactorAuthenticationSetting({
                 </div>
                 <div>
                   <OutlineButton
-                    label={isEnabled ? '設定変更' : '設定'}
+                    label={isEnabled ? '削除' : '設定'}
                     className='text-sm px-3 py-1'
                     onClick={() => {
-                      // TODO: 各認証方法の設定画面に遷移
-                      console.log(`${item.type} setting clicked`)
+                      if (isEnabled) {
+                        item.onClickReset()
+                        return
+                      }
+
+                      item.onClickUpdate()
                     }}
                   />
                 </div>

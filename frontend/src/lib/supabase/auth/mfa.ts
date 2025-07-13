@@ -8,6 +8,8 @@ import {
   MfaFactor,
   GetAvailableMfaFactorsResponse,
   MfaType,
+  TotpResetResponse,
+  ListMfaResponse,
 } from './types'
 import { AUTH_MESSAGES, AUTH_LOG_MESSAGES, MFA_TYPES } from '@/lib/constants/auth'
 import { ZodError } from 'zod'
@@ -247,10 +249,6 @@ export async function getAvailableMfaFactors(): Promise<GetAvailableMfaFactorsRe
 /**
  * 　Enrollリセット処理（すべての TOTP factor を削除）
  */
-export type TotpResetResponse = {
-  success: boolean
-  message: string
-}
 
 export async function resetEnrollment(
   type: MfaType,
@@ -276,7 +274,7 @@ export async function resetEnrollment(
     }
 
     // 3. 指定したMFAタイプで未認証のものを抽出
-    const allFactors = [...factors.all, ...factors.phone, ...factors.totp]
+    const allFactors = factors.all
     const targetFactors = allFactors.filter(
       (f) => f.status === status && f.factor_type === type
     )
@@ -309,6 +307,40 @@ export async function resetEnrollment(
     return {
       success: false,
       message: AUTH_MESSAGES.UNEXPECTED_ERROR,
+    }
+  }
+}
+
+/**
+ * 　mfa一覧を取得
+ */
+
+export async function listMfa(): Promise<ListMfaResponse> {
+  try {
+    // 認証チェック
+    const { data: user } = await browserClient.auth.getUser()
+    if (!user.user) {
+      return {
+        success: false,
+        error: AUTH_MESSAGES.USER_NOT_AUTHENTICATED,
+      }
+    }
+
+    // MFA ファクター一覧を取得
+    const { data: factors, error: listErr } = await browserClient.auth.mfa.listFactors()
+    if (listErr) {
+      return {
+        success: false,
+        error: listErr.message,
+      }
+    }
+
+    return { success: true, data: [...factors.all, ...factors.phone, ...factors.totp] }
+  } catch (error) {
+    console.error(AUTH_LOG_MESSAGES.UNEXPECTED_MFA_ERROR, error)
+    return {
+      success: false,
+      error: AUTH_MESSAGES.UNEXPECTED_ERROR,
     }
   }
 }
