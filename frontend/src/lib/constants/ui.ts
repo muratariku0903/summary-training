@@ -16,6 +16,10 @@ export const UI_MESSAGES = {
   // サインイン関連
   SIGNIN_SUCCESS_MESSAGE: 'ログインしました',
   SIGNIN_FAILED_MESSAGE: 'ログインに失敗しました',
+  SIGNOUT_SUCCESS_MESSAGE: 'ログアウトしました',
+  SIGNOUT_FAILED_MESSAGE: 'ログアウトに失敗しました',
+  ACCOUNT_DELETE_SUCCESS_MESSAGE: 'アカウントを削除しました',
+  PROFILE_UPDATE_SUCCESS_MESSAGE: 'プロフィールを更新しました',
   UNEXPECTED_ERROR:
     '予期しないエラーが発生しました。しばらく時間をおいて再度お試しください。',
   SIGNIN_SUBMITTING: 'ログイン中...',
@@ -33,7 +37,8 @@ export const UI_MESSAGES = {
   TOTP_SETUP_MESSAGE: 'QRコードを認証アプリでスキャンしてください',
   TOTP_SETUP_SUBMITTING: '設定中...',
   TOTP_SETUP_SUBMIT: '設定完了',
-  TOTP_SETUP_SUCCESS_TITLE: 'TOTP設定完了',
+  TOTP_SETUP_SUCCESS: 'TOTP設を有効にしました',
+  TOTP_RESET_SUCCESS: 'TOTP設定を無効にしました',
   TOTP_SETUP_SUCCESS_MESSAGE: '2段階認証の設定が完了しました',
 
   // 共通

@@ -14,6 +14,8 @@ import ProfileSideMenu, { MenuKey } from './ProfileSideMenu'
 import { User } from '@supabase/supabase-js'
 import ProfileBasicInfo from './ProfileBasicInfo'
 import ProfileAccountInfo from './ProfileAccountInfo'
+import { useSnackbarStore } from '@/stores/useSnackbarStore'
+import { UI_MESSAGES } from '@/lib/constants/ui'
 
 type ProfileClientProps = {
   user: User
@@ -25,6 +27,7 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
 
   const [activeMenu, setActiveMenu] = useState<MenuKey>('basic')
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const showSnackbar = useSnackbarStore((s) => s.show)
 
   // メインコンテンツの表示切り替え
   const renderMainContent = () => {
@@ -81,6 +84,7 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
             return
           }
 
+          showSnackbar(UI_MESSAGES.ACCOUNT_DELETE_SUCCESS_MESSAGE, 'success')
           router.replace(PUBLIC_PATHS.HOME)
         }}
         title='アカウントを削除'

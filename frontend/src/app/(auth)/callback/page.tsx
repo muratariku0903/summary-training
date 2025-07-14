@@ -11,6 +11,8 @@ import { MfaType } from '@/lib/supabase/auth/types'
 import { MFA_TYPES } from '@/lib/constants/auth'
 import TotpSetup from '@/components/features/auth/TotpSetup'
 import { enrollTotpFactor } from '@/lib/supabase/auth/mfa'
+import { useSnackbarStore } from '@/stores/useSnackbarStore'
+import { UI_MESSAGES } from '@/lib/constants/ui'
 
 // この画面はSupabaseからの確認メールのリンクを押下した際に遷移
 /**
@@ -52,6 +54,7 @@ export default function CallbackPage() {
   const [selectedMfaType, setSelectedMfaType] = useState<MfaType | null>(null)
   const [mfaData, setMfaData] = useState<MfaData | null>(null)
   const [error, setError] = useState<Error | null>(null)
+  const showSnackbar = useSnackbarStore((s) => s.show)
 
   const onSubmit = async (input: { mfaType: MfaType }) => {
     const mfaType = input.mfaType
@@ -128,7 +131,10 @@ export default function CallbackPage() {
               </button>
 
               <button
-                onClick={() => router.replace(PROTECTED_PATHS.DASHBOARD)}
+                onClick={() => {
+                  showSnackbar(UI_MESSAGES.SIGNIN_SUCCESS_MESSAGE, 'success')
+                  router.replace(PROTECTED_PATHS.DASHBOARD)
+                }}
                 style={{
                   padding: '0.75rem 1.25rem',
                   fontSize: '0.95rem',
@@ -245,7 +251,10 @@ export default function CallbackPage() {
           <TotpSetup
             factorId={mfaData.data.factorId}
             qrCode={mfaData.data.qrCode}
-            onComplete={() => router.replace(PROTECTED_PATHS.DASHBOARD)}
+            onComplete={() => {
+              showSnackbar(UI_MESSAGES.SIGNIN_SUCCESS_MESSAGE, 'success')
+              router.replace(PROTECTED_PATHS.DASHBOARD)
+            }}
             onBack={() => setSetupMfa(SETUP_MFA.UNSELECTED)}
           />
         )

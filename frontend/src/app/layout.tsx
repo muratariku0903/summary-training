@@ -1,26 +1,27 @@
-import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
-import './globals.css';
+import type { Metadata } from 'next'
+import { Geist, Geist_Mono } from 'next/font/google'
+import './globals.css'
+import Snackbar from '@/components/elements/snackbar/Snackbar'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
-});
+})
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
-});
+})
 
 export const metadata: Metadata = {
   title: '要約訓練',
   description: '要約訓練サイト',
-};
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang='ja'>
@@ -30,7 +31,8 @@ export default function RootLayout({
         <div className='min-h-screen flex flex-col max-w-screen-sm sm:max-w-screen-md md:max-w-screen-lg lg:max-w-screen-xl mx-auto'>
           {children}
         </div>
+        <Snackbar />
       </body>
     </html>
-  );
+  )
 }

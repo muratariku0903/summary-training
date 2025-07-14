@@ -11,6 +11,8 @@ import { enrollTotpFactor, listMfa, resetEnrollment } from '@/lib/supabase/auth/
 import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
 import { useRouter } from 'next/navigation'
 import { PROTECTED_PATHS } from '@/lib/constants/routes'
+import { useSnackbarStore } from '@/stores/useSnackbarStore'
+import { UI_MESSAGES } from '@/lib/constants/ui'
 
 type TwoFactorAuthenticationSettingProps = {
   factors: User['factors']
@@ -23,9 +25,9 @@ export default function TwoFactorAuthenticationSetting({
 
   const [settingMode, setSettingMode] = useState<SettingMode | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [mfaData, setMfaData] = useState<MfaData | null>(null)
   const [state, setState] = useState(factors)
+  const showSnackbar = useSnackbarStore((s) => s.show)
 
   const methodItems = [
     {
@@ -62,7 +64,6 @@ export default function TwoFactorAuthenticationSetting({
     settingMode.mode === 'delete'
   ) {
     // TOTP無効にする場合
-
     return (
       <>
         <TwoFactorAuthenticationMethodList items={methodItems} />
@@ -93,7 +94,7 @@ export default function TwoFactorAuthenticationSetting({
             setState(listData)
             setError(null)
             setSettingMode(null)
-            setSuccessMessage('MFAを無効にしました')
+            showSnackbar(UI_MESSAGES.TOTP_RESET_SUCCESS, 'success')
           }}
           title='TOTP設定を無効にする'
           message={`TOTPの設定を削除しますが、本当によろしいですか？`}
@@ -128,7 +129,7 @@ export default function TwoFactorAuthenticationSetting({
           }
           setState(listData)
           setSettingMode(null)
-          setSuccessMessage('TOTPを有効にしました')
+          showSnackbar(UI_MESSAGES.TOTP_SETUP_SUCCESS)
         }}
         onBack={() => setSettingMode(null)}
       />
@@ -150,18 +151,6 @@ export default function TwoFactorAuthenticationSetting({
         </div>
       )}
 
-      {/* 成功メッセージ */}
-      {successMessage && (
-        <div className='p-4 bg-green-100 border-2 border-green-500 text-green-700 rounded'>
-          <button
-            onClick={() => setSuccessMessage(null)}
-            className='float-right text-green-500 hover:text-green-700'
-          >
-            ×
-          </button>
-          {successMessage}
-        </div>
-      )}
       <TwoFactorAuthenticationMethodList items={methodItems} />
       <ReversalButton
         label='戻る'

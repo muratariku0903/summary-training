@@ -15,12 +15,15 @@ import TextArea from '@/components/elements/text-area/TextArea'
 import ProfileAvatar from './ProfileAvatar'
 import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
 import OutlineButton from '@/components/elements/outline-button/OutlineButton'
+import { useSnackbarStore } from '@/stores/useSnackbarStore'
+import { UI_MESSAGES } from '@/lib/constants/ui'
 
 type ProfileBasicInfoProps = {
   profile: UserProfile
 }
 
 export default function ProfileBasicInfo({ profile }: ProfileBasicInfoProps) {
+  const showSnackbar = useSnackbarStore((s) => s.show)
   const [state, formAction, isPending] = useActionState<UserProfile, UpdateProfileSchema>(
     async (state, payload) => {
       const { success, data, error } = await updateProfileAction(payload)
@@ -28,8 +31,7 @@ export default function ProfileBasicInfo({ profile }: ProfileBasicInfoProps) {
         setError(error)
         return state
       }
-
-      setSuccessMessage('プロフィールを編集しました')
+      showSnackbar(UI_MESSAGES.PROFILE_UPDATE_SUCCESS_MESSAGE, 'success')
       setError(null) // エラーをクリア
 
       return data
@@ -47,7 +49,6 @@ export default function ProfileBasicInfo({ profile }: ProfileBasicInfoProps) {
 
   const [isEditing, setIsEditing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   return (
     <div className='space-y-6'>
@@ -61,19 +62,6 @@ export default function ProfileBasicInfo({ profile }: ProfileBasicInfoProps) {
             ×
           </button>
           {error}
-        </div>
-      )}
-
-      {/* 成功メッセージ */}
-      {successMessage && (
-        <div className='p-4 bg-green-100 border-2 border-green-500 text-green-700 rounded'>
-          <button
-            onClick={() => setSuccessMessage(null)}
-            className='float-right text-green-500 hover:text-green-700'
-          >
-            ×
-          </button>
-          {successMessage}
         </div>
       )}
 

@@ -21,6 +21,7 @@ import { UI_MESSAGES } from '@/lib/constants/ui'
 import MfaVerification from '@/components/features/auth/MfaVerification'
 import MfaSelection from '@/components/features/auth/MfaSelection'
 import Link from 'next/link'
+import { useSnackbarStore } from '@/stores/useSnackbarStore'
 
 export default function SignInPage() {
   const router = useRouter()
@@ -34,6 +35,7 @@ export default function SignInPage() {
   const [showMfaSelection, setShowMfaSelection] = useState(false)
   const [selectableMFAList, setSelectableMFAList] = useState<MfaFactor[]>([])
   const [selectedMFA, setSelectedMFA] = useState<MfaFactor | null>(null)
+  const showSnackbar = useSnackbarStore((s) => s.show)
 
   const onSubmit = async (input: SigninInput) => {
     setSubmitError(null)
@@ -48,6 +50,7 @@ export default function SignInPage() {
 
     // MFA設定をしてない場合はそのままログイン成功とみなし、ダッシュボードなどへリダイレクト
     if (!requiresMfa) {
+      showSnackbar(UI_MESSAGES.SIGNIN_SUCCESS_MESSAGE, 'success')
       router.replace(PROTECTED_PATHS.DASHBOARD)
       return
     }
@@ -71,7 +74,10 @@ export default function SignInPage() {
         <Main>
           <MfaVerification
             selectedMFA={selectedMFA}
-            onVerifyComplete={() => router.replace(PROTECTED_PATHS.DASHBOARD)}
+            onVerifyComplete={() => {
+              showSnackbar(UI_MESSAGES.SIGNIN_SUCCESS_MESSAGE, 'success')
+              router.replace(PROTECTED_PATHS.DASHBOARD)
+            }}
           />
         </Main>
         <Footer />

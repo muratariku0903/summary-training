@@ -9,6 +9,8 @@ import { signOut } from '@/lib/supabase/auth/auth'
 import { useRouter } from 'next/navigation'
 import { SettingsIcon, SignOutIcon } from '@/components/icons/icons'
 import Link from 'next/link'
+import { useSnackbarStore } from '@/stores/useSnackbarStore'
+import { UI_MESSAGES } from '@/lib/constants/ui'
 
 type HeaderProps = {
   menuType?: 'guest' | 'member' | 'hidden'
@@ -16,6 +18,7 @@ type HeaderProps = {
 
 const Header: React.FC<HeaderProps> = ({ menuType }) => {
   const router = useRouter()
+  const showSnackbar = useSnackbarStore((s) => s.show)
 
   // ユーザーメニューの設定
   const userMenuItems = [
@@ -27,8 +30,10 @@ const Header: React.FC<HeaderProps> = ({ menuType }) => {
     {
       label: 'サインアウト',
       onClick: async () => {
-        await signOut()
-        router.replace(PUBLIC_PATHS.HOME)
+        await signOut().then(() => {
+          showSnackbar(UI_MESSAGES.SIGNOUT_SUCCESS_MESSAGE, 'success')
+          router.replace(PUBLIC_PATHS.HOME)
+        })
       },
       icon: <SignOutIcon />,
     },
