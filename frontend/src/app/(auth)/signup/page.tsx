@@ -98,6 +98,7 @@ export default function SignUpPage() {
               <OutlineMessage message={submitError} type={MessageType.ERROR} />
             )}
             <ReversalButton
+              type='submit'
               label={isSubmitting ? '登録中...' : '登録'}
               border
               disable={isSubmitting}
