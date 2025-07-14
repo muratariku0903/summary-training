@@ -32,7 +32,7 @@ export default function ProfileBasicInfo({ profile }: ProfileBasicInfoProps) {
         return state
       }
       showSnackbar(UI_MESSAGES.PROFILE_UPDATE_SUCCESS_MESSAGE, 'success')
-      setError(null) // エラーをクリア
+      setError(null)
 
       return data
     },

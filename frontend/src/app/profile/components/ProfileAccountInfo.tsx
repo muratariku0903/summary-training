@@ -5,6 +5,7 @@ import {
   MessageType,
   OutlineMessage,
 } from '@/components/elements/outline-message/OutlineMessage'
+import TextInput from '@/components/elements/text-input/TextInput'
 import { PROTECTED_PATHS } from '@/lib/constants/routes'
 import { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
@@ -26,31 +27,39 @@ export default function ProfileAccountInfo({
 
       <div className='space-y-4'>
         <div className='space-y-2'>
-          <label className='block text-sm font-medium text-gray-700'>
-            メールアドレス
-          </label>
-          <div className='flex items-center justify-between p-3 border-2 border-black bg-gray-50'>
-            <span>{user.email}</span>
-            <button className='px-3 py-1 text-sm border-2 border-black bg-white hover:bg-gray-100 transition-colors'>
-              編集
-            </button>
-          </div>
+          <TextInput
+            labelText='メールアドレス'
+            edit={false}
+            showValue={user.email}
+            rightElement={
+              <OutlineButton
+                label='変更'
+                onClick={() => router.replace(PROTECTED_PATHS.TWO_FACTOR_AUTHENTICATION)}
+                className='text-sm px-3 py-1'
+              />
+            }
+          />
         </div>
 
         <div className='space-y-2'>
-          <label className='block text-sm font-medium text-gray-700'>パスワード</label>
-          <div className='flex items-center justify-between p-3 border-2 border-black bg-gray-50'>
-            <span>••••••••</span>
-            <button className='px-3 py-1 text-sm border-2 border-black bg-white hover:bg-gray-100 transition-colors'>
-              変更
-            </button>
-          </div>
+          <TextInput
+            labelText='パスワード'
+            edit={false}
+            showValue='••••••••'
+            rightElement={
+              <OutlineButton
+                label='変更'
+                onClick={() => router.replace(PROTECTED_PATHS.TWO_FACTOR_AUTHENTICATION)}
+                className='text-sm px-3 py-1'
+              />
+            }
+          />
         </div>
 
         <div className='space-y-2'>
-          <label className='block text-sm font-medium text-gray-700'>二段階認証</label>
-          <div className='p-3 border-2 border-black bg-gray-50 space-y-3'>
-            <div className='flex items-center justify-between'>
+          <label className='block  text-sm font-bold'>二段階認証</label>
+          <div className='p-3 rounded border bg-gray-50 p-3'>
+            <div className='flex items-center justify-between pb-2'>
               <div>
                 <span
                   className={`text-sm ${

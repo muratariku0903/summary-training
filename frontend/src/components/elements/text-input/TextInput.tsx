@@ -1,4 +1,4 @@
-import React, { InputHTMLAttributes } from 'react'
+import React, { InputHTMLAttributes, ReactNode } from 'react'
 
 type TextInputProps = InputHTMLAttributes<HTMLInputElement> & {
   showValue?: string | null
@@ -6,6 +6,7 @@ type TextInputProps = InputHTMLAttributes<HTMLInputElement> & {
   labelText?: string
   labelClassName?: string
   errorMessage?: string | null
+  rightElement?: ReactNode
 }
 
 const TextInput: React.FC<TextInputProps> = ({
@@ -15,6 +16,7 @@ const TextInput: React.FC<TextInputProps> = ({
   labelClassName,
   errorMessage,
   edit = true,
+  rightElement,
   ...rest
 }) => {
   return (
@@ -30,19 +32,24 @@ const TextInput: React.FC<TextInputProps> = ({
         </label>
       )}
 
-      {edit ? (
-        <input
-          id={id}
-          {...rest}
-          className={`w-full rounded border ${
-            errorMessage ? 'border-red-600' : 'border-black'
-          } px-3 py-2 focus:outline-none focus:ring ${rest.className || ''}`}
-        />
-      ) : (
-        <div className='p-3 border-1 border-black bg-gray-50'>
-          <span>{showValue}</span>
-        </div>
-      )}
+      <div className='flex items-center gap-2'>
+        {edit ? (
+          <input
+            id={id}
+            {...rest}
+            className={`w-full flex-1 rounded border ${
+              errorMessage ? 'border-red-600' : 'border-black'
+            } px-3 py-2 focus:outline-none focus:ring ${rest.className || ''}`}
+          />
+        ) : (
+          <div className={`flex-1 rounded border  bg-gray-50 p-3`}>
+            <span>{showValue}</span>
+          </div>
+        )}
+
+        {/* 右側要素 (任意) */}
+        {rightElement && <div className='shrink-0'>{rightElement}</div>}
+      </div>
 
       {errorMessage && <p className='text-xs text-red-600'>{errorMessage}</p>}
     </>
