@@ -132,7 +132,6 @@ export default function AuthCodeInput({
         <ReversalButton
           type='submit'
           label={isSubmitting ? submittingLabel : submitLabel}
-          className='w-full'
           border
           disable={isSubmitting || !isValidCode(code) || disabled}
         />
@@ -140,7 +139,6 @@ export default function AuthCodeInput({
         {showBackButton && onBack && (
           <ReversalButton
             label={backLabel}
-            className='w-full'
             onClick={onBack}
             disable={isSubmitting || disabled}
           />
