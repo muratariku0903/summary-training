@@ -9,6 +9,7 @@ export const PROTECTED_PATHS = {
   DASHBOARD: '/dashboard',
   PROFILE: '/profile',
   TWO_FACTOR_AUTHENTICATION: '/profile/two-factor-authentication',
+  PASSWORD_CHANGE: '/profile/password-change',
 } as const
 
 /**

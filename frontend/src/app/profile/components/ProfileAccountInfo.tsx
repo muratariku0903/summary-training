@@ -34,7 +34,7 @@ export default function ProfileAccountInfo({
             rightElement={
               <OutlineButton
                 label='変更'
-                onClick={() => router.replace(PROTECTED_PATHS.TWO_FACTOR_AUTHENTICATION)}
+                onClick={() => console.log('update mail')}
                 className='text-sm px-3 py-1'
               />
             }
@@ -49,7 +49,7 @@ export default function ProfileAccountInfo({
             rightElement={
               <OutlineButton
                 label='変更'
-                onClick={() => router.replace(PROTECTED_PATHS.TWO_FACTOR_AUTHENTICATION)}
+                onClick={() => router.replace(PROTECTED_PATHS.PASSWORD_CHANGE)}
                 className='text-sm px-3 py-1'
               />
             }

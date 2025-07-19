@@ -1,4 +1,5 @@
-import React, { InputHTMLAttributes, ReactNode } from 'react'
+import React, { InputHTMLAttributes, ReactNode, useState } from 'react'
+import { FaEye, FaEyeSlash } from 'react-icons/fa'
 
 type TextInputProps = InputHTMLAttributes<HTMLInputElement> & {
   showValue?: string | null
@@ -7,6 +8,7 @@ type TextInputProps = InputHTMLAttributes<HTMLInputElement> & {
   labelClassName?: string
   errorMessage?: string | null
   rightElement?: ReactNode
+  type?: 'text' | 'password'
 }
 
 const TextInput: React.FC<TextInputProps> = ({
@@ -17,8 +19,11 @@ const TextInput: React.FC<TextInputProps> = ({
   errorMessage,
   edit = true,
   rightElement,
+  type = 'text',
   ...rest
 }) => {
+  const [typeState, setTypeState] = useState(type)
+
   return (
     <>
       {labelText && (
@@ -34,16 +39,30 @@ const TextInput: React.FC<TextInputProps> = ({
 
       <div className='flex items-center gap-2'>
         {edit ? (
-          <input
-            id={id}
-            {...rest}
-            className={`w-full flex-1 rounded border ${
-              errorMessage ? 'border-red-600' : 'border-black'
-            } px-3 py-2 focus:outline-none focus:ring ${rest.className || ''}`}
-          />
+          <>
+            <input
+              id={id}
+              type={typeState}
+              {...rest}
+              className={`w-full flex-1 rounded border ${
+                errorMessage ? 'border-red-600' : 'border-black'
+              } px-3 py-2 focus:outline-none focus:ring ${rest.className || ''}`}
+            />
+            <button
+              type='button'
+              onClick={() =>
+                setTypeState((v) => (v === 'password' ? 'text' : 'password'))
+              }
+              className='shrink-0 p-1'
+            >
+              {typeState === 'password' ? <FaEye size={16} /> : <FaEyeSlash size={16} />}
+            </button>
+          </>
         ) : (
           <div className={`flex-1 rounded border  bg-gray-50 p-3`}>
-            <span>{showValue}</span>
+            <span>
+              {typeState === 'password' ? showValue?.replace(/./g, '•') : showValue}
+            </span>
           </div>
         )}
 

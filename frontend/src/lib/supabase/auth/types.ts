@@ -65,6 +65,37 @@ export type SignupResponse =
       message: string
     }
 
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z
+      .string({ required_error: VALIDATION_MESSAGES.PASSWORD_REQUIRED })
+      .min(8, VALIDATION_MESSAGES.PASSWORD_MIN_LENGTH)
+      .regex(/[A-Z]/, VALIDATION_MESSAGES.PASSWORD_UPPERCASE)
+      .regex(/[a-z]/, VALIDATION_MESSAGES.PASSWORD_LOWERCASE)
+      .regex(/[0-9]/, VALIDATION_MESSAGES.PASSWORD_NUMBER),
+    newPassword: z
+      .string({ required_error: VALIDATION_MESSAGES.PASSWORD_REQUIRED })
+      .min(8, VALIDATION_MESSAGES.PASSWORD_MIN_LENGTH)
+      .regex(/[A-Z]/, VALIDATION_MESSAGES.PASSWORD_UPPERCASE)
+      .regex(/[a-z]/, VALIDATION_MESSAGES.PASSWORD_LOWERCASE)
+      .regex(/[0-9]/, VALIDATION_MESSAGES.PASSWORD_NUMBER),
+    confirmNewPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: VALIDATION_MESSAGES.PASSWORD_MISMATCH,
+    path: ['confirmNewPassword'],
+  })
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>
+export type ChangePasswordResponse =
+  | {
+      success: true
+      message: string
+    }
+  | {
+      success: false
+      message: string
+    }
+
 // MFA関連のバリデーションスキーマ
 export const totpVerificationSchema = z.object({
   challengeId: z

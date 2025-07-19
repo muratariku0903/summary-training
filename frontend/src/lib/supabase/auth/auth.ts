@@ -10,6 +10,8 @@ import {
   SigninResponse,
   SignupResponse,
   SignoutResponse,
+  ChangePasswordResponse,
+  ChangePasswordInput,
 } from './types'
 import { AUTH_MESSAGES, AUTH_LOG_MESSAGES } from '@/lib/constants/auth'
 import { ZodError } from 'zod'
@@ -175,6 +177,60 @@ export async function signOut(): Promise<SignoutResponse> {
     return {
       success: true,
       message: AUTH_MESSAGES.SIGNOUT_SUCCESS,
+    }
+  } catch (error) {
+    console.error(AUTH_LOG_MESSAGES.UNEXPECTED_SIGNOUT_ERROR, error)
+    return {
+      success: false,
+      message: AUTH_MESSAGES.UNEXPECTED_ERROR,
+    }
+  }
+}
+
+/**
+ * パスワード変更処理
+ */
+export async function changePassword(
+  input: ChangePasswordInput
+): Promise<ChangePasswordResponse> {
+  const { currentPassword, newPassword } = input
+
+  try {
+    console.log(AUTH_LOG_MESSAGES.CHANGE_PASSWORD_ATTEMPT)
+
+    const { data: userData, error: getUserError } = await browserClient.auth.getUser()
+    if (getUserError) {
+      console.error(AUTH_LOG_MESSAGES.CHANGE_PASSWORD_ERROR, getUserError.message)
+      return {
+        success: false,
+        message: AUTH_MESSAGES.CHANGE_PASSWORD_FAILED,
+      }
+    }
+    if (!userData.user.email) {
+      return {
+        success: false,
+        message: AUTH_MESSAGES.CHANGE_PASSWORD_FAILED,
+      }
+    }
+
+    // 現在のパスワードが正当なものかチェックするため一度ログインを試行
+    const { error: signInError } = await browserClient.auth.signInWithPassword({
+      email: userData.user.email,
+      password: currentPassword,
+    })
+    if (signInError) {
+      return {
+        success: false,
+        message: AUTH_MESSAGES.CHANGE_PASSWORD_FAILED_WITH_CURRENT_PASSWORD,
+      }
+    }
+
+    // パスワード変更
+    await browserClient.auth.updateUser({ password: newPassword })
+
+    return {
+      success: true,
+      message: AUTH_MESSAGES.CHANGE_PASSWORD_SUCCESS,
     }
   } catch (error) {
     console.error(AUTH_LOG_MESSAGES.UNEXPECTED_SIGNOUT_ERROR, error)

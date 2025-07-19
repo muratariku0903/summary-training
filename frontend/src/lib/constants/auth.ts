@@ -11,6 +11,7 @@ export const AUTH_MESSAGES = {
   TOTP_VERIFICATION_SUCCESS: '2段階認証が完了しました',
   TOTP_SETUP_SUCCESS: 'TOTP設定が完了しました',
   TOTP_ENROLLMENT_SUCCESS: 'TOTP設定を開始しました',
+  CHANGE_PASSWORD_SUCCESS: 'パスワード変更が完了しました',
 
   // エラーメッセージ
   AUTH_FAILED: '認証に失敗しました',
@@ -25,6 +26,9 @@ export const AUTH_MESSAGES = {
   TOTP_CODE_FORMAT_ERROR: 'TOTPコードは6桁で入力してください',
   USER_NOT_AUTHENTICATED: 'ユーザーが認証されていません',
   GET_MFA_FACTORS_FAILED: 'MFAFactorの取得の失敗しました',
+  CHANGE_PASSWORD_FAILED: 'パスワード変更に失敗しました',
+  CHANGE_PASSWORD_FAILED_WITH_CURRENT_PASSWORD:
+    'パスワード変更に失敗しました（既存のパスワードが不正）',
 
   // 汎用エラーメッセージ
   VALIDATION_ERROR: 'バリデーションエラー',
@@ -68,6 +72,9 @@ export const AUTH_LOG_MESSAGES = {
   SIGNOUT_ATTEMPT: '🚪 [AUTH] Signing out',
   SIGNOUT_SUCCESS: '✅ [AUTH] Signout successful',
   SIGNOUT_ERROR: '❌ [AUTH] Signout error:',
+  CHANGE_PASSWORD_ATTEMPT: '🚪 [AUTH] change password',
+  CHANGE_PASSWORD_SUCCESS: '✅ [AUTH] change password successful',
+  CHANGE_PASSWORD_ERROR: '❌ [AUTH] change password error:',
   MFA_REQUIRED: '🔐 [AUTH] TOTP required',
   MFA_CHALLENGE_FAILED: '❌ [AUTH] Challenge creation failed:',
   MFA_VERIFICATION_ATTEMPT: '🔐 [MFA] Verifying TOTP code',
