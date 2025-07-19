@@ -10,6 +10,8 @@ export const PROTECTED_PATHS = {
   PROFILE: '/profile',
   TWO_FACTOR_AUTHENTICATION: '/profile/two-factor-authentication',
   PASSWORD_CHANGE: '/profile/password-change',
+  EMAIL_CHANGE: '/profile/email-change',
+  EMAIL_CHANGE_CALLBACK: '/profile/email-change-callback',
 } as const
 
 /**

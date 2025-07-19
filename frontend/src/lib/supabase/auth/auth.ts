@@ -1,5 +1,5 @@
 // src/lib/supabase/auth/auth.ts - 修正版
-import { PUBLIC_PATHS } from '@/lib/constants/routes'
+import { PROTECTED_PATHS, PUBLIC_PATHS } from '@/lib/constants/routes'
 import { browserClient } from '../client/browserClient'
 import { getAvailableMfaFactors } from './mfa'
 import {
@@ -12,6 +12,8 @@ import {
   SignoutResponse,
   ChangePasswordResponse,
   ChangePasswordInput,
+  ChangeEmailInput,
+  ChangeEmailResponse,
 } from './types'
 import { AUTH_MESSAGES, AUTH_LOG_MESSAGES } from '@/lib/constants/auth'
 import { ZodError } from 'zod'
@@ -226,7 +228,16 @@ export async function changePassword(
     }
 
     // パスワード変更
-    await browserClient.auth.updateUser({ password: newPassword })
+    const { error: updError } = await browserClient.auth.updateUser({
+      password: newPassword,
+    })
+    if (updError) {
+      console.error(AUTH_LOG_MESSAGES.CHANGE_PASSWORD_ERROR, updError.message)
+      return {
+        success: false,
+        message: AUTH_MESSAGES.CHANGE_PASSWORD_FAILED,
+      }
+    }
 
     return {
       success: true,
@@ -237,6 +248,59 @@ export async function changePassword(
     return {
       success: false,
       message: AUTH_MESSAGES.UNEXPECTED_ERROR,
+    }
+  }
+}
+
+/**
+ * メールアドレス変更処理
+ */
+export async function changeEmail(input: ChangeEmailInput): Promise<ChangeEmailResponse> {
+  const { email } = input
+
+  try {
+    console.log(AUTH_LOG_MESSAGES.CHANGE_EMAIL_ATTEMPT)
+
+    const { data: userData, error: getUserError } = await browserClient.auth.getUser()
+    if (getUserError) {
+      console.error(AUTH_LOG_MESSAGES.CHANGE_EMAIL_ERROR, getUserError.message)
+      return {
+        success: false,
+        message: AUTH_MESSAGES.CHANGE_EMAIL_FAILED,
+      }
+    }
+    if (!userData.user.email) {
+      return {
+        success: false,
+        message: AUTH_MESSAGES.CHANGE_EMAIL_FAILED,
+      }
+    }
+
+    // メールアドレス変更
+    // ユーザーに確認メール送信
+    const baseUrl = window.location.origin
+    console.log(`emailRedirectTo: ${baseUrl}${PROTECTED_PATHS.EMAIL_CHANGE_CALLBACK}`)
+    const { error: updError } = await browserClient.auth.updateUser(
+      { email: email },
+      { emailRedirectTo: `${baseUrl}${PROTECTED_PATHS.EMAIL_CHANGE_CALLBACK}` }
+    )
+    if (updError) {
+      console.error(AUTH_LOG_MESSAGES.CHANGE_PASSWORD_ERROR, updError.message)
+      return {
+        success: false,
+        message: AUTH_MESSAGES.CHANGE_EMAIL_FAILED,
+      }
+    }
+
+    return {
+      success: true,
+      message: AUTH_MESSAGES.CHANGE_EMAIL_SUCCESS,
+    }
+  } catch (error) {
+    console.error(AUTH_LOG_MESSAGES.CHANGE_EMAIL_ERROR, error)
+    return {
+      success: false,
+      message: AUTH_MESSAGES.CHANGE_EMAIL_FAILED,
     }
   }
 }

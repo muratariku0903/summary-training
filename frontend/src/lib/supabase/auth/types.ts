@@ -96,6 +96,22 @@ export type ChangePasswordResponse =
       message: string
     }
 
+export const changeEmailSchema = z.object({
+  email: z
+    .string({ required_error: VALIDATION_MESSAGES.USERNAME_REQUIRED })
+    .email(VALIDATION_MESSAGES.EMAIL_INVALID),
+})
+export type ChangeEmailInput = z.infer<typeof changeEmailSchema>
+export type ChangeEmailResponse =
+  | {
+      success: true
+      message: string
+    }
+  | {
+      success: false
+      message: string
+    }
+
 // MFA関連のバリデーションスキーマ
 export const totpVerificationSchema = z.object({
   challengeId: z

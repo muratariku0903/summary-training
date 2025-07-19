@@ -34,7 +34,7 @@ export default function ProfileAccountInfo({
             rightElement={
               <OutlineButton
                 label='変更'
-                onClick={() => console.log('update mail')}
+                onClick={() => router.replace(PROTECTED_PATHS.EMAIL_CHANGE)}
                 className='text-sm px-3 py-1'
               />
             }
