@@ -70,11 +70,13 @@ export default function PasswordChangePage() {
                 labelText='新しいパスワード'
                 {...register('newPassword')}
                 errorMessage={errors['newPassword']?.message}
+                type='password'
               />
               <TextInput
                 labelText='新しいパスワード（確認用）'
                 {...register('confirmNewPassword')}
                 errorMessage={errors['confirmNewPassword']?.message}
+                type='password'
               />
               <Spacer size={4} />
               {submitError && (

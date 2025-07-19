@@ -54,7 +54,7 @@ const TextInput: React.FC<TextInputProps> = ({
                 onClick={() => setVisible((v) => !v)}
                 className='shrink-0 p-1'
               >
-                {!visible ? <FaEye size={16} /> : <FaEyeSlash size={16} />}
+                {visible ? <FaEye size={16} /> : <FaEyeSlash size={16} />}
               </button>
             )}
           </>
