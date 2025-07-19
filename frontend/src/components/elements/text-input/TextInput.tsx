@@ -22,7 +22,7 @@ const TextInput: React.FC<TextInputProps> = ({
   type = 'text',
   ...rest
 }) => {
-  const [typeState, setTypeState] = useState(type)
+  const [visible, setVisible] = useState(type !== 'password')
 
   return (
     <>
@@ -42,27 +42,25 @@ const TextInput: React.FC<TextInputProps> = ({
           <>
             <input
               id={id}
-              type={typeState}
+              type={type === 'password' && !visible ? 'password' : 'text'}
               {...rest}
               className={`w-full flex-1 rounded border ${
                 errorMessage ? 'border-red-600' : 'border-black'
               } px-3 py-2 focus:outline-none focus:ring ${rest.className || ''}`}
             />
-            <button
-              type='button'
-              onClick={() =>
-                setTypeState((v) => (v === 'password' ? 'text' : 'password'))
-              }
-              className='shrink-0 p-1'
-            >
-              {typeState === 'password' ? <FaEye size={16} /> : <FaEyeSlash size={16} />}
-            </button>
+            {type === 'password' && (
+              <button
+                type='button'
+                onClick={() => setVisible((v) => !v)}
+                className='shrink-0 p-1'
+              >
+                {!visible ? <FaEye size={16} /> : <FaEyeSlash size={16} />}
+              </button>
+            )}
           </>
         ) : (
           <div className={`flex-1 rounded border  bg-gray-50 p-3`}>
-            <span>
-              {typeState === 'password' ? showValue?.replace(/./g, '•') : showValue}
-            </span>
+            <span>{type === 'password' ? showValue?.replace(/./g, '•') : showValue}</span>
           </div>
         )}
 

@@ -64,6 +64,7 @@ export default function PasswordChangePage() {
                 labelText='現在のパスワード'
                 {...register('currentPassword')}
                 errorMessage={errors['currentPassword']?.message}
+                type='password'
               />
               <TextInput
                 labelText='新しいパスワード'
