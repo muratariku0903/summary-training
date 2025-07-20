@@ -13,34 +13,34 @@ import {
 } from '@/components/elements/outline-message/OutlineMessage'
 import { Spacer } from '@/components/elements/spacer/Spacer'
 import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
-import { ChangeEmailInput, changeEmailSchema } from '@/lib/supabase/auth/types'
-import { changeEmail } from '@/lib/supabase/auth/auth'
+import { ResetPasswordInput, resetPasswordSchema } from '@/lib/supabase/auth/types'
+import { resetPassword } from '@/lib/supabase/auth/auth'
 import { UI_MESSAGES } from '@/lib/constants/ui'
 
-export default function EmailChangePage() {
+export default function PasswordResetPage() {
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<ChangeEmailInput>({ resolver: zodResolver(changeEmailSchema) })
+  } = useForm<ResetPasswordInput>({ resolver: zodResolver(resetPasswordSchema) })
 
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const [successUpdateEmailRequest, setSuccessUpdateEmailRequest] = useState(false)
+  const [successRequest, setSuccessRequest] = useState(false)
 
-  const onSubmit = async (input: ChangeEmailInput) => {
+  const onSubmit = async (input: ResetPasswordInput) => {
     setSubmitError(null)
 
-    const { success, message } = await changeEmail(input)
+    const { success, message } = await resetPassword(input)
     if (!success) {
       console.error(message)
-      setSubmitError(UI_MESSAGES.CHANGE_PASSWORD_FAILED_MESSAGE)
+      setSubmitError(UI_MESSAGES.RESET_PASSWORD_FAILED_MESSAGE)
       return
     }
 
-    setSuccessUpdateEmailRequest(true)
+    setSuccessRequest(true)
   }
 
-  if (successUpdateEmailRequest) {
+  if (successRequest) {
     return (
       <>
         <Header menuType='member' />
@@ -49,11 +49,9 @@ export default function EmailChangePage() {
             <div className='w-full max-w-sm bg-white p-6 border-2 border-black text-center'>
               <h1 className='text-2xl font-semibold mb-4'>メール送信完了</h1>
               <p className='text-gray-700 mb-6'>
-                新しいメールアドレスに確認メールを送信しました。
+                メールアドレスにパスワードリセットのリンクが添付されたメールを送信しました。
                 <br />
                 メールボックスをご確認ください。
-                <br />
-                確認が完了するまでメールアドレスは反映されません。
               </p>
             </div>
           </div>
@@ -74,9 +72,9 @@ export default function EmailChangePage() {
               onSubmit={handleSubmit(onSubmit)}
               className='w-full max-w-sm space-y-4 bg-white p-6 border-2 border-black'
             >
-              <h2 className='text-2xl font-bold mb-2'>メールアドレス再設定</h2>
+              <h2 className='text-2xl font-bold mb-2'>パスワードリセット</h2>
               <TextInput
-                labelText='新しいメールアドレス'
+                labelText='メールアドレス'
                 {...register('email')}
                 errorMessage={errors['email']?.message}
               />
@@ -86,7 +84,7 @@ export default function EmailChangePage() {
               )}
               <ReversalButton
                 type='submit'
-                label={isSubmitting ? '送信中...' : 'メールアドレスを変更'}
+                label={isSubmitting ? '送信中...' : 'パスワードをリセット'}
                 border
                 disable={isSubmitting}
               />

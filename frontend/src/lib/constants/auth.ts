@@ -13,6 +13,7 @@ export const AUTH_MESSAGES = {
   TOTP_ENROLLMENT_SUCCESS: 'TOTP設定を開始しました',
   CHANGE_PASSWORD_SUCCESS: 'パスワード変更が完了しました',
   CHANGE_EMAIL_SUCCESS: 'メールアドレス変更が完了しました',
+  RESET_PASSWORD_SUCCESS: 'パスワードリセットが完了しました',
 
   // エラーメッセージ
   AUTH_FAILED: '認証に失敗しました',
@@ -31,6 +32,7 @@ export const AUTH_MESSAGES = {
   CHANGE_PASSWORD_FAILED_WITH_CURRENT_PASSWORD:
     'パスワード変更に失敗しました（既存のパスワードが不正）',
   CHANGE_EMAIL_FAILED: 'メールアドレス変更に失敗しました',
+  RESET_PASSWORD_FAILED: 'パスワードリセットに失敗しました',
 
   // 汎用エラーメッセージ
   VALIDATION_ERROR: 'バリデーションエラー',
@@ -80,6 +82,9 @@ export const AUTH_LOG_MESSAGES = {
   CHANGE_EMAIL_ATTEMPT: '🚪 [AUTH] change email',
   CHANGE_EMAIL_SUCCESS: '✅ [AUTH] change email successful',
   CHANGE_EMAIL_ERROR: '❌ [AUTH] change email error:',
+  RESET_PASSWORD_ATTEMPT: '🚪 [AUTH] reset password',
+  RESET_PASSWORD_SUCCESS: '✅ [AUTH] reset password successful',
+  RESET_PASSWORD_ERROR: '❌ [AUTH] reset password error:',
   MFA_REQUIRED: '🔐 [AUTH] TOTP required',
   MFA_CHALLENGE_FAILED: '❌ [AUTH] Challenge creation failed:',
   MFA_VERIFICATION_ATTEMPT: '🔐 [MFA] Verifying TOTP code',

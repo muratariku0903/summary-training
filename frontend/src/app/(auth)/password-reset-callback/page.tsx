@@ -16,25 +16,24 @@ import {
 import { Spacer } from '@/components/elements/spacer/Spacer'
 import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
 import { PROTECTED_PATHS } from '@/lib/constants/routes'
-import {
-  ChangePasswordInput,
-  changePasswordSchemaRequireCurrentPassword,
-} from '@/lib/supabase/auth/types'
+import { ChangePasswordInput, changePasswordSchema } from '@/lib/supabase/auth/types'
 import { changePassword } from '@/lib/supabase/auth/auth'
 import { UI_MESSAGES } from '@/lib/constants/ui'
 
-export default function PasswordChangePage() {
+// パスワード再設定メールアドレスのリンクからリダイレクトされる
+// PKCEに基づいて認可コードと引き換えに、アクセストークンを取得し、ログインする
+export default function PasswordResetCallbackPage() {
   const router = useRouter()
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<ChangePasswordInput>({
-    resolver: zodResolver(changePasswordSchemaRequireCurrentPassword),
-  })
+  } = useForm<ChangePasswordInput>({ resolver: zodResolver(changePasswordSchema) })
 
   const [submitError, setSubmitError] = useState<string | null>(null)
   const showSnackbar = useSnackbarStore((s) => s.show)
+
+  // TODO: PKCE認証で失敗した場合のセラー制御
 
   const onSubmit = async (input: ChangePasswordInput) => {
     setSubmitError(null)
@@ -48,12 +47,12 @@ export default function PasswordChangePage() {
     }
 
     showSnackbar(UI_MESSAGES.CHANGE_PASSWORD_SUCCESS_MESSAGE, 'success')
-    router.replace(PROTECTED_PATHS.PROFILE)
+    router.replace(PROTECTED_PATHS.DASHBOARD)
   }
 
   return (
     <>
-      <Header menuType='member' />
+      <Header />
       <Main>
         <div className='max-w-2xl mx-auto p-6 space-y-6'>
           <div>
@@ -64,12 +63,6 @@ export default function PasswordChangePage() {
               onSubmit={handleSubmit(onSubmit)}
               className='w-full max-w-sm space-y-4 bg-white p-6 border-2 border-black'
             >
-              <TextInput
-                labelText='現在のパスワード'
-                {...register('currentPassword')}
-                errorMessage={errors['currentPassword']?.message}
-                type='password'
-              />
               <TextInput
                 labelText='新しいパスワード'
                 {...register('newPassword')}

@@ -14,6 +14,8 @@ import {
   ChangePasswordInput,
   ChangeEmailInput,
   ChangeEmailResponse,
+  ResetPasswordInput,
+  ResetPasswordResponse,
 } from './types'
 import { AUTH_MESSAGES, AUTH_LOG_MESSAGES } from '@/lib/constants/auth'
 import { ZodError } from 'zod'
@@ -216,14 +218,16 @@ export async function changePassword(
     }
 
     // 現在のパスワードが正当なものかチェックするため一度ログインを試行
-    const { error: signInError } = await browserClient.auth.signInWithPassword({
-      email: userData.user.email,
-      password: currentPassword,
-    })
-    if (signInError) {
-      return {
-        success: false,
-        message: AUTH_MESSAGES.CHANGE_PASSWORD_FAILED_WITH_CURRENT_PASSWORD,
+    if (currentPassword) {
+      const { error: signInError } = await browserClient.auth.signInWithPassword({
+        email: userData.user.email,
+        password: currentPassword,
+      })
+      if (signInError) {
+        return {
+          success: false,
+          message: AUTH_MESSAGES.CHANGE_PASSWORD_FAILED_WITH_CURRENT_PASSWORD,
+        }
       }
     }
 
@@ -301,6 +305,44 @@ export async function changeEmail(input: ChangeEmailInput): Promise<ChangeEmailR
     return {
       success: false,
       message: AUTH_MESSAGES.CHANGE_EMAIL_FAILED,
+    }
+  }
+}
+
+/**
+ * パスワードリセット処理
+ */
+export async function resetPassword(
+  input: ResetPasswordInput
+): Promise<ResetPasswordResponse> {
+  const { email } = input
+
+  try {
+    console.log(AUTH_LOG_MESSAGES.RESET_PASSWORD_ATTEMPT)
+
+    // メール送信
+    const baseUrl = window.location.origin
+    console.log(`emailRedirectTo: ${baseUrl}${PUBLIC_PATHS.PASSWORD_RESET_CALLBACK}`)
+    const { error: resetError } = await browserClient.auth.resetPasswordForEmail(email, {
+      redirectTo: `${baseUrl}${PUBLIC_PATHS.PASSWORD_RESET_CALLBACK}`,
+    })
+    if (resetError) {
+      console.error(AUTH_LOG_MESSAGES.RESET_PASSWORD_ERROR, resetError.message)
+      return {
+        success: false,
+        message: AUTH_MESSAGES.RESET_PASSWORD_FAILED,
+      }
+    }
+
+    return {
+      success: true,
+      message: AUTH_MESSAGES.RESET_PASSWORD_SUCCESS,
+    }
+  } catch (error) {
+    console.error(AUTH_LOG_MESSAGES.RESET_PASSWORD_ERROR, error)
+    return {
+      success: false,
+      message: AUTH_MESSAGES.RESET_PASSWORD_FAILED,
     }
   }
 }

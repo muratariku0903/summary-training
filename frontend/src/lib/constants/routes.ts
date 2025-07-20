@@ -3,6 +3,8 @@ export const PUBLIC_PATHS = {
   SIGNIN: '/signin',
   SIGNUP: '/signup',
   CALLBACK: '/callback',
+  PASSWORD_RESET: '/password-reset',
+  PASSWORD_RESET_CALLBACK: '/password-reset-callback',
 } as const
 
 export const PROTECTED_PATHS = {

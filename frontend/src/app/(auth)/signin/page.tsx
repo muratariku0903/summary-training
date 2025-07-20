@@ -127,12 +127,19 @@ export default function SignInPage() {
               border
               disable={isSubmitting}
             />
-            <div className='text-center pt-4'>
+            <div className='pt-4'>
               <Link
                 href={PUBLIC_PATHS.SIGNUP}
                 className='text-sm text-blue-600 hover:text-blue-800 underline'
               >
                 新規会員登録はこちら
+              </Link>
+              <Spacer size={10} />
+              <Link
+                href={PUBLIC_PATHS.PASSWORD_RESET}
+                className='text-sm text-blue-600 hover:text-blue-800 underline'
+              >
+                パスワードを忘れてしまった場合はこちら
               </Link>
             </div>
           </form>

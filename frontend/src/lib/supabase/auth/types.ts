@@ -65,27 +65,63 @@ export type SignupResponse =
       message: string
     }
 
-export const changePasswordSchema = z
-  .object({
-    currentPassword: z
-      .string({ required_error: VALIDATION_MESSAGES.PASSWORD_REQUIRED })
-      .min(8, VALIDATION_MESSAGES.PASSWORD_MIN_LENGTH)
-      .regex(/[A-Z]/, VALIDATION_MESSAGES.PASSWORD_UPPERCASE)
-      .regex(/[a-z]/, VALIDATION_MESSAGES.PASSWORD_LOWERCASE)
-      .regex(/[0-9]/, VALIDATION_MESSAGES.PASSWORD_NUMBER),
-    newPassword: z
-      .string({ required_error: VALIDATION_MESSAGES.PASSWORD_REQUIRED })
-      .min(8, VALIDATION_MESSAGES.PASSWORD_MIN_LENGTH)
-      .regex(/[A-Z]/, VALIDATION_MESSAGES.PASSWORD_UPPERCASE)
-      .regex(/[a-z]/, VALIDATION_MESSAGES.PASSWORD_LOWERCASE)
-      .regex(/[0-9]/, VALIDATION_MESSAGES.PASSWORD_NUMBER),
-    confirmNewPassword: z.string(),
-  })
-  .refine((data) => data.newPassword === data.confirmNewPassword, {
-    message: VALIDATION_MESSAGES.PASSWORD_MISMATCH,
-    path: ['confirmNewPassword'],
-  })
-export type ChangePasswordInput = z.infer<typeof changePasswordSchema>
+export function createChangePasswordSchema(requireCurrentPasswordCheck: boolean) {
+  // currentPassword 用のベース定義
+  const currentPwdSchema = requireCurrentPasswordCheck
+    ? z
+        .string({ required_error: VALIDATION_MESSAGES.PASSWORD_REQUIRED })
+        .min(8, VALIDATION_MESSAGES.PASSWORD_MIN_LENGTH)
+        .regex(/[A-Z]/, VALIDATION_MESSAGES.PASSWORD_UPPERCASE)
+        .regex(/[a-z]/, VALIDATION_MESSAGES.PASSWORD_LOWERCASE)
+        .regex(/[0-9]/, VALIDATION_MESSAGES.PASSWORD_NUMBER)
+    : z.string().optional()
+
+  // スキーマ本体
+  return (
+    z
+      .object({
+        currentPassword: currentPwdSchema,
+        newPassword: z
+          .string({ required_error: VALIDATION_MESSAGES.PASSWORD_REQUIRED })
+          .min(8, VALIDATION_MESSAGES.PASSWORD_MIN_LENGTH)
+          .regex(/[A-Z]/, VALIDATION_MESSAGES.PASSWORD_UPPERCASE)
+          .regex(/[a-z]/, VALIDATION_MESSAGES.PASSWORD_LOWERCASE)
+          .regex(/[0-9]/, VALIDATION_MESSAGES.PASSWORD_NUMBER),
+        confirmNewPassword: z.string(),
+      })
+      // newPassword と confirmNewPassword の一致チェック
+      .refine((data) => data.newPassword === data.confirmNewPassword, {
+        message: VALIDATION_MESSAGES.PASSWORD_MISMATCH,
+        path: ['confirmNewPassword'],
+      })
+  )
+}
+
+// export const changePasswordSchema = z
+//   .object({
+//     currentPassword: z
+//       .string({ required_error: VALIDATION_MESSAGES.PASSWORD_REQUIRED })
+//       .min(8, VALIDATION_MESSAGES.PASSWORD_MIN_LENGTH)
+//       .regex(/[A-Z]/, VALIDATION_MESSAGES.PASSWORD_UPPERCASE)
+//       .regex(/[a-z]/, VALIDATION_MESSAGES.PASSWORD_LOWERCASE)
+//       .regex(/[0-9]/, VALIDATION_MESSAGES.PASSWORD_NUMBER),
+//     newPassword: z
+//       .string({ required_error: VALIDATION_MESSAGES.PASSWORD_REQUIRED })
+//       .min(8, VALIDATION_MESSAGES.PASSWORD_MIN_LENGTH)
+//       .regex(/[A-Z]/, VALIDATION_MESSAGES.PASSWORD_UPPERCASE)
+//       .regex(/[a-z]/, VALIDATION_MESSAGES.PASSWORD_LOWERCASE)
+//       .regex(/[0-9]/, VALIDATION_MESSAGES.PASSWORD_NUMBER),
+//     confirmNewPassword: z.string(),
+//   })
+//   .refine((data) => data.newPassword === data.confirmNewPassword, {
+//     message: VALIDATION_MESSAGES.PASSWORD_MISMATCH,
+//     path: ['confirmNewPassword'],
+//   })
+export const changePasswordSchemaRequireCurrentPassword = createChangePasswordSchema(true)
+export const changePasswordSchema = createChangePasswordSchema(false)
+export type ChangePasswordInput = z.infer<
+  typeof changePasswordSchemaRequireCurrentPassword | typeof changePasswordSchema
+>
 export type ChangePasswordResponse =
   | {
       success: true
@@ -103,6 +139,22 @@ export const changeEmailSchema = z.object({
 })
 export type ChangeEmailInput = z.infer<typeof changeEmailSchema>
 export type ChangeEmailResponse =
+  | {
+      success: true
+      message: string
+    }
+  | {
+      success: false
+      message: string
+    }
+
+export const resetPasswordSchema = z.object({
+  email: z
+    .string({ required_error: VALIDATION_MESSAGES.USERNAME_REQUIRED })
+    .email(VALIDATION_MESSAGES.EMAIL_INVALID),
+})
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
+export type ResetPasswordResponse =
   | {
       success: true
       message: string

@@ -22,6 +22,8 @@ export const UI_MESSAGES = {
   PROFILE_UPDATE_SUCCESS_MESSAGE: 'プロフィールを更新しました',
   CHANGE_PASSWORD_SUCCESS_MESSAGE: 'パスワードを更新しました',
   CHANGE_PASSWORD_FAILED_MESSAGE: 'パスワード更新に失敗しました',
+  RESET_PASSWORD_SUCCESS_MESSAGE: 'パスワードをリセット',
+  RESET_PASSWORD_FAILED_MESSAGE: 'パスワードのリセットに失敗しました',
   UNEXPECTED_ERROR:
     '予期しないエラーが発生しました。しばらく時間をおいて再度お試しください。',
   SIGNIN_SUBMITTING: 'ログイン中...',
