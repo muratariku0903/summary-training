@@ -17,6 +17,9 @@ jobs:
       SUPABASE_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_URL_PROD || secrets.SUPABASE_URL_DEV }}
       SUPABASE_ANON_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_ANON_KEY_PROD || secrets.SUPABASE_ANON_KEY_DEV }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_SERVICE_ROLE_KEY_PROD || secrets.SUPABASE_SERVICE_ROLE_KEY_DEV }}
+      RESEND_API_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.RESEND_API_KEY_PROD || secrets.RESEND_API_KEY_DEV }}
+      FROM_EMAIL: ${{ github.ref == 'refs/heads/prod' && vars.FROM_EMAIL_PROD || vars.FROM_EMAIL_PROD }}
+      SUPPORT_EMAIL: ${{ github.ref == 'refs/heads/prod' && vars.SUPPORT_EMAIL_PROD || vars.SUPPORT_EMAIL_DEV }}
     steps:
       - name: Checkout repository # GitHubリポジトリのソースコードを 仮想マシンにダウンロード
         uses: actions/checkout@v3
@@ -32,6 +35,9 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL=${{env.SUPABASE_URL}}
           NEXT_PUBLIC_SUPABASE_ANON_KEY=${{env.SUPABASE_ANON_KEY}}
           SUPABASE_SERVICE_ROLE_KEY=${{env.SUPABASE_SERVICE_ROLE_KEY}}
+          RESEND_API_KEY=${{env.RESEND_API_KEY}}
+          FROM_EMAIL=${{env.FROM_EMAIL}}
+          SUPPORT_EMAIL=${{env.SUPPORT_EMAIL}}
           EOF
         working-directory: frontend
 
