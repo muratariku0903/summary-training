@@ -6,6 +6,14 @@ import {
   OpenApiGeneratorV3,
 } from '@asteasolutions/zod-to-openapi'
 import { responseSchema as DeleteUserResponseSchema } from '../src/app/api/user/delete/schema.ts'
+import {
+  requestSchema as EmailPostRequestSchema,
+  responseSchema as EmailPostResponseSchema,
+} from '../src/app/api/email/post/schema.ts'
+import {
+  requestSchema as AnonEmailPostRequestSchema,
+  responseSchema as AnonEmailPostResponseSchema,
+} from '../src/app/api/email/anon-post/schema.ts'
 import * as fs from 'fs'
 import * as path from 'path'
 import { apiErrorObjectSchema, apiSuccessObjectSchema } from '../src/lib/api/response.ts'
@@ -108,6 +116,107 @@ registry.registerPath({
   },
 })
 
+registry.registerPath({
+  method: 'post',
+  path: '/email/post',
+  summary: 'メール送信',
+  description: '認証されたユーザーの操作に対して通知メールを送信します',
+  security: [{ BearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: EmailPostRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: '成功失敗フラグ',
+      content: {
+        'application/json': {
+          schema: apiSuccessObjectSchema(EmailPostResponseSchema),
+        },
+      },
+    },
+    400: {
+      description: '不正リクエスト',
+      content: {
+        'application/json': {
+          schema: apiErrorObjectSchema,
+        },
+      },
+    },
+    401: {
+      description: '認証が必要です',
+      content: {
+        'application/json': {
+          schema: apiErrorObjectSchema,
+        },
+      },
+    },
+    500: {
+      description: 'サーバーエラー',
+      content: {
+        'application/json': {
+          schema: apiErrorObjectSchema,
+        },
+      },
+    },
+  },
+})
+
+registry.registerPath({
+  method: 'post',
+  path: '/email/anon-post',
+  summary: 'メール送信',
+  description: '匿名ユーザーの操作に対して通知メールを送信します',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: AnonEmailPostRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: '成功失敗フラグ',
+      content: {
+        'application/json': {
+          schema: apiSuccessObjectSchema(AnonEmailPostResponseSchema),
+        },
+      },
+    },
+    400: {
+      description: '不正リクエスト',
+      content: {
+        'application/json': {
+          schema: apiErrorObjectSchema,
+        },
+      },
+    },
+    401: {
+      description: '認証が必要です',
+      content: {
+        'application/json': {
+          schema: apiErrorObjectSchema,
+        },
+      },
+    },
+    500: {
+      description: 'サーバーエラー',
+      content: {
+        'application/json': {
+          schema: apiErrorObjectSchema,
+        },
+      },
+    },
+  },
+})
+
 const generator = new OpenApiGeneratorV3(registry.definitions)
 const openApiDocument = generator.generateDocument({
   openapi: '3.0.0',
@@ -127,7 +236,7 @@ console.log(`OpenAPI document generated at ${outputPath}`)
  * OpenAPI定義から認証が必要なエンドポイントを抽出
  */
 const extractAuthRequiredEndpoints = (
-  openApiDoc: OpenAPIDocument
+  openApiDoc: OpenAPIDocument,
 ): Record<string, string[]> => {
   const authEndpoints: Record<string, string[]> = {}
 
@@ -138,7 +247,7 @@ const extractAuthRequiredEndpoints = (
       if (typeof operation === 'object' && operation.security) {
         // security配列が存在し、BearerAuthが含まれている場合
         const hasBearerAuth = operation.security.some(
-          (securityItem) => securityItem.BearerAuth !== undefined
+          (securityItem) => securityItem.BearerAuth !== undefined,
         )
 
         if (hasBearerAuth) {
@@ -213,7 +322,7 @@ const generateOpenAPI = async (): Promise<void> => {
     '',
     ts.ScriptTarget.Latest,
     false,
-    ts.ScriptKind.TS
+    ts.ScriptKind.TS,
   )
 
   const tsContent = tsTypes

@@ -22,6 +22,8 @@ import {
 } from '@/lib/supabase/auth/types'
 import { changePassword } from '@/lib/supabase/auth/auth'
 import { UI_MESSAGES } from '@/lib/constants/ui'
+import { request } from '@/lib/api/client'
+import { SENDING_PATTERN } from '@/lib/constants/email'
 
 export default function PasswordChangePage() {
   const router = useRouter()
@@ -47,6 +49,18 @@ export default function PasswordChangePage() {
       return
     }
 
+    const sendEmailParams = { pattern: SENDING_PATTERN.PASSWORD_CHANGE_NOTIFICATION }
+    const { error: sendingError } = await request(
+      '/email/post',
+      'post',
+      sendEmailParams,
+      {
+        requireAuth: true,
+      },
+    )
+    if (sendingError) {
+      console.warn('fail sending mail', sendingError)
+    }
     showSnackbar(UI_MESSAGES.CHANGE_PASSWORD_SUCCESS_MESSAGE, 'success')
     router.replace(PROTECTED_PATHS.PROFILE)
   }

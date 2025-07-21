@@ -64,7 +64,8 @@ type RequestOptionsFor<P extends Path, M extends Method> = RequiresAuthForPath<
  * 指定パスのリクエストボディ型を抽出
  */
 type RequestOf<P extends Path, M extends Method> = paths[P][M] extends {
-  requestBody: { content: { 'application/json': { schema: infer B } } }
+  requestBody?: { content: { 'application/json': infer B } }
+  // requestBody: { content: { 'application/json': { schema: infer B } } }
 }
   ? B
   : paths[P][M] extends { parameters: { path: infer B } }

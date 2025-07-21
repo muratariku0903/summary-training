@@ -16,6 +16,7 @@ import ProfileBasicInfo from './ProfileBasicInfo'
 import ProfileAccountInfo from './ProfileAccountInfo'
 import { useSnackbarStore } from '@/stores/useSnackbarStore'
 import { UI_MESSAGES } from '@/lib/constants/ui'
+import { SENDING_PATTERN } from '@/lib/constants/email'
 
 type ProfileClientProps = {
   user: User
@@ -76,12 +77,27 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
             undefined,
             {
               requireAuth: true,
-            }
+            },
           )
           // TODO: エラーの見せ方は要検討
           if (!delSuccess) {
             console.error(error.code)
             return
+          }
+
+          if (user.email) {
+            const sendingParams = {
+              pattern: SENDING_PATTERN.ACCOUNT_DELETE_NOTIFICATION,
+              emailTo: user.email,
+            }
+            const { error: sendingError } = await request(
+              '/email/anon-post',
+              'post',
+              sendingParams,
+            )
+            if (sendingError) {
+              console.warn('Fail sending email', sendingError)
+            }
           }
 
           showSnackbar(UI_MESSAGES.ACCOUNT_DELETE_SUCCESS_MESSAGE, 'success')
