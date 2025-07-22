@@ -22,6 +22,8 @@ import MfaVerification from '@/components/features/auth/MfaVerification'
 import MfaSelection from '@/components/features/auth/MfaSelection'
 import Link from 'next/link'
 import { useSnackbarStore } from '@/stores/useSnackbarStore'
+import { FcGoogle } from 'react-icons/fc'
+import { browserClient } from '@/lib/supabase/client/browserClient'
 
 export default function SignInPage() {
   const router = useRouter()
@@ -142,6 +144,35 @@ export default function SignInPage() {
                 パスワードを忘れてしまった場合はこちら
               </Link>
             </div>
+            <Spacer size={5} />
+            <button
+              type='button'
+              onClick={async () => {
+                const { error } = await browserClient.auth.signInWithOAuth({
+                  provider: 'google',
+                  options: {
+                    redirectTo: `${window.location.origin}/api/auth/callback?redirectTo=${PROTECTED_PATHS.DASHBOARD}`,
+                    // redirectTo: `${window.location.origin}${PUBLIC_PATHS.HOME}`,
+                    // redirectTo: `${window.location.origin}${PROTECTED_PATHS.DASHBOARD}`,
+                  },
+                })
+                if (error) {
+                  console.error(error.message)
+                  setSubmitError(UI_MESSAGES.SIGNIN_FAILED_MESSAGE)
+                  return
+                }
+              }}
+              className='
+        flex items-center justify-center
+        border border-gray-300
+        rounded-md px-4 py-2
+        hover:bg-gray-50
+        transition
+      '
+            >
+              <FcGoogle className='mr-2' size={24} />
+              <span className='font-medium'>Googleでログイン</span>
+            </button>
           </form>
         </div>
       </Main>

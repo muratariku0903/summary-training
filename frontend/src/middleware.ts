@@ -29,7 +29,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   const isProtected = Object.values(PROTECTED_PATHS).some((path) =>
-    pathname.startsWith(path)
+    pathname.startsWith(path),
   )
 
   // 認証がない状態で保護ルートにアクセスした場合、/auth/signin へリダイレクト
