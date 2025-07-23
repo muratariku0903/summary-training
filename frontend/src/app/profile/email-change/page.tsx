@@ -33,7 +33,7 @@ export default function EmailChangePage() {
     const { success, message } = await changeEmail(input)
     if (!success) {
       console.error(message)
-      setSubmitError(UI_MESSAGES.CHANGE_PASSWORD_FAILED_MESSAGE)
+      setSubmitError(UI_MESSAGES.CHANGE_EMAIL_FAILED_MESSAGE)
       return
     }
 
