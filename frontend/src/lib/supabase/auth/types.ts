@@ -1,6 +1,6 @@
 // src/lib/supabase/auth/types.ts - 修正版
 import { z } from 'zod'
-import { MFA_TYPES, VALIDATION_MESSAGES } from '@/lib/constants/auth'
+import { VALIDATION_MESSAGES } from '@/lib/constants/auth'
 import { User } from '@supabase/supabase-js'
 
 // バリデーションスキーマ（定数使用）
@@ -255,6 +255,10 @@ export type TotpSetupResponse =
     }
 
 // MFA Factor情報
+export const MFA_TYPES = {
+  TOTP: 'totp',
+  SMS: 'phone',
+} as const
 export type MfaType = (typeof MFA_TYPES)[keyof typeof MFA_TYPES]
 export type MfaFactor = {
   id: string
@@ -293,3 +297,9 @@ export type ListMfaResponse =
       data?: never
       error: string
     }
+
+export const AUTH_PROVIDERS = {
+  EMAIL: 'email',
+  GOOGLE: 'google',
+} as const
+export type AuthProviders = (typeof AUTH_PROVIDERS)[keyof typeof AUTH_PROVIDERS]

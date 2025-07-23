@@ -8,7 +8,7 @@ import AuthCodeInput, {
 import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
 import { MfaFactor } from '@/lib/supabase/auth/types'
 import { verifyTotp } from '@/lib/supabase/auth/mfa'
-import { MFA_TYPES } from '@/lib/constants/auth'
+import { MFA_TYPES } from '@/lib/supabase/auth/types'
 
 interface MfaVerificationProps {
   selectedMFA: Omit<MfaFactor, 'status' | 'createdAt'>

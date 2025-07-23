@@ -3,7 +3,7 @@
 import { User } from '@supabase/supabase-js'
 import { MfaType } from '@/lib/supabase/auth/types'
 import TwoFactorAuthenticationMethodList from './TwoFactorAuthenticationMethodList'
-import { MFA_TYPES } from '@/lib/constants/auth'
+import { MFA_TYPES } from '@/lib/supabase/auth/types'
 import { useState } from 'react'
 import ConfirmDialog from '@/components/elements/confirm-dialog/ConfirmDialog'
 import TotpSetup from '@/components/features/auth/TotpSetup'

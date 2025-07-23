@@ -10,8 +10,9 @@ import {
   MfaType,
   TotpResetResponse,
   ListMfaResponse,
+  MFA_TYPES,
 } from './types'
-import { AUTH_MESSAGES, AUTH_LOG_MESSAGES, MFA_TYPES } from '@/lib/constants/auth'
+import { AUTH_MESSAGES, AUTH_LOG_MESSAGES } from '@/lib/constants/auth'
 import { ZodError } from 'zod'
 
 // 移行の処理はSupabaseのクライアントSDKを使用しており、裏側でJWT検証をしてるのでフロント側から呼び出しても問題ない
@@ -82,7 +83,7 @@ export async function enrollTotpFactor(): Promise<TotpEnrollmentResponse> {
  * TOTP検証
  */
 export async function verifyTotp(
-  input: TotpSetupVerificationInput
+  input: TotpSetupVerificationInput,
 ): Promise<TotpSetupResponse> {
   try {
     // バリデーション
@@ -252,7 +253,7 @@ export async function getAvailableMfaFactors(): Promise<GetAvailableMfaFactorsRe
 
 export async function resetEnrollment(
   type: MfaType,
-  status?: 'verified' | 'unverified'
+  status?: 'verified' | 'unverified',
 ): Promise<TotpResetResponse> {
   try {
     // 1. 認証チェック
@@ -276,7 +277,7 @@ export async function resetEnrollment(
     // 3. 指定したMFAタイプで未認証のものを抽出
     const allFactors = factors.all
     const targetFactors = allFactors.filter(
-      (f) => f.status === status && f.factor_type === type
+      (f) => f.status === status && f.factor_type === type,
     )
     if (targetFactors.length === 0) {
       return {

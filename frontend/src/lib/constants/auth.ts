@@ -105,9 +105,3 @@ export const AUTH_LOG_MESSAGES = {
   UNEXPECTED_MFA_ERROR: '❌ [MFA] Unexpected error:',
   UNEXPECTED_SESSION_ERROR: '❌ [SESSION] Unexpected error:',
 } as const
-
-// MFA方式の定義
-export const MFA_TYPES = {
-  TOTP: 'totp',
-  SMS: 'phone',
-} as const

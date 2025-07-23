@@ -1,7 +1,7 @@
 'use client'
 
 import MfaVerification from './MfaVerification'
-import { MFA_TYPES } from '@/lib/constants/auth'
+import { MFA_TYPES } from '@/lib/supabase/auth/types'
 import QrCodeDisplay from '@/components/elements/qr-code-display/QrCodeDisplay'
 import { Spacer } from '@/components/elements/spacer/Spacer'
 import { resetEnrollment } from '@/lib/supabase/auth/mfa'
