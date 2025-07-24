@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { startTransition, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layouts/header/Header'
 import Footer from '@/components/layouts/footer/Footer'
@@ -17,6 +17,8 @@ import ProfileAccountInfo from './ProfileAccountInfo'
 import { useSnackbarStore } from '@/stores/useSnackbarStore'
 import { UI_MESSAGES } from '@/lib/constants/ui'
 import { SENDING_PATTERN } from '@/lib/constants/email'
+import { AuthProviders } from '@/lib/supabase/auth/types'
+import { deleteOAuthAction } from '@/lib/actions/auth/oauth/delete/action'
 
 type ProfileClientProps = {
   user: User
@@ -28,6 +30,10 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
 
   const [activeMenu, setActiveMenu] = useState<MenuKey>('basic')
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showOAuthUnlinkDialog, setShowOAuthUnlinkDialog] = useState<{
+    show: boolean
+    provider: AuthProviders | null
+  }>({ show: false, provider: null })
   const showSnackbar = useSnackbarStore((s) => s.show)
 
   // メインコンテンツの表示切り替え
@@ -40,6 +46,9 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
           <ProfileAccountInfo
             user={user}
             onClickDeleteAccount={() => setShowDeleteDialog(true)}
+            onClickOAuthUnlink={(provider: AuthProviders) =>
+              setShowOAuthUnlinkDialog({ show: true, provider })
+            }
           />
         )
       default:
@@ -105,6 +114,33 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
         }}
         title='アカウントを削除'
         message={`アカウントを削除すると、すべてのデータが完全に削除されます。\n\nこの操作は取り消すことができません。\n\n本当にアカウントを削除しますか？`}
+        confirmLabel='削除する'
+        cancelLabel='キャンセル'
+        variant='danger'
+      />
+      {/* OAuth接続解除認ダイアログ */}
+      <ConfirmDialog
+        isOpen={showOAuthUnlinkDialog.show}
+        onClose={() => setShowOAuthUnlinkDialog({ show: false, provider: null })}
+        onConfirm={async () => {
+          startTransition(async () => {
+            if (showOAuthUnlinkDialog.provider) {
+              const provider = showOAuthUnlinkDialog.provider
+              const { success, error } = await deleteOAuthAction({ provider })
+              if (!success) {
+                console.warn('error unlinking OAuth', error)
+
+                return
+              }
+
+              setShowOAuthUnlinkDialog({ show: false, provider: null })
+              router.refresh()
+              showSnackbar(`${provider}の接続を解除しました`, 'success')
+            }
+          })
+        }}
+        title='接続解除'
+        message={`本当に接続を解除しますか？`}
         confirmLabel='削除する'
         cancelLabel='キャンセル'
         variant='danger'
