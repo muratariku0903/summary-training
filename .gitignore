@@ -49,3 +49,4 @@ next-env.d.ts
 tmp/
 
 .github/chatmodes
+.github/prompts/template.md
