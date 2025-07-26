@@ -24,6 +24,7 @@ import Link from 'next/link'
 import { useSnackbarStore } from '@/stores/useSnackbarStore'
 import { browserClient } from '@/lib/supabase/client/browserClient'
 import GoogleSignInButton from '@/components/elements/google-button/GoogleButton'
+import PasskeySignInButton from '@/components/elements/passkey-button/PasskeyButton'
 
 export default function SignInPage() {
   const router = useRouter()
@@ -159,6 +160,9 @@ export default function SignInPage() {
                   return
                 }
               }}
+            />
+            <PasskeySignInButton
+              onClick={() => router.replace(PUBLIC_PATHS.SIGNIN_PASSKEY)}
             />
           </form>
         </div>

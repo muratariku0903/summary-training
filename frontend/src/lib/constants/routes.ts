@@ -1,6 +1,7 @@
 export const PUBLIC_PATHS = {
   HOME: '/',
   SIGNIN: '/signin',
+  SIGNIN_PASSKEY: '/signin/passkey',
   SIGNUP: '/signup',
   CALLBACK: '/callback',
   PASSWORD_RESET: '/password-reset',

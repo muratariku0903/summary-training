@@ -1,7 +1,7 @@
 {
-  "cSpell.words": ["vercel"],
+  "cSpell.words": ["descope", "vercel"],
   "github.copilot.advanced": {},
-  "github.copilot.chat.agent.runTasks": false,
+  "github.copilot.chat.agent.runTasks": false
   // "files.exclude": {
   //   "**/.env*": true,
   //   "**/.git": true,

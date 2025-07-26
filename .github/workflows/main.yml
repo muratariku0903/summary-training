@@ -20,6 +20,7 @@ jobs:
       RESEND_API_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.RESEND_API_KEY_PROD || secrets.RESEND_API_KEY_DEV }}
       FROM_EMAIL: ${{ github.ref == 'refs/heads/prod' && vars.FROM_EMAIL_PROD || vars.FROM_EMAIL_PROD }}
       SUPPORT_EMAIL: ${{ github.ref == 'refs/heads/prod' && vars.SUPPORT_EMAIL_PROD || vars.SUPPORT_EMAIL_DEV }}
+      DESCOPE_PROJECT_ID: ${{ github.ref == 'refs/heads/prod' && secrets.DESCOPE_PROJECT_ID_PROD || secrets.DESCOPE_PROJECT_ID_DEV }}
     steps:
       - name: Checkout repository # GitHubリポジトリのソースコードを 仮想マシンにダウンロード
         uses: actions/checkout@v3
@@ -34,6 +35,7 @@ jobs:
           cat <<EOF > .env
           NEXT_PUBLIC_SUPABASE_URL=${{env.SUPABASE_URL}}
           NEXT_PUBLIC_SUPABASE_ANON_KEY=${{env.SUPABASE_ANON_KEY}}
+          NEXT_PUBLIC_DESCOPE_PROJECT_ID=${{env.DESCOPE_PROJECT_ID}}
           SUPABASE_SERVICE_ROLE_KEY=${{env.SUPABASE_SERVICE_ROLE_KEY}}
           RESEND_API_KEY=${{env.RESEND_API_KEY}}
           FROM_EMAIL=${{env.FROM_EMAIL}}
@@ -77,6 +79,7 @@ jobs:
       RESEND_API_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.RESEND_API_KEY_PROD || secrets.RESEND_API_KEY_DEV }}
       FROM_EMAIL: ${{ github.ref == 'refs/heads/prod' && vars.FROM_EMAIL_PROD || vars.FROM_EMAIL_PROD }}
       SUPPORT_EMAIL: ${{ github.ref == 'refs/heads/prod' && vars.SUPPORT_EMAIL_PROD || vars.SUPPORT_EMAIL_DEV }}
+      DESCOPE_PROJECT_ID: ${{ github.ref == 'refs/heads/prod' && secrets.DESCOPE_PROJECT_ID_PROD || secrets.DESCOPE_PROJECT_ID_DEV }}
     steps:
       - name: Checkout repository # 「setup」ジョブとは異なるランナーが使用されるので再度ソースコードをダウンロード
         uses: actions/checkout@v3
@@ -115,6 +118,7 @@ jobs:
           cat <<EOF > .env
           NEXT_PUBLIC_SUPABASE_URL=${{env.SUPABASE_URL}}
           NEXT_PUBLIC_SUPABASE_ANON_KEY=${{env.SUPABASE_ANON_KEY}}
+          NEXT_PUBLIC_DESCOPE_PROJECT_ID=${{env.DESCOPE_PROJECT_ID}}
           SUPABASE_SERVICE_ROLE_KEY=${{env.SUPABASE_SERVICE_ROLE_KEY}}
           RESEND_API_KEY=${{env.RESEND_API_KEY}}
           FROM_EMAIL=${{env.FROM_EMAIL}}
