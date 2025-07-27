@@ -3,7 +3,7 @@
 import Footer from '@/components/layouts/footer/Footer'
 import Header from '@/components/layouts/header/Header'
 import Main from '@/components/layouts/main/Main'
-import { request } from '@/lib/api/client'
+// import { request } from '@/lib/api/client'
 import { PROTECTED_PATHS } from '@/lib/constants/routes'
 import { UI_MESSAGES } from '@/lib/constants/ui'
 import DescopeAuthProviders from '@/providers/descope/auth'
@@ -25,13 +25,13 @@ export default function PasskeyPage() {
     const idpToken = getSessionToken() // DescopeのセッションJWT
     if (!idpToken) return alert('No session token')
 
-    const { success, error } = await request('/idp/callback', 'post', { idpToken })
-    if (!success) {
-      // TODO: 409の対応
+    // const { success, error } = await request('/idp/callback', 'post', { idpToken })
+    // if (!success) {
+    //   // TODO: 409の対応
 
-      console.error(error)
-      return
-    }
+    //   console.error(error)
+    //   return
+    // }
 
     // 成功：サーバーがSupabase互換JWTをHttpOnlyクッキーにセット済み
     showSnackbar(UI_MESSAGES.SIGNIN_SUCCESS_MESSAGE, 'success')
