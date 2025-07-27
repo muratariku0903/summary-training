@@ -43,12 +43,7 @@ export default function PasskeyPage() {
       <Header />
       <Main>
         <DescopeAuthProviders>
-          <Descope
-            flowId='sign-up-or-in'
-            theme='light'
-            onSuccess={handleSuccess}
-            onError={(e) => console.error('Descope error', e)}
-          />
+          <Descope flowId='sign-up-or-in' theme='light' onSuccess={handleSuccess} />
         </DescopeAuthProviders>
       </Main>
       <Footer />

@@ -1,5 +1,3 @@
-export const runtime = 'nodejs'
-
 import { Conflict, InternalError, Success, Unauthorized } from '@/lib/api/response'
 import { verifyDescopeToken } from '@/lib/descope/verifyDescopeToken'
 import { adminClient } from '@/lib/supabase/client/adminClient'
