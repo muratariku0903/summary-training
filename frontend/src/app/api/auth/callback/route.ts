@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/client/serverComponentClient'
 import { PUBLIC_PATHS } from '@/lib/constants/routes'
 
-// 認可コードとセッションん情報を交換する中間エンドポイント
+// 認可コードとセッション情報を交換する中間エンドポイント
 export async function GET(req: NextRequest) {
   const url = new URL(req.url)
   const code = url.searchParams.get('code')

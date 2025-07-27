@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { adminClient } from '@/lib/supabase/client/adminClient'
 import { Success, InternalError, Unauthorized } from '@/lib/api/response'
 import { getAccessTokenFromHeader } from '@/lib/api/utils'
+import { cookies } from 'next/headers'
 
 export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
   try {
@@ -36,16 +37,28 @@ export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
       console.error('❌ [DELETE-USER] User deletion failed:', deleteError.message)
       return InternalError(
         'Failed to delete user account',
-        deleteError.message
+        deleteError.message,
       ).toResponse()
     }
 
     console.log('✅ [DELETE-USER] User account successfully deleted:', user.id)
 
-    return Success({
+    const res = Success({
       message: 'User account has been successfully deleted',
       deletedUserId: user.id,
     }).toResponse()
+
+    // クッキーに保存されてるセッション情報を破棄
+    const prefix = `sb-${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID}-auth-token`
+    const cookieStore = await cookies()
+    const allCookies = cookieStore.getAll()
+    allCookies
+      .filter((c) => c.name.startsWith(prefix))
+      .forEach((c) => {
+        res.cookies.delete(c.name)
+      })
+
+    return res
   } catch (error) {
     console.error('❌ [DELETE-USER] Unexpected error:', error)
     return InternalError('Internal server error during user deletion').toResponse()
