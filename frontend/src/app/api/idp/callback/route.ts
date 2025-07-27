@@ -4,8 +4,9 @@ import { adminClient } from '@/lib/supabase/client/adminClient'
 import { createClient } from '@/lib/supabase/client/serverComponentClient'
 import { ensureShadowUser } from '@/lib/supabase/idp/ensureShadowUser'
 import { AuthError } from '@supabase/supabase-js'
+import { NextResponse } from 'next/server'
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<NextResponse> {
   // TODO: ヘッダー・メソッド検証
   // const ct = req.headers.get('content-type') || ''
   // if (!ct.includes('application/json')) {
@@ -94,5 +95,5 @@ export async function POST(req: Request) {
     await new Promise((r) => setTimeout(r, 150))
   }
 
-  return Unauthorized('verify_failed', lastErr?.message)
+  return Unauthorized('verify_failed', lastErr?.message).toResponse()
 }
