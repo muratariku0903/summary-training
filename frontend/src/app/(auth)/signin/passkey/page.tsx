@@ -1,65 +1,55 @@
 'use client'
 
-import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
 import Footer from '@/components/layouts/footer/Footer'
 import Header from '@/components/layouts/header/Header'
 import Main from '@/components/layouts/main/Main'
-import { PUBLIC_PATHS } from '@/lib/constants/routes'
+import { request } from '@/lib/api/client'
+import { PROTECTED_PATHS } from '@/lib/constants/routes'
+import { UI_MESSAGES } from '@/lib/constants/ui'
 import DescopeAuthProviders from '@/providers/descope/auth'
-import { Descope, getSessionToken } from '@descope/react-sdk'
+import { useSnackbarStore } from '@/stores/useSnackbarStore'
+import { getSessionToken } from '@descope/react-sdk'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
+
+// SSR をオフにしてクライアントでのみ読み込む
+const Descope = dynamic(() => import('@descope/react-sdk').then((mod) => mod.Descope), {
+  ssr: false,
+})
 
 export default function PasskeyPage() {
   const router = useRouter()
+  const showSnackbar = useSnackbarStore((s) => s.show)
 
   const handleSuccess = async () => {
     const idpToken = getSessionToken() // DescopeのセッションJWT
     if (!idpToken) return alert('No session token')
 
-    console.log(idpToken)
-    // const res = await fetch('/api/idp/callback', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   credentials: 'include', // ← HttpOnlyクッキーを受け取る
-    //   body: JSON.stringify({ idpToken }),
-    // })
+    const { success, error } = await request('/idp/callback', 'post', { idpToken })
+    if (!success) {
+      // TODO: 409の対応
 
-    // if (res.status === 409) {
-    //   // メール未登録/未検証など → あなたのオンボーディングへ
-    //   // router.push('/onboarding/verify-email')
-    //   return
-    // }
-    // if (!res.ok) {
-    //   const t = await res.text()
-    //   console.error(t)
-    //   return alert('Sign-in failed')
-    // }
+      console.error(error)
+      return
+    }
 
     // 成功：サーバーがSupabase互換JWTをHttpOnlyクッキーにセット済み
-    // router.replace('/dashboard')
+    showSnackbar(UI_MESSAGES.SIGNIN_SUCCESS_MESSAGE, 'success')
+    router.replace(PROTECTED_PATHS.DASHBOARD)
   }
 
   return (
     <>
       <Header />
       <Main>
-        <div>
-          <DescopeAuthProviders>
-            <Descope
-              flowId='sign-up-or-in'
-              theme='light'
-              onSuccess={handleSuccess}
-              onError={(e) => console.error('Descope error', e)}
-            />
-          </DescopeAuthProviders>
-          <div>
-            <ReversalButton
-              label='戻る'
-              onClick={() => router.replace(PUBLIC_PATHS.SIGNIN)}
-              border
-            />
-          </div>
-        </div>
+        <DescopeAuthProviders>
+          <Descope
+            flowId='sign-up-or-in'
+            theme='light'
+            onSuccess={handleSuccess}
+            onError={(e) => console.error('Descope error', e)}
+          />
+        </DescopeAuthProviders>
       </Main>
       <Footer />
     </>
