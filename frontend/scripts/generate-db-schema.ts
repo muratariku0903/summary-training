@@ -17,7 +17,7 @@ if (!projectId) {
 try {
   console.log(`Generating database types for project: ${projectId}`)
 
-  const command = `supabase gen types typescript --project-id "${projectId}" --schema public`
+  const command = `supabase gen types typescript --project-id "${projectId}" --schema public,private,auth`
   const output = execSync(command, { encoding: 'utf-8' })
 
   // ファイルに出力

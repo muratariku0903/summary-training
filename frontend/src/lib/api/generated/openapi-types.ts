@@ -48,7 +48,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "INTERNAL_SERVER";
+                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT" | "INTERNAL_SERVER";
                             message: string;
                             details?: unknown;
                         };
@@ -62,7 +62,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "INTERNAL_SERVER";
+                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT" | "INTERNAL_SERVER";
                             message: string;
                             details?: unknown;
                         };
@@ -76,7 +76,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "INTERNAL_SERVER";
+                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT" | "INTERNAL_SERVER";
                             message: string;
                             details?: unknown;
                         };
@@ -143,7 +143,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "INTERNAL_SERVER";
+                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT" | "INTERNAL_SERVER";
                             message: string;
                             details?: unknown;
                         };
@@ -157,7 +157,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "INTERNAL_SERVER";
+                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT" | "INTERNAL_SERVER";
                             message: string;
                             details?: unknown;
                         };
@@ -171,7 +171,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "INTERNAL_SERVER";
+                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT" | "INTERNAL_SERVER";
                             message: string;
                             details?: unknown;
                         };
@@ -241,7 +241,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "INTERNAL_SERVER";
+                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT" | "INTERNAL_SERVER";
                             message: string;
                             details?: unknown;
                         };
@@ -255,7 +255,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "INTERNAL_SERVER";
+                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT" | "INTERNAL_SERVER";
                             message: string;
                             details?: unknown;
                         };
@@ -269,7 +269,102 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "INTERNAL_SERVER";
+                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT" | "INTERNAL_SERVER";
+                            message: string;
+                            details?: unknown;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/idp/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * DescopeJWTをSupabase互換JWTに変換
+         * @description DescopeJWTをSupabase互換JWTに変換
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        idpToken: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description 成功失敗フラグ */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                message: string;
+                            };
+                            message?: string;
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description 不正リクエスト */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT" | "INTERNAL_SERVER";
+                            message: string;
+                            details?: unknown;
+                        };
+                    };
+                };
+                /** @description 認証が必要です */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT" | "INTERNAL_SERVER";
+                            message: string;
+                            details?: unknown;
+                        };
+                    };
+                };
+                /** @description サーバーエラー */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            code: "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT" | "INTERNAL_SERVER";
                             message: string;
                             details?: unknown;
                         };

@@ -21,7 +21,7 @@ export class ApiSuccess<T extends z.ZodTypeAny> {
     status: number,
     data: T,
     message?: string,
-    meta?: ApiSuccessObject<T>['meta']
+    meta?: ApiSuccessObject<T>['meta'],
   ) {
     this.status = status
     this.body = { data, message, meta }
@@ -75,13 +75,13 @@ export class ApiError extends Error {
 export const Success = <T extends z.ZodTypeAny>(
   data: z.infer<T>,
   message?: string,
-  meta?: ApiSuccessObject<T>['meta']
+  meta?: ApiSuccessObject<T>['meta'],
 ) => new ApiSuccess(200, data, message, meta)
 
 export const Created = <T extends z.ZodTypeAny>(
   data: z.infer<T>,
   message?: string,
-  meta?: ApiSuccessObject<T>['meta']
+  meta?: ApiSuccessObject<T>['meta'],
 ) => new ApiSuccess(201, data, message, meta)
 
 export const BadRequest = (msg = 'Bad request', details?: unknown) =>
@@ -92,6 +92,9 @@ export const Unauthorized = (msg = 'Unauthorized', details?: unknown) =>
 
 export const NotFound = (msg = 'Not found', details?: unknown) =>
   new ApiError(404, ERROR_CODES.NOT_FOUND, msg, details)
+
+export const Conflict = (msg = 'Conflict', details?: unknown) =>
+  new ApiError(409, ERROR_CODES.CONFLICT, msg, details)
 
 export const InternalError = (msg = 'Internal server error', details?: unknown) =>
   new ApiError(500, ERROR_CODES.INTERNAL_SERVER, msg, details)

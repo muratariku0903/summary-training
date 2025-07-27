@@ -195,7 +195,7 @@ export async function signOut(): Promise<SignoutResponse> {
  * パスワード変更処理
  */
 export async function changePassword(
-  input: ChangePasswordInput
+  input: ChangePasswordInput,
 ): Promise<ChangePasswordResponse> {
   const { currentPassword, newPassword } = input
 
@@ -286,7 +286,7 @@ export async function changeEmail(input: ChangeEmailInput): Promise<ChangeEmailR
     console.log(`emailRedirectTo: ${baseUrl}${PROTECTED_PATHS.EMAIL_CHANGE_CALLBACK}`)
     const { error: updError } = await browserClient.auth.updateUser(
       { email: email },
-      { emailRedirectTo: `${baseUrl}${PROTECTED_PATHS.EMAIL_CHANGE_CALLBACK}` }
+      { emailRedirectTo: `${baseUrl}${PROTECTED_PATHS.EMAIL_CHANGE_CALLBACK}` },
     )
     if (updError) {
       console.error(AUTH_LOG_MESSAGES.CHANGE_PASSWORD_ERROR, updError.message)
@@ -313,7 +313,7 @@ export async function changeEmail(input: ChangeEmailInput): Promise<ChangeEmailR
  * パスワードリセット処理
  */
 export async function resetPassword(
-  input: ResetPasswordInput
+  input: ResetPasswordInput,
 ): Promise<ResetPasswordResponse> {
   const { email } = input
 

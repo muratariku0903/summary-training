@@ -86,6 +86,7 @@
                         "UNAUTHORIZED",
                         "FORBIDDEN",
                         "NOT_FOUND",
+                        "CONFLICT",
                         "INTERNAL_SERVER"
                       ]
                     },
@@ -118,6 +119,7 @@
                         "UNAUTHORIZED",
                         "FORBIDDEN",
                         "NOT_FOUND",
+                        "CONFLICT",
                         "INTERNAL_SERVER"
                       ]
                     },
@@ -150,6 +152,7 @@
                         "UNAUTHORIZED",
                         "FORBIDDEN",
                         "NOT_FOUND",
+                        "CONFLICT",
                         "INTERNAL_SERVER"
                       ]
                     },
@@ -251,6 +254,7 @@
                         "UNAUTHORIZED",
                         "FORBIDDEN",
                         "NOT_FOUND",
+                        "CONFLICT",
                         "INTERNAL_SERVER"
                       ]
                     },
@@ -283,6 +287,7 @@
                         "UNAUTHORIZED",
                         "FORBIDDEN",
                         "NOT_FOUND",
+                        "CONFLICT",
                         "INTERNAL_SERVER"
                       ]
                     },
@@ -315,6 +320,7 @@
                         "UNAUTHORIZED",
                         "FORBIDDEN",
                         "NOT_FOUND",
+                        "CONFLICT",
                         "INTERNAL_SERVER"
                       ]
                     },
@@ -416,6 +422,7 @@
                         "UNAUTHORIZED",
                         "FORBIDDEN",
                         "NOT_FOUND",
+                        "CONFLICT",
                         "INTERNAL_SERVER"
                       ]
                     },
@@ -448,6 +455,7 @@
                         "UNAUTHORIZED",
                         "FORBIDDEN",
                         "NOT_FOUND",
+                        "CONFLICT",
                         "INTERNAL_SERVER"
                       ]
                     },
@@ -480,6 +488,166 @@
                         "UNAUTHORIZED",
                         "FORBIDDEN",
                         "NOT_FOUND",
+                        "CONFLICT",
+                        "INTERNAL_SERVER"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/idp/callback": {
+      "post": {
+        "summary": "DescopeJWTをSupabase互換JWTに変換",
+        "description": "DescopeJWTをSupabase互換JWTに変換",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idpToken": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "idpToken"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功失敗フラグ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "不正リクエスト",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "BAD_REQUEST",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "INTERNAL_SERVER"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "認証が必要です",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "BAD_REQUEST",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "INTERNAL_SERVER"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "サーバーエラー",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "BAD_REQUEST",
+                        "UNAUTHORIZED",
+                        "FORBIDDEN",
+                        "NOT_FOUND",
+                        "CONFLICT",
                         "INTERNAL_SERVER"
                       ]
                     },
