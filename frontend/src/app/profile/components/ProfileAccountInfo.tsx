@@ -26,31 +26,33 @@ export default function ProfileAccountInfo({
   const router = useRouter()
 
   const authProviders = user.identities?.map((e) => e.provider)
-  const hasEmailProvider = authProviders?.includes('email')
+  const emailPrimaryProvider = isEmailPrimaryProvider(user.app_metadata)
   const hasGoogleProvider = authProviders?.includes('google')
+  const googlePrimaryProvider = user.app_metadata.provider === 'google'
 
   return (
     <div className='space-y-6'>
       <h2 className='text-xl font-semibold'>アカウント情報</h2>
 
       <div className='space-y-4'>
-        {hasEmailProvider && (
+        <div className='space-y-2'>
+          <TextInput
+            labelText='メールアドレス'
+            edit={false}
+            showValue={user.email}
+            rightElement={
+              emailPrimaryProvider && (
+                <OutlineButton
+                  label='変更'
+                  onClick={() => router.replace(PROTECTED_PATHS.EMAIL_CHANGE)}
+                  className='text-sm px-3 py-1'
+                />
+              )
+            }
+          />
+        </div>
+        {emailPrimaryProvider && (
           <>
-            <div className='space-y-2'>
-              <TextInput
-                labelText='メールアドレス'
-                edit={false}
-                showValue={user.email}
-                rightElement={
-                  <OutlineButton
-                    label='変更'
-                    onClick={() => router.replace(PROTECTED_PATHS.EMAIL_CHANGE)}
-                    className='text-sm px-3 py-1'
-                  />
-                }
-              />
-            </div>
-
             <div className='space-y-2'>
               <TextInput
                 labelText='パスワード'
@@ -128,11 +130,11 @@ export default function ProfileAccountInfo({
                 {/* アイコン＋文言 */}
                 <div className='flex items-center space-x-2'>
                   <FcGoogle size={24} />
-                  <span className='text-sm font-medium text-gray-800'>
+                  <span className='text-sm font-medium text-gray-800 pr-5'>
                     Google アカウント連携中
                   </span>
                 </div>
-                {hasEmailProvider && (
+                {!googlePrimaryProvider && (
                   <button
                     onClick={() => {
                       if (onClickOAuthUnlink) onClickOAuthUnlink(AUTH_PROVIDERS.GOOGLE)
@@ -161,4 +163,13 @@ export default function ProfileAccountInfo({
       </div>
     </div>
   )
+}
+
+const isEmailPrimaryProvider = (metadata: User['app_metadata']) => {
+  let res = metadata.provider === 'email'
+  if (Object.hasOwn(metadata, 'email_primary_provider')) {
+    res = metadata.email_primary_provider
+  }
+
+  return res
 }

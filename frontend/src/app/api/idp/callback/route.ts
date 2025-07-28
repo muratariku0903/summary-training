@@ -1,4 +1,10 @@
-import { Conflict, InternalError, Success, Unauthorized } from '@/lib/api/response'
+import {
+  Conflict,
+  Forbidden,
+  InternalError,
+  Success,
+  Unauthorized,
+} from '@/lib/api/response'
 import { verifyDescopeToken } from '@/lib/descope/verifyDescopeToken'
 import { adminClient } from '@/lib/supabase/client/adminClient'
 import { createClient } from '@/lib/supabase/client/serverComponentClient'
@@ -44,6 +50,7 @@ export async function POST(req: Request): Promise<NextResponse> {
   const {
     success: ensureSuccess,
     code,
+    authUserId,
     message: ensureErrorMessage,
   } = await ensureShadowUser({
     provider: 'descope',
@@ -59,7 +66,26 @@ export async function POST(req: Request): Promise<NextResponse> {
     ).toResponse()
   }
 
-  // --- 5) Magic Link 発行（Admin） ---
+  // --- 5) Passkey認証の判別をするためにメタデータにプロバイダ情報として「descope」をセット ---
+  // Providerがemail以外のものであれば、custom_providerとして「　descope」をセット
+  const { data: u } = await adminClient.auth.admin.getUserById(authUserId)
+  const metadata = u.user?.app_metadata
+  if (metadata?.provider !== 'email') {
+    const { error: upErr } = await adminClient.auth.admin.updateUserById(authUserId, {
+      app_metadata: {
+        ...metadata,
+        email_primary_provider: false,
+      },
+    })
+    if (upErr) {
+      return Forbidden(
+        'Forbidden error during update user metadata',
+        upErr.message,
+      ).toResponse()
+    }
+  }
+
+  // --- 6) Magic Link 発行（Admin） ---
   const { data: gen, error: genErr } = await adminClient.auth.admin.generateLink({
     type: 'magiclink',
     email,

@@ -73,12 +73,13 @@ export const ensureShadowUser = async (args: EnsureArgs): Promise<EnsureResult> 
     }
   }
 
-  // 3) 見つからなければ作成
+  // 3) 見つからなければ新規作成
   if (!authUserId) {
     const created = await adminClient.auth.admin.createUser({
       email: email || undefined,
       email_confirm: !!args.emailVerified,
       user_metadata: { provider, externalUserId },
+      app_metadata: { email_primary_provider: false },
     })
     if (created.error || !created.data?.user?.id) {
       return {

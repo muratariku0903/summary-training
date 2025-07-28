@@ -90,6 +90,9 @@ export const BadRequest = (msg = 'Bad request', details?: unknown) =>
 export const Unauthorized = (msg = 'Unauthorized', details?: unknown) =>
   new ApiError(401, ERROR_CODES.UNAUTHORIZED, msg, details)
 
+export const Forbidden = (msg = 'Forbidden', details?: unknown) =>
+  new ApiError(403, ERROR_CODES.FORBIDDEN, msg, details)
+
 export const NotFound = (msg = 'Not found', details?: unknown) =>
   new ApiError(404, ERROR_CODES.NOT_FOUND, msg, details)
 
