@@ -66,13 +66,13 @@ export async function POST(req: Request): Promise<NextResponse> {
     ).toResponse()
   }
 
-  // --- 5) Passkey認証の判別をするためにメタデータにプロバイダ情報として「descope」をセット ---
-  // Providerがemail以外のものであれば、custom_providerとして「　descope」をセット
+  // --- 5) Passkey認証の判別をするためにメタデータにプロバイダ情報として「descope_login_id」をセット ---
   const { data: u } = await adminClient.auth.admin.getUserById(authUserId)
   const metadata = u.user?.app_metadata
   const newMetadata = {
     ...metadata,
-    email_primary_provider: metadata?.provider === 'email',
+    email_primary_provider:
+      metadata?.email_primary_provider ?? metadata?.provider === 'email',
     descope_login_id: email,
   }
   const { error: upErr } = await adminClient.auth.admin.updateUserById(authUserId, {
