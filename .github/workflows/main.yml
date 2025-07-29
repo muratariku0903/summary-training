@@ -25,6 +25,7 @@ jobs:
       DESCOPE_ISSUER: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_ISSUER_PROD || vars.DESCOPE_ISSUER_DEV }}
       DESCOPE_AUDIENCE: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_AUDIENCE_PROD || vars.DESCOPE_AUDIENCE_DEV }}
       DESCOPE_JWKS_URI: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_JWKS_URI_PROD || vars.DESCOPE_JWKS_URI_DEV }}
+      DESCOPE_MGMT_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.DESCOPE_MGMT_KEY_PROD || secrets.DESCOPE_MGMT_KEY_DEV }}
     steps:
       - name: Checkout repository # GitHubリポジトリのソースコードを 仮想マシンにダウンロード
         uses: actions/checkout@v3
@@ -48,6 +49,7 @@ jobs:
           DESCOPE_ISSUER=${{env.DESCOPE_ISSUER}}
           DESCOPE_AUDIENCE=${{env.DESCOPE_AUDIENCE}}
           DESCOPE_JWKS_URI=${{env.DESCOPE_JWKS_URI}}
+          DESCOPE_MGMT_KEY=${{env.DESCOPE_MGMT_KEY}}
           EOF
         working-directory: frontend
 
@@ -92,6 +94,7 @@ jobs:
       DESCOPE_ISSUER: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_ISSUER_PROD || vars.DESCOPE_ISSUER_DEV }}
       DESCOPE_AUDIENCE: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_AUDIENCE_PROD || vars.DESCOPE_AUDIENCE_DEV }}
       DESCOPE_JWKS_URI: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_JWKS_URI_PROD || vars.DESCOPE_JWKS_URI_DEV }}
+      DESCOPE_MGMT_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.DESCOPE_MGMT_KEY_PROD || secrets.DESCOPE_MGMT_KEY_DEV }}
 
     steps:
       - name: Checkout repository # 「setup」ジョブとは異なるランナーが使用されるので再度ソースコードをダウンロード
@@ -140,6 +143,7 @@ jobs:
           DESCOPE_ISSUER=${{env.DESCOPE_ISSUER}}
           DESCOPE_AUDIENCE=${{env.DESCOPE_AUDIENCE}}
           DESCOPE_JWKS_URI=${{env.DESCOPE_JWKS_URI}}
+          DESCOPE_MGMT_KEY=${{env.DESCOPE_MGMT_KEY}}
           EOF
         working-directory: frontend
 

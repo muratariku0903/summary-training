@@ -21,3 +21,24 @@ export async function findAuthUserIdByEmail(email: string): Promise<string | nul
   }
   return null
 }
+
+/**
+ * auth.users.id → idp_links から Descope の userId(sub) を取得
+ */
+export async function getDescopeUserIdByAuthUserId(
+  authUserId: string,
+): Promise<
+  | { success: true; descopeUserId: string | null; message?: never }
+  | { success: false; descopeUserId?: never; message: string }
+> {
+  const { data, error } = await adminClient
+    .from('idp_links')
+    .select('external_user_id')
+    .eq('provider', 'descope')
+    .eq('auth_user_id', authUserId)
+    .limit(1)
+
+  if (error) return { success: false, message: error.message }
+  
+  return { success: true, descopeUserId: data?.[0]?.external_user_id ?? null }
+}

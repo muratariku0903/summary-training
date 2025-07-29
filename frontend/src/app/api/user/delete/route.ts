@@ -3,11 +3,11 @@ import { adminClient } from '@/lib/supabase/client/adminClient'
 import { Success, InternalError, Unauthorized } from '@/lib/api/response'
 import { getAccessTokenFromHeader } from '@/lib/api/utils'
 import { cookies } from 'next/headers'
+import { getDescopeUserIdByAuthUserId } from '@/lib/supabase/auth/admin'
+import { deleteDescopeUser } from '@/lib/descope/utils'
 
 export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
   try {
-    console.log('🗑️ [DELETE-USER] Starting user deletion process')
-
     // 認証ヘッダーからアクセストークンを取得
     const accessToken = getAccessTokenFromHeader(req)
     if (!accessToken) {
@@ -26,12 +26,38 @@ export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
       return Unauthorized('Invalid access token').toResponse()
     }
 
-    console.log('✅ [DELETE-USER] User authenticated:', user.id)
+    // Descopeプロバイダでログイン（Passkey登録）してるユーザーであれば、そちらも削除
+    // 「idp_links」はCASCADE設定により、auth.usersを削除すると自動的に削除される
+    const {
+      success: getDescopeUserSuccess,
+      descopeUserId,
+      message: getDescopeUserError,
+    } = await getDescopeUserIdByAuthUserId(user.id)
+    if (getDescopeUserError) {
+      console.error(getDescopeUserError)
+      // TODO DESCOPEユーザー削除に失敗した際の動作
+    }
 
-    // CASCADE設定により、user_profilesの手動削除は不要
-    // auth.usersを削除すると自動的にuser_profilesも削除される
+    if (getDescopeUserSuccess && descopeUserId) {
+      const { data: u } = await adminClient.auth.admin.getUserById(user.id)
+      console.log('user', u)
+      const descopeLoginId = u.user?.app_metadata.descope_login_id as string | undefined
+      console.log('descopeLoginId', descopeLoginId)
+      if (descopeLoginId) {
+        const { error: descopeDeleteError } = await deleteDescopeUser(
+          descopeLoginId,
+          descopeUserId,
+        )
+        if (descopeDeleteError) {
+          console.error(descopeDeleteError)
+          // TODO DESCOPEユーザー削除に失敗した際の動作
+        }
+      }
+    }
 
     // メインのユーザーアカウント削除
+    // CASCADE設定により、user_profilesの手動削除は不要
+    // auth.usersを削除すると自動的にuser_profilesも削除される
     const { error: deleteError } = await adminClient.auth.admin.deleteUser(user.id)
     if (deleteError) {
       console.error('❌ [DELETE-USER] User deletion failed:', deleteError.message)
@@ -40,8 +66,6 @@ export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
         deleteError.message,
       ).toResponse()
     }
-
-    console.log('✅ [DELETE-USER] User account successfully deleted:', user.id)
 
     const res = Success({
       message: 'User account has been successfully deleted',

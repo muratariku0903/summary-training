@@ -79,7 +79,7 @@ export const ensureShadowUser = async (args: EnsureArgs): Promise<EnsureResult> 
       email: email || undefined,
       email_confirm: !!args.emailVerified,
       user_metadata: { provider, externalUserId },
-      app_metadata: { email_primary_provider: false },
+      app_metadata: { email_primary_provider: false, descope_login_id: email },
     })
     if (created.error || !created.data?.user?.id) {
       return {

@@ -75,6 +75,7 @@ export async function POST(req: Request): Promise<NextResponse> {
       app_metadata: {
         ...metadata,
         email_primary_provider: false,
+        descope_login_id: email,
       },
     })
     if (upErr) {
