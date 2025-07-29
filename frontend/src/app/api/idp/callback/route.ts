@@ -70,20 +70,19 @@ export async function POST(req: Request): Promise<NextResponse> {
   // Providerがemail以外のものであれば、custom_providerとして「　descope」をセット
   const { data: u } = await adminClient.auth.admin.getUserById(authUserId)
   const metadata = u.user?.app_metadata
-  if (metadata?.provider !== 'email') {
-    const { error: upErr } = await adminClient.auth.admin.updateUserById(authUserId, {
-      app_metadata: {
-        ...metadata,
-        email_primary_provider: false,
-        descope_login_id: email,
-      },
-    })
-    if (upErr) {
-      return Forbidden(
-        'Forbidden error during update user metadata',
-        upErr.message,
-      ).toResponse()
-    }
+  const newMetadata = {
+    ...metadata,
+    email_primary_provider: metadata?.provider === 'email',
+    descope_login_id: email,
+  }
+  const { error: upErr } = await adminClient.auth.admin.updateUserById(authUserId, {
+    app_metadata: newMetadata,
+  })
+  if (upErr) {
+    return Forbidden(
+      'Forbidden error during update user metadata',
+      upErr.message,
+    ).toResponse()
   }
 
   // --- 6) Magic Link 発行（Admin） ---

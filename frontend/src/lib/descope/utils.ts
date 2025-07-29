@@ -34,6 +34,27 @@ export const deleteDescopeUser = async (
   }
 }
 
+export const updateDescopeUserEmail = async (
+  loginId: string,
+  email: string,
+): Promise<{ success: true; error?: never } | { success: false; error: string }> => {
+  // パスキー資格情報の削除
+  const { success, error } = await post(
+    'https://api.descope.com/v1/mgmt/user/update/email',
+    { loginId, email, verified: true },
+  )
+  if (!success) {
+    return {
+      success: false,
+      error: error,
+    }
+  }
+
+  return {
+    success: true,
+  }
+}
+
 const post = async <T = unknown>(
   path: string,
   body: object,
