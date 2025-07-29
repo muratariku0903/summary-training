@@ -6,6 +6,7 @@ import {
   PUBLIC_PATHS,
   UNAUTHENTICATED_USER_PATHS,
 } from '@/lib/constants/routes'
+import dayjs from 'dayjs'
 
 /**
  * Next.js ミドルウェア
@@ -14,8 +15,9 @@ import {
  * - 認証チェックとルーティング制御を行う
  */
 export async function middleware(req: NextRequest) {
-  console.log('🚀 Middleware triggered for:', req.nextUrl.pathname)
-  // console.log('request:', req)
+  console.log(
+    `🚀 Middleware triggered for: ${req.nextUrl.pathname} at ${dayjs().format('YYYY-MM-DDTHH:mm:ss')}`,
+  )
 
   // Edge Runtime専用クライアントを使用
   const { client: supabaseMiddlerWareClient, response: updatedResponse } =
