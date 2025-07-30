@@ -255,7 +255,10 @@ export default function CallbackPage() {
               showSnackbar(UI_MESSAGES.SIGNIN_SUCCESS_MESSAGE, 'success')
               router.replace(PROTECTED_PATHS.DASHBOARD)
             }}
-            onBack={() => setSetupMfa(SETUP_MFA.UNSELECTED)}
+            onBack={() => {
+              setSetupMfa(SETUP_MFA.UNSELECTED)
+              setSelectedMfaType(null)
+            }}
           />
         )
       }
