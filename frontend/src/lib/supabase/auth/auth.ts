@@ -19,6 +19,7 @@ import {
 } from './types'
 import { AUTH_MESSAGES, AUTH_LOG_MESSAGES } from '@/lib/constants/auth'
 import { ZodError } from 'zod'
+import { User } from '@supabase/supabase-js'
 
 /**
  * サインイン処理
@@ -200,8 +201,6 @@ export async function changePassword(
   const { currentPassword, newPassword } = input
 
   try {
-    console.log(AUTH_LOG_MESSAGES.CHANGE_PASSWORD_ATTEMPT)
-
     const { data: userData, error: getUserError } = await browserClient.auth.getUser()
     if (getUserError) {
       console.error(AUTH_LOG_MESSAGES.CHANGE_PASSWORD_ERROR, getUserError.message)
@@ -214,6 +213,17 @@ export async function changePassword(
       return {
         success: false,
         message: AUTH_MESSAGES.CHANGE_PASSWORD_FAILED,
+      }
+    }
+
+    // メール認証がプリイマリとなってるかチェック
+    // GoogleやPasskeyがプライマリとして設定されている場合（GoogleやPasskeyのみの認証ユーザー）、パスワード変更不可能
+    const emailPrimaryProvider = isEmailPrimaryProvider(userData)
+    if (!emailPrimaryProvider) {
+      console.error('password not set up')
+      return {
+        success: false,
+        message: 'password not set up',
       }
     }
 
@@ -318,8 +328,6 @@ export async function resetPassword(
   const { email } = input
 
   try {
-    console.log(AUTH_LOG_MESSAGES.RESET_PASSWORD_ATTEMPT)
-
     // メール送信
     const baseUrl = window.location.origin
     console.log(`emailRedirectTo: ${baseUrl}${PUBLIC_PATHS.PASSWORD_RESET_CALLBACK}`)
@@ -345,4 +353,13 @@ export async function resetPassword(
       message: AUTH_MESSAGES.RESET_PASSWORD_FAILED,
     }
   }
+}
+
+export const isEmailPrimaryProvider = (metadata: User['app_metadata']) => {
+  let res = metadata.provider === 'email'
+  if (Object.hasOwn(metadata, 'email_primary_provider')) {
+    res = metadata.email_primary_provider
+  }
+
+  return res
 }
