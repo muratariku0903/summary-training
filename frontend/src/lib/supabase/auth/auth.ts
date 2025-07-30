@@ -165,8 +165,6 @@ export async function signUp(input: SignupInput): Promise<SignupResponse> {
  */
 export async function signOut(): Promise<SignoutResponse> {
   try {
-    console.log(AUTH_LOG_MESSAGES.SIGNOUT_ATTEMPT)
-
     const { error } = await browserClient.auth.signOut()
 
     if (error) {
@@ -176,8 +174,6 @@ export async function signOut(): Promise<SignoutResponse> {
         message: AUTH_MESSAGES.SIGNOUT_FAILED,
       }
     }
-
-    console.log(AUTH_LOG_MESSAGES.SIGNOUT_SUCCESS)
 
     return {
       success: true,

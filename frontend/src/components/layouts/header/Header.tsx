@@ -32,6 +32,7 @@ const Header: React.FC<HeaderProps> = ({ menuType }) => {
       onClick: async () => {
         await signOut().then(() => {
           showSnackbar(UI_MESSAGES.SIGNOUT_SUCCESS_MESSAGE, 'success')
+          console.log('ホーム画面に遷移')
           router.replace(PUBLIC_PATHS.HOME)
         })
       },

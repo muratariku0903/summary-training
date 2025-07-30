@@ -40,9 +40,7 @@ export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
 
     if (getDescopeUserSuccess && descopeUserId) {
       const { data: u } = await adminClient.auth.admin.getUserById(user.id)
-      console.log('user', u)
       const descopeLoginId = u.user?.app_metadata.descope_login_id as string | undefined
-      console.log('descopeLoginId', descopeLoginId)
       if (descopeLoginId) {
         const { error: descopeDeleteError } = await deleteDescopeUser(
           descopeLoginId,
