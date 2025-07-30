@@ -29,6 +29,7 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabaseMiddlerWareClient.auth.getSession()
   const { pathname } = req.nextUrl
+  console.log('session: ', session)
 
   const isProtected = Object.values(PROTECTED_PATHS).some((path) =>
     pathname.startsWith(path),
