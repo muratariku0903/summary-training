@@ -17,8 +17,6 @@ type HeaderProps = {
 }
 
 const Header: React.FC<HeaderProps> = ({ menuType }) => {
-  console.log('this is header')
-
   const router = useRouter()
   const showSnackbar = useSnackbarStore((s) => s.show)
 
@@ -32,11 +30,9 @@ const Header: React.FC<HeaderProps> = ({ menuType }) => {
     {
       label: 'サインアウト',
       onClick: async () => {
-        await signOut().then(() => {
-          showSnackbar(UI_MESSAGES.SIGNOUT_SUCCESS_MESSAGE, 'success')
-          console.log('ホーム画面に遷移')
-          router.replace(PUBLIC_PATHS.HOME)
-        })
+        await signOut()
+        showSnackbar(UI_MESSAGES.SIGNOUT_SUCCESS_MESSAGE, 'success')
+        router.replace(PUBLIC_PATHS.HOME)
       },
       icon: <SignOutIcon />,
     },
