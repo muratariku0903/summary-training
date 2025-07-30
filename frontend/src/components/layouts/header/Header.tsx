@@ -17,6 +17,8 @@ type HeaderProps = {
 }
 
 const Header: React.FC<HeaderProps> = ({ menuType }) => {
+  console.log('this is header')
+
   const router = useRouter()
   const showSnackbar = useSnackbarStore((s) => s.show)
 
