@@ -110,7 +110,12 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
           }
 
           showSnackbar(UI_MESSAGES.ACCOUNT_DELETE_SUCCESS_MESSAGE, 'success')
-          router.replace(PUBLIC_PATHS.HOME)
+
+          // スナックバーを見せるため少し待ってから遷移
+          setTimeout(() => {
+            // router.replaceを使わないのは、Vercel環境のGoogleアカウント退会時に正しく遷移されず、対策として強制的に遷移させることにした
+            window.location.href = PUBLIC_PATHS.HOME
+          }, 1500)
         }}
         title='アカウントを削除'
         message={`アカウントを削除すると、すべてのデータが完全に削除されます。\n\nこの操作は取り消すことができません。\n\n本当にアカウントを削除しますか？`}
