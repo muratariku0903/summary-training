@@ -109,6 +109,7 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
             }
           }
 
+          setShowDeleteDialog(false)
           showSnackbar(UI_MESSAGES.ACCOUNT_DELETE_SUCCESS_MESSAGE, 'success')
 
           // スナックバーを見せるため少し待ってから遷移
