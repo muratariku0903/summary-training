@@ -16,19 +16,19 @@ export default function Footer() {
             <div className='flex space-x-4'>
               <UnderlineLink
                 label='問い合わせ'
-                href='/contact'
+                href='#'
                 className='text-sm text-white'
                 underlineColor='white'
               />
               <UnderlineLink
                 label='プライバシーポリシー'
-                href='/privacy'
+                href='#'
                 className='text-sm text-white'
                 underlineColor='white'
               />
               <UnderlineLink
                 label='利用規約'
-                href='/terms'
+                href='#'
                 className='text-sm text-white'
                 underlineColor='white'
               />
