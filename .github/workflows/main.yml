@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest # GitHub提供の Ubuntu環境の仮想マシンで実行
     env:
       SUPABASE_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_URL_PROD || secrets.SUPABASE_URL_DEV }}
+      SUPABASE_PROJECT_ID: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_PROJECT_ID_PROD || secrets.SUPABASE_PROJECT_ID_DEV }}
       SUPABASE_ANON_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_ANON_KEY_PROD || secrets.SUPABASE_ANON_KEY_DEV }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_SERVICE_ROLE_KEY_PROD || secrets.SUPABASE_SERVICE_ROLE_KEY_DEV }}
       SUPABASE_JWT_SECRET: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_JWT_SECRET_PROD || secrets.SUPABASE_JWT_SECRET_DEV }}
@@ -40,6 +41,7 @@ jobs:
           cat <<EOF > .env
           NEXT_PUBLIC_SUPABASE_URL=${{env.SUPABASE_URL}}
           NEXT_PUBLIC_SUPABASE_ANON_KEY=${{env.SUPABASE_ANON_KEY}}
+          NEXT_PUBLIC_SUPABASE_PROJECT_ID=${{env.SUPABASE_PROJECT_ID}}
           NEXT_PUBLIC_DESCOPE_PROJECT_ID=${{env.DESCOPE_PROJECT_ID}}
           SUPABASE_SERVICE_ROLE_KEY=${{env.SUPABASE_SERVICE_ROLE_KEY}}
           SUPABASE_JWT_SECRET=${{env.SUPABASE_JWT_SECRET}}
@@ -134,6 +136,7 @@ jobs:
           cat <<EOF > .env
           NEXT_PUBLIC_SUPABASE_URL=${{env.SUPABASE_URL}}
           NEXT_PUBLIC_SUPABASE_ANON_KEY=${{env.SUPABASE_ANON_KEY}}
+          NEXT_PUBLIC_SUPABASE_PROJECT_ID=${{env.SUPABASE_PROJECT_ID}}
           NEXT_PUBLIC_DESCOPE_PROJECT_ID=${{env.DESCOPE_PROJECT_ID}}
           SUPABASE_SERVICE_ROLE_KEY=${{env.SUPABASE_SERVICE_ROLE_KEY}}
           SUPABASE_JWT_SECRET=${{env.SUPABASE_JWT_SECRET}}
