@@ -33,7 +33,9 @@ const Header: React.FC<HeaderProps> = ({ menuType }) => {
         const { message } = await signOut()
         showSnackbar(UI_MESSAGES.SIGNOUT_SUCCESS_MESSAGE, 'success')
         console.log('signout error: ', message)
-        router.replace(PUBLIC_PATHS.HOME)
+        setTimeout(() => {
+          router.replace(PUBLIC_PATHS.HOME)
+        }, 3000)
       },
       icon: <SignOutIcon />,
     },
