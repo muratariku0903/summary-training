@@ -31,16 +31,14 @@ const Header: React.FC<HeaderProps> = ({ menuType }) => {
       label: 'サインアウト',
       onClick: async () => {
         await signOut()
+
         showSnackbar(UI_MESSAGES.SIGNOUT_SUCCESS_MESSAGE, 'success')
 
-        console.log('=== Router Debug Info ===')
-
-        console.log('before router')
-
-        // router.replace(PUBLIC_PATHS.HOME)
-        window.location.href = PUBLIC_PATHS.HOME
-
-        console.log('after router')
+        // スナックバーを見せるため少し待ってから遷移
+        setTimeout(() => {
+          // router.replaceを使わないのは、Vercel環境のGoogleログアウト時に正しく遷移されず、対策として強制的に遷移させることにした
+          window.location.href = PUBLIC_PATHS.HOME
+        }, 1500) // 1.5秒後に遷移
       },
       icon: <SignOutIcon />,
     },
