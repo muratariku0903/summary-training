@@ -72,6 +72,7 @@ export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
 
     // クッキーに保存されてるセッション情報を破棄
     const prefix = `sb-${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID}-auth-token`
+    console.log('prefix:', prefix)
     const cookieStore = await cookies()
     const allCookies = cookieStore.getAll()
     allCookies
