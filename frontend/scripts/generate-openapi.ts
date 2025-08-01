@@ -18,6 +18,10 @@ import {
   requestSchema as DescopeTokenExchangeRequestSchema,
   responseSchema as DescopeTokenExchangeResponseSchema,
 } from '../src/app/api/idp/callback/schema.ts'
+import {
+  requestSchema as PasswordVerifyRequestSchema,
+  responseSchema as PasswordVerifyResponseSchema,
+} from '../src/app/api/auth/password/verify/schema.ts'
 import * as fs from 'fs'
 import * as path from 'path'
 import { apiErrorObjectSchema, apiSuccessObjectSchema } from '../src/lib/api/response.ts'
@@ -241,6 +245,58 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: apiSuccessObjectSchema(DescopeTokenExchangeResponseSchema),
+        },
+      },
+    },
+    400: {
+      description: '不正リクエスト',
+      content: {
+        'application/json': {
+          schema: apiErrorObjectSchema,
+        },
+      },
+    },
+    401: {
+      description: '認証が必要です',
+      content: {
+        'application/json': {
+          schema: apiErrorObjectSchema,
+        },
+      },
+    },
+    500: {
+      description: 'サーバーエラー',
+      content: {
+        'application/json': {
+          schema: apiErrorObjectSchema,
+        },
+      },
+    },
+  },
+})
+
+registry.registerPath({
+  method: 'post',
+  path: '/auth/password/verify',
+  summary: 'パスワード検証',
+  description:
+    '入力されたパスワードが会員の値と一致するか検証します。このAPIは認証が必要です。',
+  security: [{ BearerAuth: [] }], // JWT Token
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: PasswordVerifyRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: '',
+      content: {
+        'application/json': {
+          schema: apiSuccessObjectSchema(PasswordVerifyResponseSchema),
         },
       },
     },

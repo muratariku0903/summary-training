@@ -41,6 +41,22 @@ export default function PasswordChangePage() {
   const onSubmit = async (input: ChangePasswordInput) => {
     setSubmitError(null)
 
+    // 既存のパスワードの検証
+    // 内部で認証してるのでフロントで実行してしまうとセッション情報が書き換えられてしまうため、サーバー側で実施
+    const { success: verifySuccess, error } = await request(
+      '/auth/password/verify',
+      'post',
+      {
+        password: input.currentPassword ?? '',
+      },
+      { requireAuth: true },
+    )
+    if (!verifySuccess) {
+      console.error(error)
+      setSubmitError(UI_MESSAGES.CHANGE_PASSWORD_FAILED_MESSAGE)
+      return
+    }
+
     // パスワード変更処理
     const { success, message } = await changePassword(input)
     if (!success) {

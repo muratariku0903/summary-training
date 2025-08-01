@@ -194,7 +194,7 @@ export async function signOut(): Promise<SignoutResponse> {
 export async function changePassword(
   input: ChangePasswordInput,
 ): Promise<ChangePasswordResponse> {
-  const { currentPassword, newPassword } = input
+  const { newPassword } = input
 
   try {
     const { data: userData, error: getUserError } = await browserClient.auth.getUser()
@@ -214,7 +214,7 @@ export async function changePassword(
 
     // メール認証がプリイマリとなってるかチェック
     // GoogleやPasskeyがプライマリとして設定されている場合（GoogleやPasskeyのみの認証ユーザー）、パスワード変更不可能
-    const emailPrimaryProvider = isEmailPrimaryProvider(userData)
+    const emailPrimaryProvider = isEmailPrimaryProvider(userData.user.app_metadata)
     if (!emailPrimaryProvider) {
       console.error('password not set up')
       return {
@@ -223,21 +223,8 @@ export async function changePassword(
       }
     }
 
-    // 現在のパスワードが正当なものかチェックするため一度ログインを試行
-    if (currentPassword) {
-      const { error: signInError } = await browserClient.auth.signInWithPassword({
-        email: userData.user.email,
-        password: currentPassword,
-      })
-      if (signInError) {
-        return {
-          success: false,
-          message: AUTH_MESSAGES.CHANGE_PASSWORD_FAILED_WITH_CURRENT_PASSWORD,
-        }
-      }
-    }
-
     // パスワード変更
+    // MFA設定をしてる場合は、AAL2のセッション情報が必要
     const { error: updError } = await browserClient.auth.updateUser({
       password: newPassword,
     })
@@ -288,8 +275,8 @@ export async function changeEmail(input: ChangeEmailInput): Promise<ChangeEmailR
 
     // メールアドレス変更
     // ユーザーに確認メール送信
+    // MFA設定をしてる場合は、AAL2のセッション情報が必要
     const baseUrl = window.location.origin
-    console.log(`emailRedirectTo: ${baseUrl}${PROTECTED_PATHS.EMAIL_CHANGE_CALLBACK}`)
     const { error: updError } = await browserClient.auth.updateUser(
       { email: email },
       { emailRedirectTo: `${baseUrl}${PROTECTED_PATHS.EMAIL_CHANGE_CALLBACK}` },
@@ -351,6 +338,10 @@ export async function resetPassword(
   }
 }
 
+/**
+ * 認証プロバイダでメインがEmailかどうかの判定
+ * 一番最初の新規会員登録にてメールで認証した場合、Emailがメインプロバイダ扱いとなる
+ */
 export const isEmailPrimaryProvider = (metadata: User['app_metadata']) => {
   let res = metadata.provider === 'email'
   if (Object.hasOwn(metadata, 'email_primary_provider')) {
