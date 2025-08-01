@@ -90,8 +90,6 @@ export async function verifyTotp(
     const validatedInput = totpSetupVerificationSchema.parse(input)
     const { factorId, totpCode } = validatedInput
 
-    console.log(AUTH_LOG_MESSAGES.MFA_SETUP_VERIFICATION_ATTEMPT)
-
     // #region Challenge処理の詳細
     // Challenge（チャレンジ）の裏側処理：
     // 1. 一意のChallenge IDを生成（UUID形式）
@@ -155,8 +153,6 @@ export async function verifyTotp(
         message: AUTH_MESSAGES.TOTP_CODE_INVALID,
       }
     }
-
-    console.log(AUTH_LOG_MESSAGES.MFA_SETUP_VERIFICATION_SUCCESS)
 
     return {
       success: true,
