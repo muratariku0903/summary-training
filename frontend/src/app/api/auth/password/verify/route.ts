@@ -4,6 +4,7 @@ import { BadRequest, InternalError, Success, Unauthorized } from '@/lib/api/resp
 import { createClient } from '@supabase/supabase-js'
 import { getAccessTokenFromHeader } from '@/lib/api/utils'
 import { adminClient } from '@/lib/supabase/client/adminClient'
+import { checkValidSessionLevel } from '@/lib/supabase/auth/server'
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,6 +34,12 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     )
+
+    // セッションレベルチェック
+    const { valid } = await checkValidSessionLevel(user)
+    if (!valid) {
+      return Unauthorized('Invalid session level').toResponse()
+    }
 
     const { error: signInError } = await verificationClient.auth.signInWithPassword({
       email: user.email,
