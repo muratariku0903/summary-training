@@ -10,7 +10,6 @@ export default async function EmailChangeCallbackPage() {
   // SSRでユーザー情報を取得
   const { user } = await getUserProfile()
   const newEmail = user.email
-  console.log('user new email', newEmail)
 
   if (!newEmail) {
     // TODO エラーページに遷移
