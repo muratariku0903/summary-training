@@ -91,11 +91,16 @@ export default function SignInPage() {
   // MFA選択画面の表示
   if (showMfaSelection) {
     return (
-      <MfaSelection
-        selectableMFAList={selectableMFAList}
-        selectedMFA={selectedMFA}
-        onMfaSelect={setSelectedMFA}
-      />
+      <>
+        <Header />
+        <Main>
+          <MfaSelection
+            selectableMFAList={selectableMFAList}
+            selectedMFA={selectedMFA}
+            onMfaSelect={setSelectedMFA}
+          />
+        </Main>
+      </>
     )
   }
 
