@@ -29,8 +29,6 @@ export async function signIn(input: SigninInput): Promise<SigninResponse> {
     // バリデーション
     const validatedInput = signinSchema.parse(input)
 
-    console.log(AUTH_LOG_MESSAGES.SIGNIN_ATTEMPT, validatedInput.email)
-
     // 基本認証
     const { data: authData, error: authError } =
       await browserClient.auth.signInWithPassword({
@@ -50,8 +48,6 @@ export async function signIn(input: SigninInput): Promise<SigninResponse> {
         message: AUTH_MESSAGES.AUTH_FAILED,
       }
     }
-
-    console.log(AUTH_LOG_MESSAGES.SIGNIN_SUCCESS, authData.user.id)
 
     // 利用可能なMFA設定を確認
     const { success, factors } = await getAvailableMfaFactors()
@@ -107,11 +103,7 @@ export async function signUp(input: SignupInput): Promise<SignupResponse> {
     // バリデーション
     const validatedInput = signupSchema.parse(input)
 
-    console.log(AUTH_LOG_MESSAGES.SIGNUP_ATTEMPT, validatedInput.email)
-
     const baseUrl = window.location.origin
-
-    console.log(`emailRedirectTo: ${baseUrl}${PUBLIC_PATHS.CALLBACK}`)
 
     const { data, error } = await browserClient.auth.signUp({
       email: validatedInput.email,
@@ -137,8 +129,6 @@ export async function signUp(input: SignupInput): Promise<SignupResponse> {
         message: AUTH_MESSAGES.SIGNUP_FAILED,
       }
     }
-
-    console.log(AUTH_LOG_MESSAGES.SIGNUP_SUCCESS)
 
     return {
       success: true,
@@ -225,6 +215,8 @@ export async function changePassword(
 
     // パスワード変更
     // MFA設定をしてる場合は、AAL2のセッション情報が必要
+    //　ただ、パスワード紛失した場合でもこの関数が呼び出されるが、その場合はAAL1となるので現状、MFAが設定されてるユーザーはパスワードリセットできない↓
+    // https://github.com/supabase/auth/issues/2091
     const { error: updError } = await browserClient.auth.updateUser({
       password: newPassword,
     })
@@ -256,8 +248,6 @@ export async function changeEmail(input: ChangeEmailInput): Promise<ChangeEmailR
   const { email } = input
 
   try {
-    console.log(AUTH_LOG_MESSAGES.CHANGE_EMAIL_ATTEMPT)
-
     const { data: userData, error: getUserError } = await browserClient.auth.getUser()
     if (getUserError) {
       console.error(AUTH_LOG_MESSAGES.CHANGE_EMAIL_ERROR, getUserError.message)
