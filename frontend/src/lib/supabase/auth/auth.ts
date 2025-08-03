@@ -279,6 +279,7 @@ export async function changeEmail(input: ChangeEmailInput): Promise<ChangeEmailR
     const baseUrl = window.location.origin
     const { error: updError } = await browserClient.auth.updateUser(
       { email: email },
+      // メール添付されたリンクを押下するとセッション情報(AAL1)が上書きされるので、MFA設定のユーザーの場合は、再度MFA認証させる
       { emailRedirectTo: `${baseUrl}${PROTECTED_PATHS.EMAIL_CHANGE_CALLBACK}` },
     )
     if (updError) {
