@@ -7,6 +7,8 @@ import {
   UNAUTHENTICATED_USER_PATHS,
 } from '@/lib/constants/routes'
 import dayjs from 'dayjs'
+import { deleteTokenFromCookie } from './lib/api/utils'
+import { checkValidSessionLevel } from './lib/supabase/auth/server'
 
 /**
  * Next.js ミドルウェア
@@ -35,10 +37,28 @@ export async function middleware(req: NextRequest) {
   )
 
   // 認証がない状態で保護ルートにアクセスした場合、/auth/signin へリダイレクト
-  if (!session && isProtected) {
-    const signinUrl = req.nextUrl.clone()
-    signinUrl.pathname = PUBLIC_PATHS.SIGNIN
-    return NextResponse.redirect(signinUrl)
+  if (isProtected) {
+    if (!session) {
+      const signinUrl = req.nextUrl.clone()
+      signinUrl.pathname = PUBLIC_PATHS.SIGNIN
+      return NextResponse.redirect(signinUrl)
+    }
+
+    // ユーザー情報を取得して、MFA設定をしてるユーザーであればセッションレベルがAAL2であるかチェック
+    // AAL2でない場合はセッション情報を破棄してサインイン画面へリダイレクト
+    const { data: user, error: getUserError } =
+      await supabaseMiddlerWareClient.auth.getUser(session.access_token)
+    if (getUserError) {
+      console.warn('fail get user:', getUserError)
+    }
+    if (user.user) {
+      const { valid } = await checkValidSessionLevel(user.user, supabaseMiddlerWareClient)
+      if (!valid) {
+        const signinUrl = req.nextUrl.clone()
+        signinUrl.pathname = PUBLIC_PATHS.SIGNIN
+        return await deleteTokenFromCookie(NextResponse.redirect(signinUrl))
+      }
+    }
   }
 
   // ログイン済ユーザーが未ログインユーザー画面にアクセスした場合、/dashboard へリダイレクト

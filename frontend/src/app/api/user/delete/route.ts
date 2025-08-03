@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminClient } from '@/lib/supabase/client/adminClient'
 import { Success, InternalError, Unauthorized } from '@/lib/api/response'
-import { getAccessTokenFromHeader } from '@/lib/api/utils'
-import { cookies } from 'next/headers'
+import { deleteTokenFromCookie, getAccessTokenFromHeader } from '@/lib/api/utils'
 import { getDescopeUserIdByAuthUserId } from '@/lib/supabase/auth/admin'
 import { deleteDescopeUser } from '@/lib/descope/utils'
+import { checkValidSessionLevel } from '@/lib/supabase/auth/server'
 
 export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
   try {
@@ -24,6 +24,12 @@ export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
     if (userError || !user) {
       console.error('❌ [DELETE-USER] Invalid access token:', userError?.message)
       return Unauthorized('Invalid access token').toResponse()
+    }
+
+    // セッションレベルチェック
+    const { valid } = await checkValidSessionLevel(user)
+    if (!valid) {
+      return Unauthorized('Invalid session level').toResponse()
     }
 
     // Descopeプロバイダでログイン（Passkey登録）してるユーザーであれば、そちらも削除
@@ -71,16 +77,9 @@ export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
     }).toResponse()
 
     // クッキーに保存されてるセッション情報を破棄
-    const prefix = `sb-${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID}-auth-token`
-    const cookieStore = await cookies()
-    const allCookies = cookieStore.getAll()
-    allCookies
-      .filter((c) => c.name.startsWith(prefix))
-      .forEach((c) => {
-        res.cookies.delete(c.name)
-      })
+    const deletedRes = await deleteTokenFromCookie(res)
 
-    return res
+    return deletedRes
   } catch (error) {
     console.error('❌ [DELETE-USER] Unexpected error:', error)
     return InternalError('Internal server error during user deletion').toResponse()

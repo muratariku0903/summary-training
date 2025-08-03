@@ -1,9 +1,10 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { JSX } from 'react'
 import { SENDING_PATTERN, SENDING_PATTERN_TYPE } from '../constants/email'
 import PasswordChangeNotification from '@/components/emails/PasswordChangeNotification'
 import { render } from '@react-email/render'
 import AccountDeletionNotification from '@/components/emails/styles/AccountDeleteNotification'
+import { cookies } from 'next/headers'
 
 export const getAccessTokenFromHeader = (req: NextRequest): string | null => {
   const authHeader = req.headers.get('Authorization')
@@ -55,4 +56,20 @@ export const createMailHTML = async (params: CreateMailComponentParams) => {
     console.error('Fail rendering email html', e)
     throw e
   }
+}
+
+export const deleteTokenFromCookie = async (
+  response: NextResponse,
+): Promise<NextResponse> => {
+  // クッキーに保存されてるセッション情報を破棄
+  const prefix = `sb-${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID}-auth-token`
+  const cookieStore = await cookies()
+  const allCookies = cookieStore.getAll()
+  allCookies
+    .filter((c) => c.name.startsWith(prefix))
+    .forEach((c) => {
+      response.cookies.delete(c.name)
+    })
+
+  return response
 }
