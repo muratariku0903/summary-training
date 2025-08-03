@@ -100,6 +100,7 @@ export default function SignInPage() {
             onMfaSelect={setSelectedMFA}
           />
         </Main>
+        <Footer />
       </>
     )
   }
