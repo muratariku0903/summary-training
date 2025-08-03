@@ -18,7 +18,7 @@ import { signIn } from '@/lib/supabase/auth/auth'
 import { useRouter } from 'next/navigation'
 import { PROTECTED_PATHS, PUBLIC_PATHS } from '@/lib/constants/routes'
 import { UI_MESSAGES } from '@/lib/constants/ui'
-import MfaVerification from '@/components/features/auth/MfaVerification'
+import MfaVerificationInput from '@/components/features/auth/MfaVerificationInput'
 import MfaSelection from '@/components/features/auth/MfaSelection'
 import Link from 'next/link'
 import { useSnackbarStore } from '@/stores/useSnackbarStore'
@@ -75,7 +75,7 @@ export default function SignInPage() {
       <>
         <Header />
         <Main>
-          <MfaVerification
+          <MfaVerificationInput
             selectedMFA={selectedMFA}
             onVerifyComplete={() => {
               showSnackbar(UI_MESSAGES.SIGNIN_SUCCESS_MESSAGE, 'success')

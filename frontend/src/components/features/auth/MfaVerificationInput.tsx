@@ -10,17 +10,17 @@ import { MfaFactor } from '@/lib/supabase/auth/types'
 import { verifyTotp } from '@/lib/supabase/auth/mfa'
 import { MFA_TYPES } from '@/lib/supabase/auth/types'
 
-interface MfaVerificationProps {
+interface MfaVerificationInputProps {
   selectedMFA: Omit<MfaFactor, 'status' | 'createdAt'>
   onVerifyComplete: () => void
   onBack?: () => void
 }
 
-export default function MfaVerification({
+export default function MfaVerificationInput({
   selectedMFA,
   onVerifyComplete,
   onBack,
-}: MfaVerificationProps) {
+}: MfaVerificationInputProps) {
   const [mfaError, setMfaError] = useState<string | null>(null)
 
   // MFA認証画面の表示

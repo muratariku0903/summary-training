@@ -1,11 +1,11 @@
 'use client'
 
-import MfaVerification from './MfaVerification'
 import { MFA_TYPES } from '@/lib/supabase/auth/types'
 import QrCodeDisplay from '@/components/elements/qr-code-display/QrCodeDisplay'
 import { Spacer } from '@/components/elements/spacer/Spacer'
 import { resetEnrollment } from '@/lib/supabase/auth/mfa'
 import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
+import MfaVerificationInput from './MfaVerificationInput'
 
 type TotpSetupProps = {
   factorId: string
@@ -29,7 +29,7 @@ export default function TotpSetup({
       <QrCodeDisplay qrCodeSvg={qrCode} />
 
       {/* 認証コード入力セクション */}
-      <MfaVerification
+      <MfaVerificationInput
         selectedMFA={{ id: factorId, type: MFA_TYPES.TOTP }}
         onVerifyComplete={onComplete}
       />
