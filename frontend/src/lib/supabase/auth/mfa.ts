@@ -1,4 +1,5 @@
 // src/lib/supabase/auth/mfa.ts - 型安全性を向上
+import { AuthMFAListFactorsResponse } from '@supabase/supabase-js'
 import { browserClient } from '../client/browserClient'
 import {
   totpSetupVerificationSchema,
@@ -183,8 +184,6 @@ export async function verifyTotp(
  */
 export async function getAvailableMfaFactors(): Promise<GetAvailableMfaFactorsResponse> {
   try {
-    console.log('🔍 [MFA] Getting available MFA factors')
-
     const { data: factors, error } = await browserClient.auth.mfa.listFactors()
     if (error) {
       console.error('❌ [MFA] Failed to get factors:', error.message)
@@ -195,39 +194,7 @@ export async function getAvailableMfaFactors(): Promise<GetAvailableMfaFactorsRe
     }
 
     // Supabaseの形式から汎用的な形式に変換
-    const mfaFactors: MfaFactor[] = []
-
-    // TOTP factors
-    if (factors?.totp) {
-      factors.totp.forEach((factor) => {
-        if (factor.status === 'verified') {
-          mfaFactors.push({
-            id: factor.id,
-            type: MFA_TYPES.TOTP,
-            status: factor.status,
-            friendlyName: factor.friendly_name || 'TOTP認証',
-            createdAt: factor.created_at,
-          })
-        }
-      })
-    }
-
-    // SMS factors（将来的）
-    if (factors?.phone) {
-      factors.phone.forEach((factor) => {
-        if (factor.status === 'verified') {
-          mfaFactors.push({
-            id: factor.id,
-            type: MFA_TYPES.SMS,
-            status: factor.status,
-            friendlyName: factor.friendly_name || 'SMS認証',
-            createdAt: factor.created_at,
-          })
-        }
-      })
-    }
-
-    console.log(`✅ [MFA] Found ${mfaFactors.length} verified factors`)
+    const mfaFactors = convertMfaFactors(factors)
 
     return {
       success: true,
@@ -246,7 +213,6 @@ export async function getAvailableMfaFactors(): Promise<GetAvailableMfaFactorsRe
 /**
  * 　Enrollリセット処理（すべての TOTP factor を削除）
  */
-
 export async function resetEnrollment(
   type: MfaType,
   status?: 'verified' | 'unverified',
@@ -311,7 +277,6 @@ export async function resetEnrollment(
 /**
  * 　mfa一覧を取得
  */
-
 export async function listMfa(): Promise<ListMfaResponse> {
   try {
     // 認証チェック
@@ -340,4 +305,43 @@ export async function listMfa(): Promise<ListMfaResponse> {
       error: AUTH_MESSAGES.UNEXPECTED_ERROR,
     }
   }
+}
+
+/**
+ * 　Supabase形式のmfaをアプリで使いやすい形式に変換
+ */
+export function convertMfaFactors(factors: AuthMFAListFactorsResponse['data']): MfaFactor[] {
+  const mfaFactors: MfaFactor[] = []
+
+  // TOTP factors
+  if (factors?.totp) {
+    factors.totp.forEach((factor) => {
+      if (factor.status === 'verified') {
+        mfaFactors.push({
+          id: factor.id,
+          type: MFA_TYPES.TOTP,
+          status: factor.status,
+          friendlyName: factor.friendly_name || 'TOTP認証',
+          createdAt: factor.created_at,
+        })
+      }
+    })
+  }
+
+  // SMS factors（将来的）
+  if (factors?.phone) {
+    factors.phone.forEach((factor) => {
+      if (factor.status === 'verified') {
+        mfaFactors.push({
+          id: factor.id,
+          type: MFA_TYPES.SMS,
+          status: factor.status,
+          friendlyName: factor.friendly_name || 'SMS認証',
+          createdAt: factor.created_at,
+        })
+      }
+    })
+  }
+
+  return mfaFactors
 }
