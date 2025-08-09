@@ -13,6 +13,20 @@ jobs:
   setup: # 開発環境の準備とNext.jsのビルド＆テスト
     name: Setup Environment
     runs-on: ubuntu-latest # GitHub提供の Ubuntu環境の仮想マシンで実行
+    env:
+      SUPABASE_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_URL_PROD || secrets.SUPABASE_URL_DEV }}
+      SUPABASE_PROJECT_ID: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_PROJECT_ID_PROD || secrets.SUPABASE_PROJECT_ID_DEV }}
+      SUPABASE_ANON_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_ANON_KEY_PROD || secrets.SUPABASE_ANON_KEY_DEV }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_SERVICE_ROLE_KEY_PROD || secrets.SUPABASE_SERVICE_ROLE_KEY_DEV }}
+      SUPABASE_JWT_SECRET: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_JWT_SECRET_PROD || secrets.SUPABASE_JWT_SECRET_DEV }}
+      RESEND_API_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.RESEND_API_KEY_PROD || secrets.RESEND_API_KEY_DEV }}
+      FROM_EMAIL: ${{ github.ref == 'refs/heads/prod' && vars.FROM_EMAIL_PROD || vars.FROM_EMAIL_PROD }}
+      SUPPORT_EMAIL: ${{ github.ref == 'refs/heads/prod' && vars.SUPPORT_EMAIL_PROD || vars.SUPPORT_EMAIL_DEV }}
+      DESCOPE_PROJECT_ID: ${{ github.ref == 'refs/heads/prod' && secrets.DESCOPE_PROJECT_ID_PROD || secrets.DESCOPE_PROJECT_ID_DEV }}
+      DESCOPE_ISSUER: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_ISSUER_PROD || vars.DESCOPE_ISSUER_DEV }}
+      DESCOPE_AUDIENCE: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_AUDIENCE_PROD || vars.DESCOPE_AUDIENCE_DEV }}
+      DESCOPE_JWKS_URI: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_JWKS_URI_PROD || vars.DESCOPE_JWKS_URI_DEV }}
+      DESCOPE_MGMT_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.DESCOPE_MGMT_KEY_PROD || secrets.DESCOPE_MGMT_KEY_DEV }}
     steps:
       - name: Checkout repository # GitHubリポジトリのソースコードを 仮想マシンにダウンロード
         uses: actions/checkout@v3
@@ -21,6 +35,25 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "18"
+
+      - name: Create frontend environment file # .envファイルを生成
+        run: |
+          cat <<EOF > .env
+          NEXT_PUBLIC_SUPABASE_URL=${{env.SUPABASE_URL}}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{env.SUPABASE_ANON_KEY}}
+          NEXT_PUBLIC_SUPABASE_PROJECT_ID=${{env.SUPABASE_PROJECT_ID}}
+          NEXT_PUBLIC_DESCOPE_PROJECT_ID=${{env.DESCOPE_PROJECT_ID}}
+          SUPABASE_SERVICE_ROLE_KEY=${{env.SUPABASE_SERVICE_ROLE_KEY}}
+          SUPABASE_JWT_SECRET=${{env.SUPABASE_JWT_SECRET}}
+          RESEND_API_KEY=${{env.RESEND_API_KEY}}
+          FROM_EMAIL=${{env.FROM_EMAIL}}
+          SUPPORT_EMAIL=${{env.SUPPORT_EMAIL}}
+          DESCOPE_ISSUER=${{env.DESCOPE_ISSUER}}
+          DESCOPE_AUDIENCE=${{env.DESCOPE_AUDIENCE}}
+          DESCOPE_JWKS_URI=${{env.DESCOPE_JWKS_URI}}
+          DESCOPE_MGMT_KEY=${{env.DESCOPE_MGMT_KEY}}
+          EOF
+        working-directory: frontend
 
       - name: Install dependencies # 依存パッケージのインストール
         run: npm install
@@ -54,6 +87,17 @@ jobs:
       SUPABASE_DATABASE_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_DATABASE_URL_PROD || secrets.SUPABASE_DATABASE_URL_DEV }}
       SUPABASE_SESSION_POOLER_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_SESSION_POOLER_URL_PROD || secrets.SUPABASE_SESSION_POOLER_URL_DEV }}
       SUPABASE_ANON_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_ANON_KEY_PROD || secrets.SUPABASE_ANON_KEY_DEV }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_SERVICE_ROLE_KEY_PROD || secrets.SUPABASE_SERVICE_ROLE_KEY_DEV }}
+      SUPABASE_JWT_SECRET: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_JWT_SECRET_PROD || secrets.SUPABASE_JWT_SECRET_DEV }}
+      RESEND_API_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.RESEND_API_KEY_PROD || secrets.RESEND_API_KEY_DEV }}
+      FROM_EMAIL: ${{ github.ref == 'refs/heads/prod' && vars.FROM_EMAIL_PROD || vars.FROM_EMAIL_PROD }}
+      SUPPORT_EMAIL: ${{ github.ref == 'refs/heads/prod' && vars.SUPPORT_EMAIL_PROD || vars.SUPPORT_EMAIL_DEV }}
+      DESCOPE_PROJECT_ID: ${{ github.ref == 'refs/heads/prod' && secrets.DESCOPE_PROJECT_ID_PROD || secrets.DESCOPE_PROJECT_ID_DEV }}
+      DESCOPE_ISSUER: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_ISSUER_PROD || vars.DESCOPE_ISSUER_DEV }}
+      DESCOPE_AUDIENCE: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_AUDIENCE_PROD || vars.DESCOPE_AUDIENCE_DEV }}
+      DESCOPE_JWKS_URI: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_JWKS_URI_PROD || vars.DESCOPE_JWKS_URI_DEV }}
+      DESCOPE_MGMT_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.DESCOPE_MGMT_KEY_PROD || secrets.DESCOPE_MGMT_KEY_DEV }}
+
     steps:
       - name: Checkout repository # 「setup」ジョブとは異なるランナーが使用されるので再度ソースコードをダウンロード
         uses: actions/checkout@v3
@@ -87,15 +131,29 @@ jobs:
         with:
           version: latest
 
-      - name: Prepare Supabase config # Supabaseのconfig.tomlと.envをセットアップ
+      - name: Create frontend environment file # .envファイルを生成
+        run: |
+          cat <<EOF > .env
+          NEXT_PUBLIC_SUPABASE_URL=${{env.SUPABASE_URL}}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{env.SUPABASE_ANON_KEY}}
+          NEXT_PUBLIC_SUPABASE_PROJECT_ID=${{env.SUPABASE_PROJECT_ID}}
+          NEXT_PUBLIC_DESCOPE_PROJECT_ID=${{env.DESCOPE_PROJECT_ID}}
+          SUPABASE_SERVICE_ROLE_KEY=${{env.SUPABASE_SERVICE_ROLE_KEY}}
+          SUPABASE_JWT_SECRET=${{env.SUPABASE_JWT_SECRET}}
+          RESEND_API_KEY=${{env.RESEND_API_KEY}}
+          FROM_EMAIL=${{env.FROM_EMAIL}}
+          SUPPORT_EMAIL=${{env.SUPPORT_EMAIL}}
+          DESCOPE_ISSUER=${{env.DESCOPE_ISSUER}}
+          DESCOPE_AUDIENCE=${{env.DESCOPE_AUDIENCE}}
+          DESCOPE_JWKS_URI=${{env.DESCOPE_JWKS_URI}}
+          DESCOPE_MGMT_KEY=${{env.DESCOPE_MGMT_KEY}}
+          EOF
+        working-directory: frontend
+
+      - name: Prepare Supabase config # Supabaseのconfig.tomlをセットアップ
         run: |
           echo "Using Supabase config for '${{env.ENVIRONMENT}}'"
           cp config.${{env.ENVIRONMENT}}.toml config.toml
-          cat <<EOF > .env
-          SUPABASE_URL=${{env.SUPABASE_URL}}
-          SUPABASE_ANON_KEY=${{env.SUPABASE_ANON_KEY}}
-          DATABASE_URL=${{env.SUPABASE_DATABASE_URL}}
-          EOF
         working-directory: frontend/supabase
 
       - name: Link Supabase project (non-interactive) #  Supabaseに接続

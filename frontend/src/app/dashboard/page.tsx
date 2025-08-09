@@ -1,9 +1,20 @@
-export default function Home() {
+'use client'
+
+import Header from '@/components/layouts/header/Header'
+import Main from '@/components/layouts/main/Main'
+import Footer from '@/components/layouts/footer/Footer'
+
+export default function DashboardPage() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <h1>murata</h1>
-      </main>
-    </div>
-  );
+    <>
+      <Header menuType='member' />
+      <Main>
+        <div style={{ maxWidth: 800, margin: '2rem auto', padding: '1rem' }}>
+          <h1>ダッシュボード</h1>
+          <h2>内容は検討中</h2>
+        </div>
+      </Main>
+      <Footer />
+    </>
+  )
 }

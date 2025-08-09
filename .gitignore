@@ -45,3 +45,8 @@ next-env.d.ts
 /infra/**/.terraform
 *.tfstate
 *.tfstate.backup
+
+tmp/
+
+.github/chatmodes
+.github/prompts/template.md

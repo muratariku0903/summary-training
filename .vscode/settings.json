@@ -1,3 +1,15 @@
 {
-  "cSpell.words": ["vercel"]
+  "cSpell.words": ["descope", "magiclink", "vercel"],
+  "github.copilot.advanced": {},
+  "github.copilot.chat.agent.runTasks": false
+  // "files.exclude": {
+  //   "**/.env*": true,
+  //   "**/.git": true,
+  //   "**/dist": true
+  // },
+  // "search.exclude": {
+  //   "**/.env*": true,
+  //   "**/.git": true,
+  //   "**/dist": true
+  // }
 }
