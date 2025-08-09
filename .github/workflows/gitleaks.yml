@@ -1,0 +1,154 @@
+name: Gitleaks (SARIF)
+on:
+  pull_request:
+  push:
+    branches: [main, develop, feat-*]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: gitleaks-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  # --- ソースコードをスキャン（.gitleaks.toml の allowlist が効く） ---
+  gitleaks-src:
+    env:
+      OUTPUT_FILE: gitleaks.sarif
+      TOOL_NAME: gitleaks
+      IS_PR: ${{ github.event_name == 'pull_request' }}
+      HEAD_REF: ${{ github.head_ref }}
+      REF_NAME: ${{ github.ref_name }}
+      REPO: ${{ github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Install gitleaks (pinned)
+        env:
+          GITLEAKS_VERSION: v8.28.0 # 運用で適宜更新
+        run: |
+          set -e
+          curl -sSL -o gitleaks.tgz \
+            "https://github.com/gitleaks/gitleaks/releases/download/${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION#v}_linux_x64.tar.gz"
+          tar -xzf gitleaks.tgz
+          mkdir -p ./bin
+          mv gitleaks ./bin/gitleaks
+          chmod +x ./bin/gitleaks
+          echo "$PWD/bin" >> "$GITHUB_PATH"
+          ./bin/gitleaks version
+
+      - name: Run gitleaks（source）
+        continue-on-error: ${{ github.event_name != 'pull_request' }}
+        run: |
+          gitleaks detect \
+            --source . \
+            --no-git \
+            --redact \
+            --report-format sarif \
+            --report-path "$OUTPUT_FILE" \
+            --exit-code 1
+
+      - name: Upload SARIF to GitHub Security
+        if: ${{ always() && hashFiles(env.OUTPUT_FILE) != '' }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ env.OUTPUT_FILE }}
+
+      # Checks > Summary に「Code scanningのGitleaks絞り込みリンク」を1行で表示（安全なenv経由）
+      - name: Summarize link
+        if: ${{ always() && hashFiles(env.OUTPUT_FILE) != '' }}
+        run: BRANCH=$([ "$IS_PR" = "true" ] && printf "%s" "$HEAD_REF" || printf "%s" "$REF_NAME"); QUERY=$(BRANCH="$BRANCH" TOOL_NAME="$TOOL_NAME" python3 -c "import os, urllib.parse; b=os.getenv('BRANCH',''); t=os.getenv('TOOL_NAME','gitleaks'); q='is:open branch:%s tool:\"%s\"' % (b, t); print(urllib.parse.quote(q))"); CODE_SCAN_URL="https://github.com/$REPO/security/code-scanning?query=$QUERY"; printf "## Gitleaks summary\n\n🔎 **View alerts:** %s\n\n" "$CODE_SCAN_URL" >> "$GITHUB_STEP_SUMMARY"
+
+  # --- Next.js ビルド成果物(.next)をスキャン（allowlistの .next 除外の影響を回避） ---
+  gitleaks-build:
+    runs-on: ubuntu-latest
+    needs: gitleaks-src
+    env:
+      APP_DIR: frontend
+      OUTPUT_FILE: gitleaks-build.sarif
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_ID: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_PROJECT_ID_PROD || secrets.SUPABASE_PROJECT_ID_DEV }}
+      SUPABASE_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_URL_PROD || secrets.SUPABASE_URL_DEV }}
+      SUPABASE_DATABASE_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_DATABASE_URL_PROD || secrets.SUPABASE_DATABASE_URL_DEV }}
+      SUPABASE_SESSION_POOLER_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_SESSION_POOLER_URL_PROD || secrets.SUPABASE_SESSION_POOLER_URL_DEV }}
+      SUPABASE_ANON_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_ANON_KEY_PROD || secrets.SUPABASE_ANON_KEY_DEV }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_SERVICE_ROLE_KEY_PROD || secrets.SUPABASE_SERVICE_ROLE_KEY_DEV }}
+      SUPABASE_JWT_SECRET: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_JWT_SECRET_PROD || secrets.SUPABASE_JWT_SECRET_DEV }}
+      RESEND_API_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.RESEND_API_KEY_PROD || secrets.RESEND_API_KEY_DEV }}
+      FROM_EMAIL: ${{ github.ref == 'refs/heads/prod' && vars.FROM_EMAIL_PROD || vars.FROM_EMAIL_PROD }}
+      SUPPORT_EMAIL: ${{ github.ref == 'refs/heads/prod' && vars.SUPPORT_EMAIL_PROD || vars.SUPPORT_EMAIL_DEV }}
+      DESCOPE_PROJECT_ID: ${{ github.ref == 'refs/heads/prod' && secrets.DESCOPE_PROJECT_ID_PROD || secrets.DESCOPE_PROJECT_ID_DEV }}
+      DESCOPE_ISSUER: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_ISSUER_PROD || vars.DESCOPE_ISSUER_DEV }}
+      DESCOPE_AUDIENCE: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_AUDIENCE_PROD || vars.DESCOPE_AUDIENCE_DEV }}
+      DESCOPE_JWKS_URI: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_JWKS_URI_PROD || vars.DESCOPE_JWKS_URI_DEV }}
+      DESCOPE_MGMT_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.DESCOPE_MGMT_KEY_PROD || secrets.DESCOPE_MGMT_KEY_DEV }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: corepack enable
+
+      - name: Install deps
+        run: npm install --frozen-lockfile
+        working-directory: ${{ env.APP_DIR }}
+      
+      - name: Create frontend environment file # .envファイルを生成
+        run: |
+          cat <<EOF > .env
+          NEXT_PUBLIC_SUPABASE_URL=${{env.SUPABASE_URL}}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{env.SUPABASE_ANON_KEY}}
+          NEXT_PUBLIC_SUPABASE_PROJECT_ID=${{env.SUPABASE_PROJECT_ID}}
+          NEXT_PUBLIC_DESCOPE_PROJECT_ID=${{env.DESCOPE_PROJECT_ID}}
+          SUPABASE_SERVICE_ROLE_KEY=${{env.SUPABASE_SERVICE_ROLE_KEY}}
+          SUPABASE_JWT_SECRET=${{env.SUPABASE_JWT_SECRET}}
+          RESEND_API_KEY=${{env.RESEND_API_KEY}}
+          FROM_EMAIL=${{env.FROM_EMAIL}}
+          SUPPORT_EMAIL=${{env.SUPPORT_EMAIL}}
+          DESCOPE_ISSUER=${{env.DESCOPE_ISSUER}}
+          DESCOPE_AUDIENCE=${{env.DESCOPE_AUDIENCE}}
+          DESCOPE_JWKS_URI=${{env.DESCOPE_JWKS_URI}}
+          DESCOPE_MGMT_KEY=${{env.DESCOPE_MGMT_KEY}}
+          EOF
+        working-directory: ${{ env.APP_DIR }}
+      - name: Build
+        run: npm run build # => frontend/.next に出力
+        working-directory: ${{ env.APP_DIR }}
+
+      - name: Install gitleaks (pinned)
+        env:
+          GITLEAKS_VERSION: v8.28.0
+        run: |
+          set -e
+          curl -sSL -o g.tgz "https://github.com/gitleaks/gitleaks/releases/download/${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION#v}_linux_x64.tar.gz"
+          tar -xzf g.tgz
+          mkdir -p bin && mv gitleaks bin/ && chmod +x bin/gitleaks
+          echo "$PWD/bin" >> "$GITHUB_PATH"
+
+      - name: Run gitleaks (.next)
+        id: buildscan
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
+        env:
+          SRC: ${{ env.APP_DIR }}/.next
+        run: |
+          set +e
+          gitleaks detect \
+            --config .gitleaks.toml \
+            --source $SRC \
+            --no-git \
+            --redact \
+            --report-format sarif --report-path "$OUTPUT_FILE" \
+            --exit-code 1
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Upload SARIF (.next)
+        if: ${{ always() && hashFiles(env.OUTPUT_FILE) != '' }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ env.OUTPUT_FILE }}

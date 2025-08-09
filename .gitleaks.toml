@@ -1,0 +1,14 @@
+title = "gitleaks config (nextjs/supabase)"
+
+[allowlist]
+  paths = [
+    '''^\.next/''',
+    '''^dist/''',
+    '''^out/''',
+    '''^build/''',
+    '''^coverage/''',
+    '''^.*\.min\.js$'''
+  ]
+  regexes = [
+    '''^NEXT_PUBLIC_[A-Z0-9_]+=.+$'''
+  ]
