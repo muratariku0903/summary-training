@@ -49,6 +49,33 @@ jobs:
           --config=p/github-actions
           --error
           --sarif-output=semgrep.sarif
+      
+      - name: Summarize findings
+        if: ${{ always() && hashFiles('semgrep.sarif') != '' }}
+        run: |
+          echo "## Semgrep summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "Baseline : ${BASELINE:-<none>}" >> $GITHUB_STEP_SUMMARY
+          echo "ExitCode : ${{ steps.scan.outputs.exitcode }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          ERRORS=$(jq '[.runs[].results[]|select(.level=="error")] | length' semgrep.sarif)
+          WARNS=$(jq '[.runs[].results[]|select(.level=="warning")] | length' semgrep.sarif)
+          NOTES=$(jq '[.runs[].results[]|select(.level=="note")] | length' semgrep.sarif)
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Level | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|------:|" >> $GITHUB_STEP_SUMMARY
+          echo "| ERROR | ${ERRORS} |" >> $GITHUB_STEP_SUMMARY
+          echo "| WARNING | ${WARNS} |" >> $GITHUB_STEP_SUMMARY
+          echo "| NOTE | ${NOTES} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Top results" >> $GITHUB_STEP_SUMMARY
+          jq -r '
+            .runs[].results[] |
+            "\(.level|ascii_upcase) | \(.ruleId) | \(.message.text|gsub("\n";" ")) | \(.locations[0].physicalLocation.artifactLocation.uri):\(.locations[0].physicalLocation.region.startLine)"
+          ' semgrep.sarif \
+            | head -n 10 \
+            | sed '1iLevel | Rule | Message | Location\n----|-----|--------|--------' >> $GITHUB_STEP_SUMMARY
 
       - name: Upload SARIF to GitHub Security
         if: always()
