@@ -57,7 +57,8 @@ jobs:
       # クエリをURLエンコードして Code scanning の検索URLを生成
       - name: Summarize findings
         if: ${{ always() && hashFiles(env.OUTPUT_FILE) != '' }}
-        run: BRANCH=$([ "${{ github.event_name }}" = "pull_request" ] && printf "%s" "${{ github.head_ref }}" || printf "%s" "${GITHUB_REF_NAME}"); QUERY=$(BRANCH="$BRANCH" TOOL_NAME="${TOOL_NAME:-Semgrep OSS}" python3 -c 'import os, urllib.parse; b=os.getenv("BRANCH",""); t=os.getenv("TOOL_NAME","Semgrep OSS"); print(urllib.parse.quote(f'is:open branch:{b} tool:"{t}"'))'); CODE_SCAN_URL="https://github.com/${{ github.repository }}/security/code-scanning?query=${QUERY}"; printf "## Semgrep summary\n\n🔎 **View alerts:** %s\n\n" "$CODE_SCAN_URL" >> "$GITHUB_STEP_SUMMARY"
+        run: BRANCH=$([ "${{ github.event_name }}" = "pull_request" ] && printf "%s" "${{ github.head_ref }}" || printf "%s" "${GITHUB_REF_NAME}"); QUERY=$(BRANCH="$BRANCH" TOOL_NAME="${TOOL_NAME:-Semgrep OSS}" python3 -c "import os, urllib.parse; b=os.getenv('BRANCH',''); t=os.getenv('TOOL_NAME','Semgrep OSS'); q='is:open branch:%s tool:\"%s\"' % (b, t); print(urllib.parse.quote(q))"); CODE_SCAN_URL="https://github.com/${{ github.repository }}/security/code-scanning?query=${QUERY}"; printf "## Semgrep summary\n\n🔎 **View alerts:** %s\n\n" "$CODE_SCAN_URL" >> "$GITHUB_STEP_SUMMARY"
+
         # run: |
         #       if [ "${{ github.event_name }}" = "pull_request" ]; then
         #         BRANCH="${{ github.head_ref }}"
