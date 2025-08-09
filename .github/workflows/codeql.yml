@@ -31,6 +31,11 @@ jobs:
           # JS/TS は build-mode: none でOK（autobuild不要）
           build-mode: none
 
+      # 解析 & SARIFアップロード
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
+
       # codeql.yml の analyze@v3 の直後くらいに追加
       - name: Summarize CodeQL link
         if: ${{ always() }}
