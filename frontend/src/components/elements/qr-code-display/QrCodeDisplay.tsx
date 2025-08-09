@@ -1,5 +1,7 @@
 'use client'
 
+import DOMPurify from 'dompurify'
+
 type QrCodeDisplayProps = {
   qrCodeSvg: string | null
   title?: string
@@ -39,7 +41,7 @@ export default function QrCodeDisplay({
         }}
       >
         {qrCodeSvg && !isLoading ? (
-          <div dangerouslySetInnerHTML={{ __html: qrCodeSvg }} />
+          <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(qrCodeSvg) }} />
         ) : (
           <div
             style={{

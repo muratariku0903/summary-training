@@ -1,0 +1,70 @@
+name: Semgrep (SARIF only)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", ".github/workflows/**"]
+  push:
+    branches: [main, develop, feat-*]
+  workflow_dispatch: # 手動実行できるようにする
+
+permissions:
+  contents: read # コードに対する権限
+  security-events: write # SARIF アップロード用
+  pull-requests: read # プルリクエストに対する権限
+
+concurrency:
+  group: semgrep-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  semgrep:
+    env:
+      IS_PR: ${{ github.event_name == 'pull_request' }}
+      HEAD_REF: ${{ github.head_ref }}
+      REF_NAME: ${{ github.ref_name }}
+      REPO: ${{ github.repository }}
+      OUTPUT_FILE: semgrep.sarif
+      TOOL_NAME: Semgrep OSS
+
+    runs-on: ubuntu-latest
+    # 並列性を確保しつつ、他ワークフローとは独立して動く
+    container:
+      image: semgrep/semgrep:latest
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    steps:
+      # スキャン対象（.gitignore .semgrepignoreで指定されたファイル群は対象外）
+      - uses: actions/checkout@v4
+
+      # ルールキャッシュ（スピードアップ）
+      - name: Cache Semgrep rules
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/semgrep
+          key: semgrep-rules-${{ runner.os }}-${{ hashFiles('**/.semgrepignore') }}
+          restore-keys: semgrep-rules-
+
+      # スキャン実行
+      # ルールは独自で用意することもできるが、既にsemgrepで用意されてるものを使用
+      - name: Run Semgrep (SARIF)
+        continue-on-error: ${{ github.event_name != 'pull_request' }}
+        run: >
+          semgrep scan
+          --config=p/owasp-top-ten
+          --config=p/typescript
+          --config=p/nextjs
+          --config=p/secrets
+          --config=p/github-actions
+          --error
+          --sarif-output=${{env.OUTPUT_FILE}}
+
+      # クエリをURLエンコードして Code scanning の検索URLを生成
+      - name: Summarize findings
+        if: ${{ always() && hashFiles(env.OUTPUT_FILE) != '' }}
+        run: BRANCH=$([ "$IS_PR" = "true" ] && printf "%s" "$HEAD_REF" || printf "%s" "$REF_NAME"); QUERY=$(BRANCH="$BRANCH" TOOL_NAME="$TOOL_NAME" python3 -c "import os, urllib.parse; b=os.getenv('BRANCH',''); t=os.getenv('TOOL_NAME','Semgrep OSS'); q='is:open branch:%s tool:\"%s\"' % (b, t); print(urllib.parse.quote(q))"); CODE_SCAN_URL="https://github.com/$REPO/security/code-scanning?query=$QUERY"; printf "## Semgrep summary\n\n🔎 **View alerts:** %s\n\n" "$CODE_SCAN_URL" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload SARIF to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{env.OUTPUT_FILE}}
