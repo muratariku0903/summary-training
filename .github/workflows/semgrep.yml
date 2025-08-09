@@ -57,31 +57,30 @@ jobs:
       # クエリをURLエンコードして Code scanning の検索URLを生成
       - name: Summarize findings
         if: ${{ always() && hashFiles(env.OUTPUT_FILE) != '' }}
-        run: |
-              if [ "${{ github.event_name }}" = "pull_request" ]; then
-                BRANCH="${{ github.head_ref }}"
-              else
-                BRANCH="${GITHUB_REF_NAME}"
-              fi
-
+        run: BRANCH=$([ "${{ github.event_name }}" = "pull_request" ] && printf "%s" "${{ github.head_ref }}" || printf "%s" "${GITHUB_REF_NAME}"); QUERY=$(BRANCH="$BRANCH" TOOL_NAME="${TOOL_NAME:-Semgrep OSS}" python3 -c 'import os, urllib.parse; b=os.getenv("BRANCH",""); t=os.getenv("TOOL_NAME","Semgrep OSS"); print(urllib.parse.quote(f'is:open branch:{b} tool:"{t}"'))'); CODE_SCAN_URL="https://github.com/${{ github.repository }}/security/code-scanning?query=${QUERY}"; printf "## Semgrep summary\n\n🔎 **View alerts:** %s\n\n" "$CODE_SCAN_URL" >> "$GITHUB_STEP_SUMMARY"
+        # run: |
+        #       if [ "${{ github.event_name }}" = "pull_request" ]; then
+        #         BRANCH="${{ github.head_ref }}"
+        #       else
+        #         BRANCH="${GITHUB_REF_NAME}"
+        #       fi
               
-              export BRANCH TOOL_NAME
-              QUERY=$(python3 - <<'PY'
-                  import os, urllib.parse
-                  branch=os.environ.get("BRANCH","")
-                  tool=os.environ.get("TOOL_NAME","Semgrep OSS")
-                  q = f'is:open branch:{branch} tool:"{tool}"'
-                  print(urllib.parse.quote(q))
-                  PY
-                  )
-                      CODE_SCAN_URL="https://github.com/${{ github.repository }}/security/code-scanning?query=${QUERY}"
-
-                      {
-                        echo "## Semgrep summary"
-                        echo
-                        echo "🔎 **View alerts:** ${CODE_SCAN_URL}"
-                        echo
-                      } >> "$GITHUB_STEP_SUMMARY"
+        #       export BRANCH TOOL_NAME
+        #       QUERY=$(python3 - <<'PY'
+        #       import os, urllib.parse
+        #       branch=os.environ.get("BRANCH","")
+        #       tool=os.environ.get("TOOL_NAME","Semgrep OSS")
+        #       q = f'is:open branch:{branch} tool:"{tool}"'
+        #       print(urllib.parse.quote(q))
+        #       PY
+        #       )
+        #       CODE_SCAN_URL="https://github.com/${{ github.repository }}/security/code-scanning?query=${QUERY}"
+        #       {
+        #         echo "## Semgrep summary"
+        #         echo
+        #         echo "🔎 **View alerts:** ${CODE_SCAN_URL}"
+        #         echo
+        #       } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload SARIF to GitHub Security
         if: always()
