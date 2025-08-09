@@ -48,8 +48,7 @@ jobs:
           --config=p/nextjs
           --config=p/secrets
           --config=p/github-actions
-          --error   # 検出をexit codeに反映（上のcontinue-on-errorでビルドは落とさない）
-          --sarif --output=semgrep.sarif
+          --sarif-output=semgrep.sarif
 
       - name: Upload SARIF to GitHub Security
         if: always()
