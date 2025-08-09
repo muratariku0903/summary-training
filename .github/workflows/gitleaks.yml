@@ -39,7 +39,7 @@ jobs:
           mv gitleaks ./bin/gitleaks
           chmod +x ./bin/gitleaks
           echo "$PWD/bin" >> "$GITHUB_PATH"
-          gitleaks version
+          ./bin/gitleaks version
 
       # PRは“作業ツリーのみ”を検査して即ブロック、pushは見るだけにするなら exit-code 切り替えも可
       - name: Run gitleaks
