@@ -1,0 +1,58 @@
+name: Semgrep (SARIF only)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", ".github/workflows/**"]
+  push:
+    branches: [main, develop, feat-*]
+  workflow_dispatch: # 手動実行できるようにする
+
+permissions:
+  contents: read # コードに対する権限
+  security-events: write # SARIF アップロード用
+  pull-requests: read # プルリクエストに対する権限
+
+concurrency:
+  group: semgrep-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    # 並列性を確保しつつ、他ワークフローとは独立して動く
+    container:
+      image: semgrep/semgrep:latest
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    steps:
+      # スキャン対象（.gitignore .semgrepignoreで指定されたファイル群は対象外）
+      - uses: actions/checkout@v4
+
+      # ルールキャッシュ（スピードアップ）
+      - name: Cache Semgrep rules
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/semgrep
+          key: semgrep-rules-${{ runner.os }}-${{ hashFiles('**/.semgrepignore') }}
+          restore-keys: semgrep-rules-
+      
+      # スキャン実行
+      # ルールは独自で用意することもできるが、既にsemgrepで用意されてるものを使用
+      - name: Run Semgrep (SARIF)
+        # 初期は失敗させない。一定の合意が取れたら外す or --error 等で厳格化
+        continue-on-error: true
+        run: >
+          semgrep scan
+          --config=p/owasp-top-ten
+          --config=p/typescript
+          --config=p/nextjs
+          --config=p/secrets
+          --config=p/github-actions
+          --error   # 検出をexit codeに反映（上のcontinue-on-errorでビルドは落とさない）
+          --sarif > semgrep.sarif
+
+      - name: Upload SARIF to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
