@@ -48,6 +48,7 @@ jobs:
           --config=p/nextjs
           --config=p/secrets
           --config=p/github-actions
+          --error
           --sarif-output=semgrep.sarif
 
       - name: Upload SARIF to GitHub Security
