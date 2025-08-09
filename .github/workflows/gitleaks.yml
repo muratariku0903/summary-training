@@ -78,14 +78,28 @@ jobs:
         with:
           node-version: "20"
       - run: corepack enable
-        
+
       - name: Install deps
         working-directory: ${{ env.APP_DIR }}
         run: npm install --frozen-lockfile
-      
+
       - name: Build
         working-directory: ${{ env.APP_DIR }}
-        run: npm run build    # => frontend/.next に出力
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+          NEXT_PUBLIC_DESCOPE_PROJECT_ID: ${{ secrets.DESCOPE_PROJECT_ID }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
+          SUPPORT_EMAIL: ${{ secrets.SUPPORT_EMAIL }}
+          DESCOPE_ISSUER: ${{ secrets.DESCOPE_ISSUER }}
+          DESCOPE_AUDIENCE: ${{ secrets.DESCOPE_AUDIENCE }}
+          DESCOPE_JWKS_URI: ${{ secrets.DESCOPE_JWKS_URI }}
+          DESCOPE_MGMT_KEY: ${{ secrets.DESCOPE_MGMT_KEY }}
+        run: npm run build # => frontend/.next に出力
 
       - name: Install gitleaks (pinned)
         env:
@@ -116,4 +130,3 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: ${{ env.OUTPUT_FILE }}
-
