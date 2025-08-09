@@ -14,7 +14,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  gitleaks:
+  # --- ソースコードをスキャン（.gitleaks.toml の allowlist が効く） ---
+  gitleaks-src:
     env:
       OUTPUT_FILE: gitleaks.sarif
       TOOL_NAME: gitleaks
@@ -41,7 +42,7 @@ jobs:
           echo "$PWD/bin" >> "$GITHUB_PATH"
           ./bin/gitleaks version
 
-      - name: Run gitleaks
+      - name: Run gitleaks（source）
         continue-on-error: ${{ github.event_name != 'pull_request' }}
         run: |
           gitleaks detect \
@@ -62,3 +63,50 @@ jobs:
       - name: Summarize link
         if: ${{ always() && hashFiles(env.OUTPUT_FILE) != '' }}
         run: BRANCH=$([ "$IS_PR" = "true" ] && printf "%s" "$HEAD_REF" || printf "%s" "$REF_NAME"); QUERY=$(BRANCH="$BRANCH" TOOL_NAME="$TOOL_NAME" python3 -c "import os, urllib.parse; b=os.getenv('BRANCH',''); t=os.getenv('TOOL_NAME','gitleaks'); q='is:open branch:%s tool:\"%s\"' % (b, t); print(urllib.parse.quote(q))"); CODE_SCAN_URL="https://github.com/$REPO/security/code-scanning?query=$QUERY"; printf "## Gitleaks summary\n\n🔎 **View alerts:** %s\n\n" "$CODE_SCAN_URL" >> "$GITHUB_STEP_SUMMARY"
+
+  # --- Next.js ビルド成果物(.next)をスキャン（allowlistの .next 除外の影響を回避） ---
+  gitleaks-build:
+    runs-on: ubuntu-latest
+    needs: gitleaks-src
+    env:
+      OUTPUT_FILE: gitleaks-build.sarif
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build # => .next/ 生成
+
+      - name: Install gitleaks (pinned)
+        env:
+          GITLEAKS_VERSION: v8.28.0
+        run: |
+          set -e
+          curl -sSL -o g.tgz "https://github.com/gitleaks/gitleaks/releases/download/${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION#v}_linux_x64.tar.gz"
+          tar -xzf g.tgz
+          mkdir -p bin && mv gitleaks bin/ && chmod +x bin/gitleaks
+          echo "$PWD/bin" >> "$GITHUB_PATH"
+
+      - name: Run gitleaks (.next)
+        id: buildscan
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
+        run: |
+          set +e
+          gitleaks detect \
+            --config .gitleaks.toml \
+            --source .next \
+            --no-git \
+            --redact \
+            --report-format sarif --report-path "$OUTPUT_FILE" \
+            --exit-code 1
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Upload SARIF (.next)
+        if: ${{ always() && hashFiles(env.OUTPUT_FILE) != '' }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ env.OUTPUT_FILE }}
+
