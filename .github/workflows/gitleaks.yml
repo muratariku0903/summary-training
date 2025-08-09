@@ -27,10 +27,19 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
-      - name: Install gitleaks
+      - name: Install gitleaks (pinned)
+        env:
+          GITLEAKS_VERSION: v8.28.0   # 運用で適宜更新
         run: |
-          curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64 -o gitleaks
-          chmod +x gitleaks
+          set -e
+          curl -sSL -o gitleaks.tgz \
+            "https://github.com/gitleaks/gitleaks/releases/download/${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION#v}_linux_x64.tar.gz"
+          tar -xzf gitleaks.tgz
+          mkdir -p ./bin
+          mv gitleaks ./bin/gitleaks
+          chmod +x ./bin/gitleaks
+          echo "$PWD/bin" >> "$GITHUB_PATH"
+          gitleaks version
 
       # PRは“作業ツリーのみ”を検査して即ブロック、pushは見るだけにするなら exit-code 切り替えも可
       - name: Run gitleaks
