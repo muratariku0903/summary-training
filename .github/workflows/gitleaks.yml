@@ -134,11 +134,13 @@ jobs:
       - name: Run gitleaks (.next)
         id: buildscan
         continue-on-error: ${{ github.event_name == 'pull_request' }}
+        env:
+          SRC: ${{ env.APP_DIR }}/.next
         run: |
           set +e
           gitleaks detect \
             --config .gitleaks.toml \
-            --source .next \
+            --source $SRC \
             --no-git \
             --redact \
             --report-format sarif --report-path "$OUTPUT_FILE" \
