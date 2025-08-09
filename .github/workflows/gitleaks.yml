@@ -1,0 +1,56 @@
+name: Gitleaks (SARIF)
+on:
+  pull_request:
+  push:
+    branches: [main, develop, feat-*]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: gitleaks-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  gitleaks:
+    env:
+      OUTPUT_FILE: gitleaks.sarif
+      TOOL_NAME: gitleaks
+      IS_PR: ${{ github.event_name == 'pull_request' }}
+      HEAD_REF: ${{ github.head_ref }}
+      REF_NAME: ${{ github.ref_name }}
+      REPO: ${{ github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Install gitleaks
+        run: |
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64 -o gitleaks
+          chmod +x gitleaks
+
+      # PRは“作業ツリーのみ”を検査して即ブロック、pushは見るだけにするなら exit-code 切り替えも可
+      - name: Run gitleaks
+        # PRでは落とす／pushでは落とさない：必要なら下の --exit-code を条件で切替
+        run: |
+          ./gitleaks detect \
+            --source . \
+            --no-git \                       # PRでは履歴まで見ず、差分に近い“現状ファイル”を検査
+            --redact \                       # レポート上は伏字
+            --report-format sarif \
+            --report-path "$OUTPUT_FILE" \
+            --exit-code 1                    # 検出でexit 1 → ブランチ保護でブロック
+
+      - name: Upload SARIF to GitHub Security
+        if: ${{ always() && hashFiles(env.OUTPUT_FILE) != '' }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ env.OUTPUT_FILE }}
+
+      # Checks > Summary に「Code scanningのGitleaks絞り込みリンク」を1行で表示（安全なenv経由）
+      - name: Summarize link
+        if: ${{ always() && hashFiles(env.OUTPUT_FILE) != '' }}
+        run: BRANCH=$([ "$IS_PR" = "true" ] && printf "%s" "$HEAD_REF" || printf "%s" "$REF_NAME"); QUERY=$(BRANCH="$BRANCH" TOOL_NAME="$TOOL_NAME" python3 -c "import os, urllib.parse; b=os.getenv('BRANCH',''); t=os.getenv('TOOL_NAME','gitleaks'); q='is:open branch:%s tool:\"%s\"' % (b, t); print(urllib.parse.quote(q))"); CODE_SCAN_URL="https://github.com/$REPO/security/code-scanning?query=$QUERY"; printf "## Gitleaks summary\n\n🔎 **View alerts:** %s\n\n" "$CODE_SCAN_URL" >> "$GITHUB_STEP_SUMMARY"
