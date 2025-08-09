@@ -23,12 +23,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # (任意) 依存を入れて型解決をよくする。モノレポやサブディレクトリなら working-directory を付けてください
-      - uses: actions/setup-node@v4
-        with: { node-version: "20", cache: "npm" }
-      - run: |
-          if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm i --no-audit --no-fund; fi
-
       # CodeQL 初期化：JS/TS を解析。拡張クエリで精度アップ
       - uses: github/codeql-action/init@v3
         with:
