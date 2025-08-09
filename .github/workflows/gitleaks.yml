@@ -45,13 +45,13 @@ jobs:
       - name: Run gitleaks
         # PRでは落とす／pushでは落とさない：必要なら下の --exit-code を条件で切替
         run: |
-          ./gitleaks detect \
+          gitleaks detect \
             --source . \
-            --no-git \                       # PRでは履歴まで見ず、差分に近い“現状ファイル”を検査
-            --redact \                       # レポート上は伏字
+            --no-git \
+            --redact \
             --report-format sarif \
             --report-path "$OUTPUT_FILE" \
-            --exit-code 1                    # 検出でexit 1 → ブランチ保護でブロック
+            --exit-code 1
 
       - name: Upload SARIF to GitHub Security
         if: ${{ always() && hashFiles(env.OUTPUT_FILE) != '' }}
