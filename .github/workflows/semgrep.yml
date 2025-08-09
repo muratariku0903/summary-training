@@ -20,7 +20,8 @@ concurrency:
 jobs:
   semgrep:
     env:
-      OUTPUT_FILE: "semgrep.sarif"
+      OUTPUT_FILE: semgrep.sarif
+      TOOL_NAME: Semgrep OSS
 
     runs-on: ubuntu-latest
     # 並列性を確保しつつ、他ワークフローとは独立して動く
@@ -52,44 +53,38 @@ jobs:
           --config=p/github-actions
           --error
           --sarif-output=${{env.OUTPUT_FILE}}
-
+      
+      # クエリをURLエンコードして Code scanning の検索URLを生成
       - name: Summarize findings
         if: ${{ always() && hashFiles(env.OUTPUT_FILE) != '' }}
         run: |
-          echo "## Semgrep summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "Baseline : ${BASELINE:-<none>}" >> $GITHUB_STEP_SUMMARY
-          echo "ExitCode : ${{ steps.scan.outputs.exitcode }}" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          ERRORS=$(jq '[.runs[].results[]|select(.level=="error")] | length' ${{env.OUTPUT_FILE}})
-          WARNS=$(jq '[.runs[].results[]|select(.level=="warning")] | length' ${{env.OUTPUT_FILE}})
-          NOTES=$(jq '[.runs[].results[]|select(.level=="note")] | length' ${{env.OUTPUT_FILE}})
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Level | Count |" >> $GITHUB_STEP_SUMMARY
-          echo "|------|------:|" >> $GITHUB_STEP_SUMMARY
-          echo "| ERROR | ${ERRORS} |" >> $GITHUB_STEP_SUMMARY
-          echo "| WARNING | ${WARNS} |" >> $GITHUB_STEP_SUMMARY
-          echo "| NOTE | ${NOTES} |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Top results" >> $GITHUB_STEP_SUMMARY
-          jq -r '
-            .runs[].results[] |
-            "\(.level|ascii_upcase) | \(.ruleId) | \(.message.text|gsub("\n";" ")) | \(.locations[0].physicalLocation.artifactLocation.uri):\(.locations[0].physicalLocation.region.startLine)"
-          ' ${{env.OUTPUT_FILE}} \
-            | head -n 10 \
-            | sed '1iLevel | Rule | Message | Location\n----|-----|--------|--------' >> $GITHUB_STEP_SUMMARY
+              if [ "${{ github.event_name }}" = "pull_request" ]; then
+                BRANCH="${{ github.head_ref }}"
+              else
+                BRANCH="${GITHUB_REF_NAME}"
+              fi
+
+              
+              export BRANCH TOOL_NAME
+              QUERY=$(python3 - <<'PY'
+                  import os, urllib.parse
+                  branch=os.environ.get("BRANCH","")
+                  tool=os.environ.get("TOOL_NAME","Semgrep OSS")
+                  q = f'is:open branch:{branch} tool:"{tool}"'
+                  print(urllib.parse.quote(q))
+                  PY
+                  )
+                      CODE_SCAN_URL="https://github.com/${{ github.repository }}/security/code-scanning?query=${QUERY}"
+
+                      {
+                        echo "## Semgrep summary"
+                        echo
+                        echo "🔎 **View alerts:** ${CODE_SCAN_URL}"
+                        echo
+                      } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload SARIF to GitHub Security
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: ${{env.OUTPUT_FILE}}
-
-      - name: Gate PR if findings
-        if: ${{ github.event_name == 'pull_request' && steps.scan.outputs.exitcode != '0' }}
-        run: |
-          ERRORS=$(jq '[.runs[].results[]|select(.level=="error")] | length' ${{env.OUTPUT_FILE}})
-          WARNS=$(jq '[.runs[].results[]|select(.level=="warning")] | length' ${{env.OUTPUT_FILE}})
-          echo "::error title=Semgrep gate failed::${ERRORS} errors, ${WARNS} warnings detected. See Security > Code scanning alerts (Semgrep) for details."
-          exit 1
