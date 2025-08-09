@@ -1,0 +1,46 @@
+name: CodeQL
+
+on:
+  pull_request:
+    paths:
+      ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "package*.json", "tsconfig*.json"]
+  push:
+    branches: [main, develop, feat-*]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # (任意) 依存を入れて型解決をよくする。モノレポやサブディレクトリなら working-directory を付けてください
+      - uses: actions/setup-node@v4
+        with: { node-version: "20", cache: "npm" }
+      - run: |
+          if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm i --no-audit --no-fund; fi
+
+      # CodeQL 初期化：JS/TS を解析。拡張クエリで精度アップ
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          queries: security-extended,security-and-quality
+          # JS/TS は build-mode: none でOK（autobuild不要）
+          build-mode: none
+
+      # （JS/TSはビルド不要のためスキップ。コンパイル言語なら autobuild を使います）
+      # - uses: github/codeql-action/autobuild@v3
+
+      # 解析して SARIF を Security タブへ
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
