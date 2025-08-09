@@ -41,9 +41,8 @@ jobs:
           echo "$PWD/bin" >> "$GITHUB_PATH"
           ./bin/gitleaks version
 
-      # PRは“作業ツリーのみ”を検査して即ブロック、pushは見るだけにするなら exit-code 切り替えも可
       - name: Run gitleaks
-        # PRでは落とす／pushでは落とさない：必要なら下の --exit-code を条件で切替
+        continue-on-error: ${{ github.event_name != 'pull_request' }}
         run: |
           gitleaks detect \
             --source . \
