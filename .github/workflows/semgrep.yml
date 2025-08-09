@@ -35,12 +35,11 @@ jobs:
           path: ~/.cache/semgrep
           key: semgrep-rules-${{ runner.os }}-${{ hashFiles('**/.semgrepignore') }}
           restore-keys: semgrep-rules-
-      
+
       # スキャン実行
       # ルールは独自で用意することもできるが、既にsemgrepで用意されてるものを使用
       - name: Run Semgrep (SARIF)
-        # 初期は失敗させない。一定の合意が取れたら外す or --error 等で厳格化
-        continue-on-error: true
+        continue-on-error: ${{ github.event_name != 'pull_request' }}
         run: >
           semgrep scan
           --config=p/owasp-top-ten
