@@ -69,6 +69,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: gitleaks-src
     env:
+      APP_DIR: frontend
       OUTPUT_FILE: gitleaks-build.sarif
     steps:
       - uses: actions/checkout@v4
@@ -77,8 +78,14 @@ jobs:
         with:
           node-version: "20"
       - run: corepack enable
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build # => .next/ 生成
+        
+      - name: Install deps
+        working-directory: ${{ env.APP_DIR }}
+        run: npm install --frozen-lockfile
+      
+      - name: Build
+        working-directory: ${{ env.APP_DIR }}
+        run: npm run build    # => frontend/.next に出力
 
       - name: Install gitleaks (pinned)
         env:
