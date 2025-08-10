@@ -9,6 +9,7 @@ import {
 import dayjs from 'dayjs'
 import { deleteTokenFromCookie } from './lib/api/utils'
 import { checkValidSessionLevel } from './lib/supabase/auth/server'
+import { sanitizeLog } from './utils/log'
 
 /**
  * Next.js ミドルウェア
@@ -18,7 +19,7 @@ import { checkValidSessionLevel } from './lib/supabase/auth/server'
  */
 export async function middleware(req: NextRequest) {
   console.log(
-    `🚀 Middleware triggered for: ${req.nextUrl.pathname} at ${dayjs().format('YYYY-MM-DDTHH:mm:ss')}`,
+    `🚀 Middleware triggered for: ${sanitizeLog(req.nextUrl.pathname)} at ${dayjs().format('YYYY-MM-DDTHH:mm:ss')}`,
   )
 
   // Edge Runtime専用クライアントを使用

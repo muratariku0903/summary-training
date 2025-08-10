@@ -1,5 +1,5 @@
 // scripts/generate-types.ts
-import { execSync } from 'child_process'
+import { execFileSync } from 'child_process'
 import { config } from 'dotenv'
 import path from 'path'
 import * as fs from 'fs'
@@ -17,8 +17,17 @@ if (!projectId) {
 try {
   console.log(`Generating database types for project: ${projectId}`)
 
-  const command = `supabase gen types typescript --project-id "${projectId}" --schema public,private,auth`
-  const output = execSync(command, { encoding: 'utf-8' })
+  // const command = `supabase gen types typescript --project-id "${projectId}" --schema public,private,auth`
+  const args = [
+    'gen',
+    'types',
+    'typescript',
+    '--project-id',
+    projectId,
+    '--schema',
+    'public,private,auth',
+  ]
+  const output = execFileSync('supabase', args, { encoding: 'utf-8' })
 
   // ファイルに出力
   const outputPath = path.resolve(process.cwd(), 'src/lib/supabase/schema/schema.ts')

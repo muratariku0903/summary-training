@@ -17,3 +17,16 @@ export class Logger {
     }
   }
 }
+
+/**
+ * 文字列から改行文字を削除する
+ * @param input - サニタイズする文字列
+ * @returns 改行文字が削除された文字列
+ */
+export const sanitizeLog = (input: string): string => {
+  if (!input) {
+    return ''
+  }
+  // \n (LF) と \r (CR) を空文字列に置換
+  return input.replace(/[\n\r]/g, '')
+}
