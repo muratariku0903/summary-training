@@ -1,0 +1,53 @@
+name: Unit Tests
+
+on:
+  pull_request:
+    paths:
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/unit-test.yml"
+  push:
+    branches: [main, develop, feat-*]
+    paths:
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/unit-test.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: unit-tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend 
+    strategy:
+      matrix:
+        node: [22] # Next.js向けの現行LTS
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: ./frontend/package-lock.json 
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Run unit tests (Vitest)
+        env:
+          CI: "true" # watch無効化
+          # テストで参照されても困らないダミー値（createClient等をモックしていれば未使用でもOK）
+          NEXT_PUBLIC_SUPABASE_URL: http://localhost
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy
+        run: npm test
