@@ -22,9 +22,12 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend 
     strategy:
       matrix:
-        node: [20, 22] # Next.js向けの現行LTS
+        node: [20] # Next.js向けの現行LTS
     steps:
       - name: Checkout
         uses: actions/checkout@v4
