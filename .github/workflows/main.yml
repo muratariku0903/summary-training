@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: Deploy App
 
 on:
   push: # PR をマージしたときも、GitHub 上では「マージ先ブランチへの push」が発生

@@ -1,0 +1,45 @@
+name: CodeQL
+
+on:
+  pull_request:
+    paths:
+      ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "package*.json", "tsconfig*.json"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # CodeQL 初期化：JS/TS を解析。拡張クエリで精度アップ
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          queries: security-extended,security-and-quality
+          # JS/TS は build-mode: none でOK（autobuild不要）
+          build-mode: none
+
+      # 解析 & SARIFアップロード
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
+
+      - name: Summarize CodeQL link
+        if: ${{ always() }}
+        env:
+          IS_PR: ${{ github.event_name == 'pull_request' }}
+          HEAD_REF: ${{ github.head_ref }}
+          REF_NAME: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+          TOOL_NAME: CodeQL
+        run: BRANCH=$([ "$IS_PR" = "true" ] && printf "%s" "$HEAD_REF" || printf "%s" "$REF_NAME"); QUERY=$(BRANCH="$BRANCH" TOOL_NAME="$TOOL_NAME" python3 -c "import os, urllib.parse; b=os.getenv('BRANCH',''); t=os.getenv('TOOL_NAME','CodeQL'); q='is:open branch:%s tool:\"%s\"' % (b, t); print(urllib.parse.quote(q))"); URL="https://github.com/$REPO/security/code-scanning?query=$QUERY"; printf "## CodeQL summary\n\n🔎 **View CodeQL alerts:** %s\n\n" "$URL" >> "$GITHUB_STEP_SUMMARY"
