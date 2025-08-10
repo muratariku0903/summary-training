@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(1);
+SELECT plan(2);
 
 -- 例: RLS不要な公開参照テーブルは許可リストに入れる
 CREATE TEMP TABLE allowlist(relname text) ON COMMIT DROP;
@@ -32,6 +32,17 @@ SELECT diag(
       AND a.relname IS NULL
       AND c.relrowsecurity = false
   ), '<none>')
+);
+
+-- 2) anonに危険な権限（INSERT/UPDATE/DELETE）が付いていない
+SELECT ok(
+  NOT EXISTS (
+    SELECT 1
+    FROM information_schema.role_table_grants g
+    WHERE g.table_schema='public' AND g.grantee='anon'
+      AND g.privilege_type IN ('INSERT','UPDATE','DELETE')
+  ),
+  'anon has no write privileges'
 );
 
 SELECT * FROM finish();
