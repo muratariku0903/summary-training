@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  rls-test:
+  test:
     runs-on: ubuntu-latest
     defaults:
       run:
