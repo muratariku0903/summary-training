@@ -1,0 +1,32 @@
+name: db-tests
+on:
+  pull_request:
+    paths: ["**/supabase/**/*.sql"]
+
+concurrency:
+  group: db-tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend/supabase
+    steps:
+      - uses: actions/checkout@v4
+
+      # Supabase CLI をインストール
+      - uses: supabase/setup-cli@v1
+
+      # Docker上でSupabaseスタックを起動（不要サービスを除外して高速化）
+      - run: supabase start -x studio -x imgproxy -x edge-runtime
+
+      # まっさら→すべてのマイグレーション適用（seed.sql があれば投入）
+      - run: supabase db reset
+
+      # pgTAPテスト（supabase/tests 配下）
+      - run: supabase test db
+
+      # 追加（任意）：PL/pgSQLのリンティング（エラーで落とす）
+      - run: supabase db lint --level error
