@@ -1,8 +1,6 @@
 name: Gitleaks (SARIF)
 on:
   pull_request:
-  push:
-    branches: [main, develop, feat-*]
   workflow_dispatch:
 
 permissions:

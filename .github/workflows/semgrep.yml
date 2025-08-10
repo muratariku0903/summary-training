@@ -4,8 +4,6 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", ".github/workflows/**"]
-  push:
-    branches: [main, develop, feat-*]
   workflow_dispatch: # 手動実行できるようにする
 
 permissions:

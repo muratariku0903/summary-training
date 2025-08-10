@@ -4,8 +4,6 @@ on:
   pull_request:
     paths:
       ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "package*.json", "tsconfig*.json"]
-  push:
-    branches: [main, develop, feat-*]
   workflow_dispatch:
 
 permissions:
