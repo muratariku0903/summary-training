@@ -1,6 +1,5 @@
 name: db-tests
 on:
-  push:
   pull_request:
     paths: ["**/supabase/**/*.sql"]
 
