@@ -2,9 +2,9 @@ BEGIN;
 SELECT plan(1);
 
 -- 例: RLS不要な公開参照テーブルは許可リストに入れる
-WITH allowlist AS (
-  SELECT unnest(ARRAY['countries','prefectures']) AS relname
-)
+CREATE TEMP TABLE allowlist(relname text) ON COMMIT DROP;
+INSERT INTO allowlist VALUES ('countries'), ('prefectures');
+
 SELECT ok(
   NOT EXISTS (
     SELECT 1
