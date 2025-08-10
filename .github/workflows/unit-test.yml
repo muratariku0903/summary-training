@@ -5,11 +5,13 @@ on:
     paths:
       - "**/*.ts"
       - "**/*.tsx"
+      - "**/unit-test.yml"
   push:
     branches: [main, develop, feat-*]
     paths:
       - "**/*.ts"
       - "**/*.tsx"
+      - "**/unit-test.yml"
   workflow_dispatch:
 
 permissions:
