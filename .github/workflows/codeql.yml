@@ -36,7 +36,6 @@ jobs:
         with:
           category: "/language:javascript"
 
-      # codeql.yml の analyze@v3 の直後くらいに追加
       - name: Summarize CodeQL link
         if: ${{ always() }}
         env:
