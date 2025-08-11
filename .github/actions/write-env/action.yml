@@ -15,29 +15,34 @@ runs:
       run: |
         set -eu
         out="${{ inputs.path }}/${{ inputs.filename }}"
+        tmp="${out}.tmpl"
         mkdir -p "${{ inputs.path }}"
-        : > "$out"  # truncate
 
-        # すべて二重引用で安全に埋め込み（ワード分割・グロブ防止）
-        printf 'NEXT_PUBLIC_SUPABASE_URL=%s\n' "$SUPABASE_URL"           >> "$out"
-        printf 'NEXT_PUBLIC_SUPABASE_ANON_KEY=%s\n' "$SUPABASE_ANON_KEY" >> "$out"
-        printf 'NEXT_PUBLIC_SUPABASE_PROJECT_ID=%s\n' "$SUPABASE_PROJECT_ID" >> "$out"
-        printf 'NEXT_PUBLIC_DESCOPE_PROJECT_ID=%s\n' "$DESCOPE_PROJECT_ID"   >> "$out"
+        # 'EOF' でクォート → run 中の展開（変数/コマンド）を完全無効化
+        cat > "$tmp" <<'EOF'
+        NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_SUPABASE_PROJECT_ID=${SUPABASE_PROJECT_ID}
+        NEXT_PUBLIC_DESCOPE_PROJECT_ID=${DESCOPE_PROJECT_ID}
+        SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+        SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
+        RESEND_API_KEY=${RESEND_API_KEY}
+        FROM_EMAIL=${FROM_EMAIL}
+        SUPPORT_EMAIL=${SUPPORT_EMAIL}
+        DESCOPE_ISSUER=${DESCOPE_ISSUER}
+        DESCOPE_AUDIENCE=${DESCOPE_AUDIENCE}
+        DESCOPE_JWKS_URI=${DESCOPE_JWKS_URI}
+        DESCOPE_MGMT_KEY=${DESCOPE_MGMT_KEY}
+        EOF
 
-        printf 'SUPABASE_SERVICE_ROLE_KEY=%s\n' "$SUPABASE_SERVICE_ROLE_KEY" >> "$out"
-        printf 'SUPABASE_JWT_SECRET=%s\n' "$SUPABASE_JWT_SECRET"             >> "$out"
-
-        printf 'RESEND_API_KEY=%s\n' "$RESEND_API_KEY"   >> "$out"
-        printf 'FROM_EMAIL=%s\n' "$FROM_EMAIL"           >> "$out"
-        printf 'SUPPORT_EMAIL=%s\n' "$SUPPORT_EMAIL"     >> "$out"
-
-        printf 'DESCOPE_ISSUER=%s\n' "$DESCOPE_ISSUER"   >> "$out"
-        printf 'DESCOPE_AUDIENCE=%s\n' "$DESCOPE_AUDIENCE" >> "$out"
-        printf 'DESCOPE_JWKS_URI=%s\n' "$DESCOPE_JWKS_URI" >> "$out"
-        printf 'DESCOPE_MGMT_KEY=%s\n' "$DESCOPE_MGMT_KEY" >> "$out"
-
+        # 置換はシェルでなく envsubst に任せる（コマンド実行はされない）
+        # 必要なキーだけ列挙するのがベター
+        vars='${SUPABASE_URL} ${SUPABASE_ANON_KEY} ${SUPABASE_PROJECT_ID} ${DESCOPE_PROJECT_ID} ${SUPABASE_SERVICE_ROLE_KEY} ${SUPABASE_JWT_SECRET} ${RESEND_API_KEY} ${FROM_EMAIL} ${SUPPORT_EMAIL} ${DESCOPE_ISSUER} ${DESCOPE_AUDIENCE} ${DESCOPE_JWKS_URI} ${DESCOPE_MGMT_KEY}'
+        envsubst "$vars" < "$tmp" > "$out"
+        rm -f "$tmp"
         chmod 600 "$out"
         echo "Wrote dotenv to $out"
+
 # runs:
 #   using: "composite"
 #   steps:
