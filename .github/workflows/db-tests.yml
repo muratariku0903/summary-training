@@ -1,4 +1,4 @@
-name: db-tests
+name: DB Tests
 on:
   pull_request:
     paths: ["**/supabase/**/*.sql"]
