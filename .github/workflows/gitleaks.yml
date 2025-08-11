@@ -98,25 +98,12 @@ jobs:
       - name: Install deps
         run: npm install --frozen-lockfile
         working-directory: ${{ env.APP_DIR }}
-      
-      - name: Create frontend environment file # .envファイルを生成
-        run: |
-          cat <<EOF > .env
-          NEXT_PUBLIC_SUPABASE_URL=${{env.SUPABASE_URL}}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{env.SUPABASE_ANON_KEY}}
-          NEXT_PUBLIC_SUPABASE_PROJECT_ID=${{env.SUPABASE_PROJECT_ID}}
-          NEXT_PUBLIC_DESCOPE_PROJECT_ID=${{env.DESCOPE_PROJECT_ID}}
-          SUPABASE_SERVICE_ROLE_KEY=${{env.SUPABASE_SERVICE_ROLE_KEY}}
-          SUPABASE_JWT_SECRET=${{env.SUPABASE_JWT_SECRET}}
-          RESEND_API_KEY=${{env.RESEND_API_KEY}}
-          FROM_EMAIL=${{env.FROM_EMAIL}}
-          SUPPORT_EMAIL=${{env.SUPPORT_EMAIL}}
-          DESCOPE_ISSUER=${{env.DESCOPE_ISSUER}}
-          DESCOPE_AUDIENCE=${{env.DESCOPE_AUDIENCE}}
-          DESCOPE_JWKS_URI=${{env.DESCOPE_JWKS_URI}}
-          DESCOPE_MGMT_KEY=${{env.DESCOPE_MGMT_KEY}}
-          EOF
-        working-directory: ${{ env.APP_DIR }}
+
+      - name: Write .env # .envファイルを生成
+        uses: ./.github/actions/write-env
+        with:
+          path: ${{env.APP_DIR}}
+
       - name: Build
         run: npm run build # => frontend/.next に出力
         working-directory: ${{ env.APP_DIR }}
