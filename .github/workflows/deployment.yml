@@ -90,7 +90,7 @@ jobs:
 
       - name: Install dependencies # 依存パッケージのインストール
         run: npm install
-        working-directory:  ${{env.APP_DIR}}
+        working-directory: ${{env.APP_DIR}}
 
       # - name: Run Tests # テスト実行
       #   run: npm test
@@ -98,7 +98,7 @@ jobs:
 
       - name: Build Next.js App # Next.jsアプリケーションをビルド
         run: npm run build
-        working-directory:  ${{env.APP_DIR}}
+        working-directory: ${{env.APP_DIR}}
 
   # 本番環境のSupabaseプロジェクトは手動で作成する
   #　それ以外の環境については全自動でTerraformにて管理する
@@ -157,24 +157,24 @@ jobs:
           DESCOPE_JWKS_URI=${{env.DESCOPE_JWKS_URI}}
           DESCOPE_MGMT_KEY=${{env.DESCOPE_MGMT_KEY}}
           EOF
-        working-directory:  ${{env.APP_DIR}}
+        working-directory: ${{env.APP_DIR}}
 
       - name: Prepare Supabase config # Supabaseのconfig.tomlをセットアップ
         run: |
           echo "Using Supabase config for '${{env.ENVIRONMENT}}'"
           cp config.${{env.ENVIRONMENT}}.toml config.toml
-        working-directory:  ${{env.APP_DIR}}/supabase
+        working-directory: ${{env.APP_DIR}}/supabase
 
       - name: Link Supabase project (non-interactive) #  Supabaseに接続
         run: |
           supabase link --project-ref "${{ env.SUPABASE_PROJECT_ID}}" \
                         --password "${{ secrets.SUPABASE_DATABASE_PASSWORD }}"
-        working-directory:  ${{env.APP_DIR}}/supabase
+        working-directory: ${{env.APP_DIR}}/supabase
 
       - name: Run migrations + seed # Supabaseにマイグレーション実行 DB接続はマイグレーション用にSessionPooler（port 5432）を使用
         run: |
           supabase db push --include-seed --db-url "${{env.SUPABASE_SESSION_POOLER_URL}}"
-        working-directory:  ${{env.APP_DIR}}/supabase
+        working-directory: ${{env.APP_DIR}}/supabase
 
       - name: Deploy to Vercel # Vercelへのデプロイ
         uses: amondnet/vercel-action@v20 # 内部でVercel CLIを自動インストール
@@ -185,4 +185,4 @@ jobs:
           # main または prod ブランチなら --prod を付けて本番デプロイ
           # それ以外（develop, feat-…）はプレビュー (--yes のみ)
           vercel-args: ${{(github.ref == 'refs/heads/main' || github.ref == 'refs/heads/prod') && '--prod --yes' || '--yes' }}
-          working-directory:  ${{env.APP_DIR}}
+          working-directory: ${{env.APP_DIR}}
