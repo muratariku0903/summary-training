@@ -1,48 +1,24 @@
-name: "Write .env for frontend"
-description: "Generate .env (frontend) from current env vars"
+name: "Write .env (JS)"
+description: "Generate .env for Next.js from environment variables"
 inputs:
   path:
-    description: "Directory to write the .env file"
-    required: true
+    description: "Directory path to write .env"
+    default: "frontend"
   filename:
     description: "Dotenv file name"
     default: ".env"
-
 runs:
-  using: "composite"
-  steps:
-    - shell: bash
-      run: |
-        set -eu
-        out="${{ inputs.path }}/${{ inputs.filename }}"
-        tmp="${out}.tmpl"
-        mkdir -p "${{ inputs.path }}"
-
-        # 'EOF' でクォート → run 中の展開（変数/コマンド）を完全無効化
-        cat > "$tmp" <<'EOF'
-        NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
-        NEXT_PUBLIC_SUPABASE_PROJECT_ID=${SUPABASE_PROJECT_ID}
-        NEXT_PUBLIC_DESCOPE_PROJECT_ID=${DESCOPE_PROJECT_ID}
-        SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
-        SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
-        RESEND_API_KEY=${RESEND_API_KEY}
-        FROM_EMAIL=${FROM_EMAIL}
-        SUPPORT_EMAIL=${SUPPORT_EMAIL}
-        DESCOPE_ISSUER=${DESCOPE_ISSUER}
-        DESCOPE_AUDIENCE=${DESCOPE_AUDIENCE}
-        DESCOPE_JWKS_URI=${DESCOPE_JWKS_URI}
-        DESCOPE_MGMT_KEY=${DESCOPE_MGMT_KEY}
-        EOF
-
-        # 置換はシェルでなく envsubst に任せる（コマンド実行はされない）
-        # 必要なキーだけ列挙するのがベター
-        vars='${SUPABASE_URL} ${SUPABASE_ANON_KEY} ${SUPABASE_PROJECT_ID} ${DESCOPE_PROJECT_ID} ${SUPABASE_SERVICE_ROLE_KEY} ${SUPABASE_JWT_SECRET} ${RESEND_API_KEY} ${FROM_EMAIL} ${SUPPORT_EMAIL} ${DESCOPE_ISSUER} ${DESCOPE_AUDIENCE} ${DESCOPE_JWKS_URI} ${DESCOPE_MGMT_KEY}'
-        envsubst "$vars" < "$tmp" > "$out"
-        rm -f "$tmp"
-        chmod 600 "$out"
-        echo "Wrote dotenv to $out"
-
+  using: "node20"
+  main: "index.js"
+# name: "Write .env for frontend"
+# description: "Generate .env (frontend) from current env vars"
+# inputs:
+#   path:
+#     description: "Directory to write the .env file"
+#     required: true
+#   filename:
+#     description: "Dotenv file name"
+#     default: ".env"
 # runs:
 #   using: "composite"
 #   steps:
