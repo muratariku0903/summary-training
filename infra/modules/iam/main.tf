@@ -4,7 +4,7 @@ data "aws_caller_identity" "current" {}
 # GitHub OIDCを信頼するIRMロール↓
 # Github　Actionsがこのロールを引き受ける。
 resource "aws_iam_role" "github_actions_role" {
-  name = "GitHubActionsTerraformRole"
+  name = "GitHubActionsTerraformRole-${var.env}"
 
   # GitHubのOIDCプロバイダを信頼
   # 前提としてAWSでは、信頼ポリシーを使ってロールを引き受ける主体を指定する　
@@ -36,7 +36,7 @@ resource "aws_iam_role" "github_actions_role" {
 # IAMポリシー（Terraformの実行に必要な最小限の権限）
 # ポリシーを変更した際は、手動でAWSのロールに反映させる、その上で、Github ActionsのPipelineが正常に動作可能
 resource "aws_iam_policy" "terraform_policy" {
-  name        = "GitHubActionsTerraformPolicy"
+  name        = "GitHubActionsTerraformPolicy-${var.env}"
   description = "Least privilege policy for GitHub Actions running Terraform"
 
   policy = jsonencode({
@@ -52,6 +52,8 @@ resource "aws_iam_policy" "terraform_policy" {
           "iam:ListRolePolicies",
           "iam:ListAttachedRolePolicies",
           "iam:ListPolicyVersions",
+          "iam:CreateRole action",
+          "iam:CreatePolicy",
           "sts:GetCallerIdentity",
           "s3:ListBucket",
           "s3:GetObject",

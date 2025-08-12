@@ -3,6 +3,7 @@
 
 # 初期設定時、GitHub OIDCを信頼するIRMロールの作成
 module "iam" {
+  env             = "stage"
   source          = "../../modules/iam"
   github_owner    = "muratariku0903"
   github_repo     = "summary-training"

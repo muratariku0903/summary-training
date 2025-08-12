@@ -1,3 +1,8 @@
+variable "env" {
+  description = "env"
+  type        = string
+}
+
 variable "github_owner" {
   description = "Github Owner"
   type        = string
