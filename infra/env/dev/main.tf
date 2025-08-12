@@ -8,18 +8,3 @@ module "iam" {
   github_repo     = "summary-training"
   tf_state_bucket = "summary-training-tf-state"
 }
-
-
-
-# module "supabase" {
-#   source                     = "../../modules/supabase"
-#   supabase_org_id            = var.supabase_org_id
-#   supabase_database_password = var.supabase_database_password
-#   supabase_database_env      = var.supabase_database_env
-
-#   providers = {
-#     supabase = supabase
-#   }
-# }
-
-

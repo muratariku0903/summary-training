@@ -1,0 +1,7 @@
+project_id = "summary-training-stage"
+
+[db.seed]
+enabled   = true
+sql_paths = ['./seeds/*.sql']
+
+

@@ -1,4 +1,4 @@
-name: Semgrep (SARIF only)
+name: Semgrep (SARIF)
 
 on:
   pull_request:
