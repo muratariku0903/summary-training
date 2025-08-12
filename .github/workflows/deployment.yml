@@ -22,37 +22,32 @@ concurrency:
 env:
   ENVIRONMENT: ${{ github.ref == 'refs/heads/prod' && 'prod' || github.ref == 'refs/heads/stage' && 'stage' || 'dev' }}
   APP_DIR: frontend
-  # ↓　Terraformからsupabaseにアクセスする用
-  TF_VAR_supabase_access_token: ${{secrets.SUPABASE_ACCESS_TOKEN}}
-  TF_VAR_supabase_org_id: ${{secrets.SUPABASE_ORG_ID}}
-  TF_VAR_supabase_database_password: ${{secrets.SUPABASE_DATABASE_PASSWORD}}
-  TF_VAR_supabase_database_env: ${{ github.ref == 'refs/heads/prod' && 'prod' || 'dev' }}
-  # ↑　Terraformからsupabaseにアクセスする用
-  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
   # ↓　Supabase
-  SUPABASE_PROJECT_ID: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_PROJECT_ID_PROD || secrets.SUPABASE_PROJECT_ID_DEV }}
-  SUPABASE_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_URL_PROD || secrets.SUPABASE_URL_DEV }}
-  SUPABASE_DATABASE_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_DATABASE_URL_PROD || secrets.SUPABASE_DATABASE_URL_DEV }}
-  SUPABASE_SESSION_POOLER_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_SESSION_POOLER_URL_PROD || secrets.SUPABASE_SESSION_POOLER_URL_DEV }}
-  SUPABASE_ANON_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_ANON_KEY_PROD || secrets.SUPABASE_ANON_KEY_DEV }}
-  SUPABASE_SERVICE_ROLE_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_SERVICE_ROLE_KEY_PROD || secrets.SUPABASE_SERVICE_ROLE_KEY_DEV }}
-  SUPABASE_JWT_SECRET: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_JWT_SECRET_PROD || secrets.SUPABASE_JWT_SECRET_DEV }}
-  # ↑　Supabase
+  # SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  SUPABASE_PROJECT_ID: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_PROJECT_ID_PROD || github.ref == 'refs/heads/stage' && secrets.SUPABASE_PROJECT_ID_STG || secrets.SUPABASE_PROJECT_ID_DEV }}
+  SUPABASE_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_URL_PROD || github.ref == 'refs/heads/stage' && secrets.SUPABASE_URL_STG || secrets.SUPABASE_URL_DEV }}
+  SUPABASE_DATABASE_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_DATABASE_URL_PROD || github.ref == 'refs/heads/stage' && secrets.SUPABASE_DATABASE_URL_STG || secrets.SUPABASE_DATABASE_URL_DEV }}
+  SUPABASE_DATABASE_PASSWORD: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_DATABASE_PASSWORD_PROD || github.ref == 'refs/heads/stage' && secrets.SUPABASE_DATABASE_PASSWORD_STG || secrets.SUPABASE_DATABASE_PASSWORD_DEV }}
+  SUPABASE_SESSION_POOLER_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_SESSION_POOLER_URL_PROD || github.ref == 'refs/heads/stage' && secrets.SUPABASE_SESSION_POOLER_URL_STG || secrets.SUPABASE_SESSION_POOLER_URL_DEV }}
+  SUPABASE_ANON_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_ANON_KEY_PROD || github.ref == 'refs/heads/stage' && secrets.SUPABASE_ANON_KEY_STG || secrets.SUPABASE_ANON_KEY_DEV }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_SERVICE_ROLE_KEY_PROD || github.ref == 'refs/heads/stage' && secrets.SUPABASE_SERVICE_ROLE_KEY_STG || secrets.SUPABASE_SERVICE_ROLE_KEY_DEV }}
+  SUPABASE_JWT_SECRET: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_JWT_SECRET_PROD || github.ref == 'refs/heads/stage' && secrets.SUPABASE_JWT_SECRET_STG || secrets.SUPABASE_JWT_SECRET_DEV }}
+  # ↑ Supabase
 
-  # ↓　メール送信用
-  RESEND_API_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.RESEND_API_KEY_PROD || secrets.RESEND_API_KEY_DEV }}
-  FROM_EMAIL: ${{ github.ref == 'refs/heads/prod' && vars.FROM_EMAIL_PROD || vars.FROM_EMAIL_PROD }}
-  SUPPORT_EMAIL: ${{ github.ref == 'refs/heads/prod' && vars.SUPPORT_EMAIL_PROD || vars.SUPPORT_EMAIL_DEV }}
-  # ↑　メール送信用
+  # ↓ メール送信用
+  RESEND_API_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.RESEND_API_KEY_PROD || github.ref == 'refs/heads/stage' && secrets.RESEND_API_KEY_STG || secrets.RESEND_API_KEY_DEV }}
+  FROM_EMAIL: ${{ github.ref == 'refs/heads/prod' && vars.FROM_EMAIL_PROD || github.ref == 'refs/heads/stage' && vars.FROM_EMAIL_STG || vars.FROM_EMAIL_DEV }}
+  SUPPORT_EMAIL: ${{ github.ref == 'refs/heads/prod' && vars.SUPPORT_EMAIL_PROD || github.ref == 'refs/heads/stage' && vars.SUPPORT_EMAIL_STG || vars.SUPPORT_EMAIL_DEV }}
+  # ↑ メール送信用
 
-  # ↓　Descope
-  DESCOPE_PROJECT_ID: ${{ github.ref == 'refs/heads/prod' && secrets.DESCOPE_PROJECT_ID_PROD || secrets.DESCOPE_PROJECT_ID_DEV }}
-  DESCOPE_ISSUER: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_ISSUER_PROD || vars.DESCOPE_ISSUER_DEV }}
-  DESCOPE_AUDIENCE: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_AUDIENCE_PROD || vars.DESCOPE_AUDIENCE_DEV }}
-  DESCOPE_JWKS_URI: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_JWKS_URI_PROD || vars.DESCOPE_JWKS_URI_DEV }}
-  DESCOPE_MGMT_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.DESCOPE_MGMT_KEY_PROD || secrets.DESCOPE_MGMT_KEY_DEV }}
-  # ↑　Descope
+  # ↓ Descope
+  DESCOPE_PROJECT_ID: ${{ github.ref == 'refs/heads/prod' && secrets.DESCOPE_PROJECT_ID_PROD || github.ref == 'refs/heads/stage' && secrets.DESCOPE_PROJECT_ID_STG || secrets.DESCOPE_PROJECT_ID_DEV }}
+  DESCOPE_ISSUER: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_ISSUER_PROD || github.ref == 'refs/heads/stage' && vars.DESCOPE_ISSUER_STG || vars.DESCOPE_ISSUER_DEV }}
+  DESCOPE_AUDIENCE: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_AUDIENCE_PROD || github.ref == 'refs/heads/stage' && vars.DESCOPE_AUDIENCE_STG || vars.DESCOPE_AUDIENCE_DEV }}
+  DESCOPE_JWKS_URI: ${{ github.ref == 'refs/heads/prod' && vars.DESCOPE_JWKS_URI_PROD || github.ref == 'refs/heads/stage' && vars.DESCOPE_JWKS_URI_STG || vars.DESCOPE_JWKS_URI_DEV }}
+  DESCOPE_MGMT_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.DESCOPE_MGMT_KEY_PROD || github.ref == 'refs/heads/stage' && secrets.DESCOPE_MGMT_KEY_STG || secrets.DESCOPE_MGMT_KEY_DEV }}
+  # ↑ Descope
 
 jobs:
   setup: # 開発環境の準備とNext.jsのビルド
@@ -136,7 +131,7 @@ jobs:
       - name: Link Supabase project (non-interactive) #  Supabaseに接続
         run: |
           supabase link --project-ref "${{ env.SUPABASE_PROJECT_ID}}" \
-                        --password "${{ secrets.SUPABASE_DATABASE_PASSWORD }}"
+                        --password "${{ env.SUPABASE_DATABASE_PASSWORD }}"
         working-directory: ${{env.APP_DIR}}/supabase
 
       - name: Run migrations + seed # Supabaseにマイグレーション実行 DB接続はマイグレーション用にSessionPooler（port 5432）を使用
@@ -152,5 +147,5 @@ jobs:
           vercel-project-id: ${{secrets.VERCEL_PROJECT_ID}}
           # main または prod ブランチなら --prod を付けて本番デプロイ
           # それ以外（develop, feat-…）はプレビュー (--yes のみ)
-          vercel-args: ${{(github.ref == 'refs/heads/main' || github.ref == 'refs/heads/prod') && '--prod --yes' || '--yes' }}
+          vercel-args: ${{(env.ENVIRONMENT == 'prod' ||  env.ENVIRONMENT == 'stage') && '--prod --yes' || '--yes' }}
           working-directory: ${{env.APP_DIR}}
