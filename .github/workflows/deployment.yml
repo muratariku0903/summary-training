@@ -24,7 +24,7 @@ env:
   APP_DIR: frontend
 
   # ↓　Supabase
-  # SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
   SUPABASE_PROJECT_ID: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_PROJECT_ID_PROD || github.ref == 'refs/heads/stage' && secrets.SUPABASE_PROJECT_ID_STG || secrets.SUPABASE_PROJECT_ID_DEV }}
   SUPABASE_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_URL_PROD || github.ref == 'refs/heads/stage' && secrets.SUPABASE_URL_STG || secrets.SUPABASE_URL_DEV }}
   SUPABASE_DATABASE_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_DATABASE_URL_PROD || github.ref == 'refs/heads/stage' && secrets.SUPABASE_DATABASE_URL_STG || secrets.SUPABASE_DATABASE_URL_DEV }}
