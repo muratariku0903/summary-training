@@ -16,6 +16,4 @@ provider "aws" {
   region = "ap-northeast-1"
 }
 
-provider "supabase" {
-  access_token = var.supabase_access_token
-}
+
