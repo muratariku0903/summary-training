@@ -1,21 +1,14 @@
 // tests/e2e/auth.setup.ts
-import { test, expect, request } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 
-import {
-  expectAuthCookieExists,
-  expectAuthCookieNotExists,
-  magicLink,
-  signupViaLink,
-} from './helpers/helpers'
 import { S } from './const/selector'
-import { PROTECTED_PATHS, PUBLIC_PATHS } from '@/lib/constants/routes'
+import { PROTECTED_PATHS } from '@/lib/constants/routes'
 
 const SECRET = process.env.E2E_SECRET
 
 test.describe('プロフィール画面遷移→プロフィール編集', () => {
-  test('正常系', async ({ page, context, baseURL }) => {
+  test('正常系', async ({ page, baseURL }) => {
     test.skip(!SECRET, 'E2E_SECRET is required')
-    const api = await request.newContext()
 
     // --- ダッシュボード画面に遷移 ---
     await page.goto(`${baseURL}${PROTECTED_PATHS.DASHBOARD}`)
