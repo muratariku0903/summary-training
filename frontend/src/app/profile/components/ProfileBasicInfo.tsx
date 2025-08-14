@@ -17,6 +17,7 @@ import ReversalButton from '@/components/elements/reversal-button/ReversalButton
 import OutlineButton from '@/components/elements/outline-button/OutlineButton'
 import { useSnackbarStore } from '@/stores/useSnackbarStore'
 import { UI_MESSAGES } from '@/lib/constants/ui'
+import { S } from '../../../../test/e2e/const/selector'
 
 type ProfileBasicInfoProps = {
   profile: UserProfile
@@ -36,7 +37,7 @@ export default function ProfileBasicInfo({ profile }: ProfileBasicInfoProps) {
 
       return data
     },
-    profile
+    profile,
   )
 
   const [, startTransition] = useTransition() // transactionPending を削除
@@ -106,6 +107,7 @@ export default function ProfileBasicInfo({ profile }: ProfileBasicInfoProps) {
                 {...register('display_name')}
                 defaultValue={state.display_name ?? ''}
                 errorMessage={errors['display_name']?.message}
+                testId={S.profileBasicInfoDisplayNameInput}
               />
             </div>
             <div className='space-y-2'>
@@ -135,6 +137,7 @@ export default function ProfileBasicInfo({ profile }: ProfileBasicInfoProps) {
               placeholder='自己紹介を入力してください'
               rows={4}
               errorMessage={errors['bio']?.message}
+              testId={S.profileBasicInfoBioInput}
             />
           </div>
           {/* 編集ボタン */}
@@ -150,10 +153,21 @@ export default function ProfileBasicInfo({ profile }: ProfileBasicInfoProps) {
                   }}
                   disable={isPending}
                 />
-                <ReversalButton label='保存' type='submit' disable={isPending} border />
+                <ReversalButton
+                  label='保存'
+                  type='submit'
+                  disable={isPending}
+                  border
+                  testId={S.profileBasicInfoSaveBtn}
+                />
               </>
             ) : (
-              <ReversalButton label='編集' onClick={() => setIsEditing(true)} border />
+              <ReversalButton
+                label='編集'
+                onClick={() => setIsEditing(true)}
+                border
+                testId={S.profileBasicInfoEditBtn}
+              />
             )}
           </div>
         </div>

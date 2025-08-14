@@ -1,6 +1,7 @@
 'use client'
 
 import { ProfileIcon, AccountIcon } from '@/components/icons/icons'
+import { S } from '../../../../test/e2e/const/selector'
 
 // メニューアイテムの型定義
 export type MenuKey = 'basic' | 'account'
@@ -9,6 +10,7 @@ interface MenuItem {
   key: MenuKey
   label: string
   icon: React.ReactNode
+  testId?: string
 }
 
 interface ProfileSideMenuProps {
@@ -26,11 +28,13 @@ export default function ProfileSideMenu({
       key: 'basic',
       label: '基本情報',
       icon: <ProfileIcon />,
+      testId: S.profileSideMenuBasicInfo,
     },
     {
       key: 'account',
       label: 'アカウント',
       icon: <AccountIcon />,
+      testId: S.profileSideMenuAccount,
     },
   ]
 
@@ -59,6 +63,7 @@ export default function ProfileSideMenu({
                       : 'bg-white text-black border-black hover:bg-gray-100'
                   }
                 `}
+                data-testid={item.testId}
               >
                 <span className='mr-3'>{item.icon}</span>
                 {item.label}

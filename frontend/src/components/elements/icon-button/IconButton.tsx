@@ -16,6 +16,7 @@ interface IconButtonProps {
     onClick: () => void | Promise<void>
     icon?: React.ReactNode
     disabled?: boolean
+    testId?: string
   }>
   /** メニューを右側に表示するか（デフォルト: true） */
   menuAlignRight?: boolean
@@ -23,6 +24,8 @@ interface IconButtonProps {
   disabled?: boolean
   /** カスタムクラス */
   className?: string
+  /** testId */
+  testId?: string
 }
 
 const sizeClasses = {
@@ -51,6 +54,7 @@ export default function IconButton({
   menuAlignRight = true,
   disabled = false,
   className = '',
+  testId,
 }: IconButtonProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
@@ -107,6 +111,7 @@ export default function IconButton({
         aria-label={`${label}のメニュー`}
         aria-expanded={isMenuOpen}
         aria-haspopup='true'
+        data-testid={testId}
       >
         {iconImageUrl ? (
           <Image
@@ -163,6 +168,7 @@ export default function IconButton({
                     transition-colors 
                     duration-200
                   `}
+                  data-testid={item.testId}
                 >
                   {item.icon && <span className='mr-2 flex-shrink-0'>{item.icon}</span>}
                   {item.label}

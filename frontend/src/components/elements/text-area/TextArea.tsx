@@ -6,6 +6,7 @@ type TextAreaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
   labelText?: string
   labelClassName?: string
   errorMessage?: string | null
+  testId?: string
 }
 
 const TextArea: React.FC<TextAreaProps> = ({
@@ -15,6 +16,7 @@ const TextArea: React.FC<TextAreaProps> = ({
   labelClassName,
   errorMessage,
   edit = true,
+  testId,
   ...rest
 }) => {
   return (
@@ -39,10 +41,13 @@ const TextArea: React.FC<TextAreaProps> = ({
           } px-3 py-2 focus:outline-none focus:ring resize-vertical ${
             rest.className || ''
           }`}
+          data-testid={testId}
         />
       ) : (
         <div className='p-3 border-1 border-black bg-gray-50 min-h-20'>
-          <span className='whitespace-pre-wrap'>{showValue}</span>
+          <span className='whitespace-pre-wrap' data-testid={testId}>
+            {showValue}
+          </span>
         </div>
       )}
 

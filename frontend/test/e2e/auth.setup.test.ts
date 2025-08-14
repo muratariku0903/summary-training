@@ -1,4 +1,3 @@
-// tests/e2e/auth.setup.ts
 import { test, expect, request } from '@playwright/test'
 import fs from 'node:fs'
 import path from 'node:path'

@@ -9,6 +9,7 @@ type TextInputProps = InputHTMLAttributes<HTMLInputElement> & {
   errorMessage?: string | null
   rightElement?: ReactNode
   type?: 'text' | 'password'
+  testId?: string
 }
 
 const TextInput: React.FC<TextInputProps> = ({
@@ -20,6 +21,7 @@ const TextInput: React.FC<TextInputProps> = ({
   edit = true,
   rightElement,
   type = 'text',
+  testId,
   ...rest
 }) => {
   const [visible, setVisible] = useState(type !== 'password')
@@ -47,6 +49,7 @@ const TextInput: React.FC<TextInputProps> = ({
               className={`w-full flex-1 rounded border ${
                 errorMessage ? 'border-red-600' : 'border-black'
               } px-3 py-2 focus:outline-none focus:ring ${rest.className || ''}`}
+              data-testid={testId}
             />
             {type === 'password' && (
               <button
@@ -60,7 +63,9 @@ const TextInput: React.FC<TextInputProps> = ({
           </>
         ) : (
           <div className={`flex-1 rounded border  bg-gray-50 p-3`}>
-            <span>{type === 'password' ? showValue?.replace(/./g, '•') : showValue}</span>
+            <span data-testid={testId}>
+              {type === 'password' ? showValue?.replace(/./g, '•') : showValue}
+            </span>
           </div>
         )}
 
