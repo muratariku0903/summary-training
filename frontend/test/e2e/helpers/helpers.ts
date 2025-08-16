@@ -12,6 +12,9 @@ export async function signupViaLink(
     headers: { 'x-e2e-secret': secret, 'content-type': 'application/json' },
     data: JSON.stringify({ type: 'signup', email, password }),
   })
+  console.log('url: ', `${baseURL}/api/e2e/auth/generate-link`)
+  console.log('secret: ', secret.substring(0, 3))
+  console.log('resp: ', resp)
   expect(resp.ok()).toBeTruthy()
   const json = await resp.json()
   const actionLink = json.action_link as string
