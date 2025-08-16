@@ -49,6 +49,9 @@ env:
   DESCOPE_MGMT_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.DESCOPE_MGMT_KEY_PROD || github.ref == 'refs/heads/stage' && secrets.DESCOPE_MGMT_KEY_STG || secrets.DESCOPE_MGMT_KEY_DEV }}
   # ↑ Descope
 
+  E2E_ENABLED: ${{ github.ref != 'refs/heads/prod' || github.ref != 'refs/heads/main'}}
+  E2E_SECRET: ${{secrets.E2E_SECRET}}
+
 jobs:
   setup: # 開発環境の準備とNext.jsのビルド
     name: Setup & Build (Next.js)
@@ -149,3 +152,58 @@ jobs:
           # それ以外（develop, feat-…）はプレビュー (--yes のみ)
           vercel-args: ${{(env.ENVIRONMENT == 'prod' ||  env.ENVIRONMENT == 'stage') && '--prod --yes' || '--yes' }}
           working-directory: ${{env.APP_DIR}}
+
+      - name: Resolve deployed URL # デプロイURLをjob出力に載せる
+        id: resolve
+        run: echo "vercel_preview_url=${{ steps.vercel.outputs.preview-url }}" >> "$GITHUB_OUTPUT"
+
+  e2e:
+    name: E2E (Playwright against deployed URL)
+    runs-on: ubuntu-latest
+    needs: deploy
+    if:
+      (github.event_name == 'pull_request' && github.base_ref != 'main' && github.base_ref != 'prod') ||
+      (github.event_name == 'push' && github.ref != 'refs/heads/main' && github.ref != 'refs/heads/prod')
+    env:
+      E2E_BASE_URL: ${{ needs.deploy.outputs.vercel_preview_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ./${{env.APP_DIR}}/package-lock.json
+
+      - name: Install deps
+        run: npm ci --legacy-peer-deps
+        working-directory: ${{env.APP_DIR}}
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: ${{env.APP_DIR}}
+
+      - name: Wait for deployed app
+        run: npx wait-on ${{ env.E2E_BASE_URL}} --timeout 180000
+        working-directory: ${{env.APP_DIR}}
+
+      - name: Run E2E
+        run: npm run test:e2e
+        working-directory: ${{env.APP_DIR}}
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: ${{env.APP_DIR}}/playwright-report
+          retention-days: 7
+
+      - name: Upload Playwright traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: ${{env.APP_DIR}}/test-results
+          retention-days: 7
