@@ -49,7 +49,7 @@ env:
   DESCOPE_MGMT_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.DESCOPE_MGMT_KEY_PROD || github.ref == 'refs/heads/stage' && secrets.DESCOPE_MGMT_KEY_STG || secrets.DESCOPE_MGMT_KEY_DEV }}
   # ↑ Descope
 
-  E2E_ENABLED: ${{ github.ref != 'refs/heads/prod' || github.ref != 'refs/heads/main'}}
+  E2E_ENABLED: ${{ (github.ref != 'refs/heads/prod' || github.ref != 'refs/heads/main') && true || false}}
   E2E_SECRET: ${{secrets.E2E_SECRET}}
 
 jobs:
