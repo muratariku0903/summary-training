@@ -151,14 +151,16 @@ jobs:
           vercel-org-id: ${{secrets.VERCEL_TEAM_ID}}
           vercel-project-id: ${{secrets.VERCEL_PROJECT_ID}}
           # main または prod ブランチなら --prod を付けて本番デプロイ
-          # それ以外（develop, feat-…）はプレビュー (--yes のみ)
+          # それ以外（develop, feat-…）はプレビュー
           vercel-args: ${{(env.ENVIRONMENT == 'prod' ||  env.ENVIRONMENT == 'stage') && '--prod' || '' }}
-          # vercel-args: ${{(env.ENVIRONMENT == 'prod' ||  env.ENVIRONMENT == 'stage') && '--prod --yes' || '--yes' }}
           working-directory: ${{env.APP_DIR}}
 
       - name: Debug Vercel outputs
         run: |
-          echo "Preview URL: ${{ steps.vercel.outputs.preview-url }}"
+          echo "preview-url: ${{ steps.vercel.outputs.preview-url }}"
+          echo "preview_url: ${{ steps.vercel.outputs.preview_url }}"
+          echo "url: ${{ steps.vercel.outputs.url }}"
+          echo "deployment-url: ${{ steps.vercel.outputs.deployment-url }}"
           echo "All outputs: ${{ toJson(steps.vercel.outputs) }}"
       - name: Resolve deployed URL # デプロイURLをjob出力に載せる
         id: resolve
