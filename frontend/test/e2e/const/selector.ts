@@ -1,5 +1,15 @@
 // セレクタ（テストIDを推奨）
 export const S = {
+  // ヘッダー
+  headerSigninLink: 'headerSigninLink',
+  headerSignupLink: 'headerSignupLink',
+
+  // サインイン画面
+  signinEmailInput:'signinEmailInput',
+  signinPasswordInput:'signinPasswordInput',
+  signinBtn:'signinBtn',
+
+  // メニューボタン
   userMenuIcon: 'userMenuIcon',
   userMenuProfile: 'userMenuProfile',
   userMenuSignout: 'userMenuSignout',
@@ -10,4 +20,12 @@ export const S = {
   profileBasicInfoSaveBtn: 'profileBasicInfoSaveBtn',
   profileBasicInfoDisplayNameInput: 'profileBasicInfoDisplayNameInput',
   profileBasicInfoBioInput: 'profileBasicInfoBioInput',
+  profileAccountEditEmailBtn: 'profileAccountEditEmailBtn',
+  profileAccountEditPasswordBtn: 'profileAccountEditPasswordBtn',
+  newEmailInput: 'newEmailInput',
+  updateEmailBtn: 'updateEmailBtn',
+  passwordChangeCurrentPasswordInput: 'passwordChangeCurrentPasswordInput',
+  passwordChangeNewPasswordInput: 'passwordChangeNewPasswordInput',
+  passwordChangeNewConfirmPasswordInput: 'passwordChangeNewConfirmPasswordInput',
+  updatePasswordBtn: 'updatePasswordBtn',
 }

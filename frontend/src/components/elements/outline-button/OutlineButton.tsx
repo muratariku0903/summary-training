@@ -8,6 +8,7 @@ type OutlineButtonProps = {
   onClick?: () => void
   disable?: boolean
   color?: ColorVariant
+  testId?: string
 }
 
 const OutlineButton: React.FC<OutlineButtonProps> = ({
@@ -16,6 +17,7 @@ const OutlineButton: React.FC<OutlineButtonProps> = ({
   onClick,
   disable = false,
   color = 'primary',
+  testId,
 }) => {
   const baseClasses =
     'font-bold py-2 px-4 rounded transition-colors border-2 bg-transparent'
@@ -35,6 +37,7 @@ const OutlineButton: React.FC<OutlineButtonProps> = ({
       className={`${baseClasses} ${colorClasses} ${disabledClasses} ${className || ''}`}
       onClick={onClick}
       disabled={disable}
+      data-testid={testId}
     >
       {label}
     </button>

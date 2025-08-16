@@ -24,6 +24,7 @@ import { changePassword } from '@/lib/supabase/auth/auth'
 import { UI_MESSAGES } from '@/lib/constants/ui'
 import { request } from '@/lib/api/client'
 import { SENDING_PATTERN } from '@/lib/constants/email'
+import { S } from '../../../../test/e2e/const/selector'
 
 export default function PasswordChangePage() {
   const router = useRouter()
@@ -99,18 +100,21 @@ export default function PasswordChangePage() {
                 {...register('currentPassword')}
                 errorMessage={errors['currentPassword']?.message}
                 type='password'
+                testId={S.passwordChangeCurrentPasswordInput}
               />
               <TextInput
                 labelText='新しいパスワード'
                 {...register('newPassword')}
                 errorMessage={errors['newPassword']?.message}
                 type='password'
+                testId={S.passwordChangeNewPasswordInput}
               />
               <TextInput
                 labelText='新しいパスワード（確認用）'
                 {...register('confirmNewPassword')}
                 errorMessage={errors['confirmNewPassword']?.message}
                 type='password'
+                testId={S.passwordChangeNewConfirmPasswordInput}
               />
               <Spacer size={4} />
               {submitError && (
@@ -121,6 +125,7 @@ export default function PasswordChangePage() {
                 label={isSubmitting ? '変更中...' : 'パスワードを変更'}
                 border
                 disable={isSubmitting}
+                testId={S.updatePasswordBtn}
               />
             </form>
           </div>

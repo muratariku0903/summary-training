@@ -54,9 +54,17 @@ const Header: React.FC<HeaderProps> = ({ menuType }) => {
       <Spacer size={8} horizontal />
       <UnderlineLink label='メリット' href='#' />
       <Spacer size={40} horizontal />
-      <ReversalLink label='ログイン' href={PUBLIC_PATHS.SIGNIN} />
+      <ReversalLink
+        label='ログイン'
+        href={PUBLIC_PATHS.SIGNIN}
+        testId={S.headerSigninLink}
+      />
       <Spacer size={8} horizontal />
-      <ReversalLink label='新規登録' href={PUBLIC_PATHS.SIGNUP} />
+      <ReversalLink
+        label='新規登録'
+        href={PUBLIC_PATHS.SIGNUP}
+        testId={S.headerSignupLink}
+      />
     </div>
   )
 

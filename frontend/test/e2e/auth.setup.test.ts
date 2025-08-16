@@ -9,10 +9,7 @@ import {
 } from './helpers/helpers'
 import { S } from './const/selector'
 import { PROTECTED_PATHS, PUBLIC_PATHS } from '@/lib/constants/routes'
-
-const EMAIL = `e2e_${Date.now()}@example.com`
-const PASSWORD = 'Passw0rd!e2e'
-const SECRET = process.env.E2E_SECRET
+import { EMAIL, PASSWORD, SECRET } from './const/auth'
 
 test.describe('メール+パスワード｜サインアップ→ログアウト→再ログイン', () => {
   test('正常系', async ({ page, context, baseURL }) => {
