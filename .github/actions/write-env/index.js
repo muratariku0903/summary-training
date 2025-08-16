@@ -29,6 +29,12 @@ const mappings = [
   ["E2E_SECRET", "E2E_SECRET"]
 ];
 
+for (const [target, source] of mappings) {
+  if (target === 'E2E_SECRET') {
+    console.log('target: ', process.env[source])
+  }
+}
+
 const lines = mappings
   .map(([target, source]) => `${target}=${process.env[source] ?? ""}`)
   .join("\n") + "\n";
