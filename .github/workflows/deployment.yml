@@ -158,42 +158,6 @@ jobs:
           vercel-args: ${{(env.ENVIRONMENT == 'prod' ||  env.ENVIRONMENT == 'stage') && '--prod' || '' }}
           working-directory: ${{env.APP_DIR}}
 
-      # - name: Install Vercel CLI
-      #   run: npm install -g vercel@latest
-
-      # - name: Deploy to Vercel and capture URL
-      #   id: vercel
-      #   run: |
-      #     # Vercelデプロイを実行し、出力をファイルに保存
-      #     if [[ "${{ env.ENVIRONMENT }}" == "prod" || "${{ env.ENVIRONMENT }}" == "stage" ]]; then
-      #       vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --yes | tee vercel_output.txt
-      #     else
-      #       vercel --token ${{ secrets.VERCEL_TOKEN }} --yes | tee vercel_output.txt
-      #     fi
-
-      #     # URLを抽出
-      #     VERCEL_URL=$(grep -o 'https://[^[:space:]]*\.vercel\.app' vercel_output.txt | tail -1)
-
-      #     if [ -z "$VERCEL_URL" ]; then
-      #       echo "Error: Could not extract Vercel URL"
-      #       cat vercel_output.txt
-      #       exit 1
-      #     fi
-
-      #     echo "preview-url=${VERCEL_URL}" >> "$GITHUB_OUTPUT"
-      #     echo "Deployed to: ${VERCEL_URL}"
-      #   env:
-      #     VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
-      #     VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      #   working-directory: ${{ env.APP_DIR }}
-
-      - name: Debug Vercel outputs
-        run: |
-          echo "preview-url: ${{ steps.vercel.outputs.preview-url }}"
-          echo "preview_url: ${{ steps.vercel.outputs.preview_url }}"
-          echo "url: ${{ steps.vercel.outputs.url }}"
-          echo "deployment-url: ${{ steps.vercel.outputs.deployment-url }}"
-          echo "All outputs: ${{ toJson(steps.vercel.outputs) }}"
       - name: Resolve deployed URL # デプロイURLをjob出力に載せる
         id: resolve
         run: echo "vercel_preview_url=${{ steps.vercel.outputs.preview-url }}" >> "$GITHUB_OUTPUT"
@@ -225,9 +189,9 @@ jobs:
         run: npx playwright install --with-deps chromium
         working-directory: ${{env.APP_DIR}}
 
-      - name: Wait for deployed app
-        run: npx wait-on ${{ env.E2E_BASE_URL}} --timeout 180000
-        working-directory: ${{env.APP_DIR}}
+      # - name: Wait for deployed app
+      #   run: npx wait-on ${{ env.E2E_BASE_URL}} --timeout 180000
+      #   working-directory: ${{env.APP_DIR}}
 
       - name: Write .env # .envファイルを生成
         uses: ./.github/actions/write-env
