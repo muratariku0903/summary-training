@@ -26,7 +26,7 @@ const mappings = [
   ["DESCOPE_MGMT_KEY", "DESCOPE_MGMT_KEY"],
 
   ["E2E_ENABLED", "E2E_ENABLED"]
-  // ["E2E_SECRET", "E2E_SECRET"]
+  ["E2E_SECRET", "E2E_SECRET"]
 ];
 
 const lines = mappings
