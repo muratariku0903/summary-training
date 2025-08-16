@@ -49,8 +49,10 @@ env:
   DESCOPE_MGMT_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.DESCOPE_MGMT_KEY_PROD || github.ref == 'refs/heads/stage' && secrets.DESCOPE_MGMT_KEY_STG || secrets.DESCOPE_MGMT_KEY_DEV }}
   # ↑ Descope
 
+  # ↓ E2E
   E2E_ENABLED: ${{ (github.ref != 'refs/heads/prod' || github.ref != 'refs/heads/main') && true || false}}
   E2E_SECRET: ${{secrets.E2E_SECRET}}
+  # ↑
 
 jobs:
   setup: # 開発環境の準備とNext.jsのビルド
@@ -146,6 +148,7 @@ jobs:
 
       - name: Deploy to Vercel # Vercelへのデプロイ
         uses: amondnet/vercel-action@v25 # 内部でVercel CLIを自動インストール
+        id: vercel
         with:
           vercel-token: ${{secrets.VERCEL_TOKEN}}
           vercel-org-id: ${{secrets.VERCEL_TEAM_ID}}
@@ -154,6 +157,35 @@ jobs:
           # それ以外（develop, feat-…）はプレビュー
           vercel-args: ${{(env.ENVIRONMENT == 'prod' ||  env.ENVIRONMENT == 'stage') && '--prod' || '' }}
           working-directory: ${{env.APP_DIR}}
+
+      # - name: Install Vercel CLI
+      #   run: npm install -g vercel@latest
+
+      # - name: Deploy to Vercel and capture URL
+      #   id: vercel
+      #   run: |
+      #     # Vercelデプロイを実行し、出力をファイルに保存
+      #     if [[ "${{ env.ENVIRONMENT }}" == "prod" || "${{ env.ENVIRONMENT }}" == "stage" ]]; then
+      #       vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --yes | tee vercel_output.txt
+      #     else
+      #       vercel --token ${{ secrets.VERCEL_TOKEN }} --yes | tee vercel_output.txt
+      #     fi
+
+      #     # URLを抽出
+      #     VERCEL_URL=$(grep -o 'https://[^[:space:]]*\.vercel\.app' vercel_output.txt | tail -1)
+
+      #     if [ -z "$VERCEL_URL" ]; then
+      #       echo "Error: Could not extract Vercel URL"
+      #       cat vercel_output.txt
+      #       exit 1
+      #     fi
+
+      #     echo "preview-url=${VERCEL_URL}" >> "$GITHUB_OUTPUT"
+      #     echo "Deployed to: ${VERCEL_URL}"
+      #   env:
+      #     VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
+      #     VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      #   working-directory: ${{ env.APP_DIR }}
 
       - name: Debug Vercel outputs
         run: |
