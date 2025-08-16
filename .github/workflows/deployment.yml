@@ -143,7 +143,7 @@ jobs:
         working-directory: ${{env.APP_DIR}}/supabase
 
       - name: Deploy to Vercel # Vercelへのデプロイ
-        uses: amondnet/vercel-action@v20 # 内部でVercel CLIを自動インストール
+        uses: vercel/action@v1 # 内部でVercel CLIを自動インストール
         with:
           vercel-token: ${{secrets.VERCEL_TOKEN}}
           vercel-org-id: ${{secrets.VERCEL_TEAM_ID}}
