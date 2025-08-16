@@ -150,7 +150,8 @@ jobs:
           vercel-project-id: ${{secrets.VERCEL_PROJECT_ID}}
           # main または prod ブランチなら --prod を付けて本番デプロイ
           # それ以外（develop, feat-…）はプレビュー (--yes のみ)
-          vercel-args: ${{(env.ENVIRONMENT == 'prod' ||  env.ENVIRONMENT == 'stage') && '--prod --yes' || '--yes' }}
+          vercel-args: ${{(env.ENVIRONMENT == 'prod' ||  env.ENVIRONMENT == 'stage') && '--prod' || '' }}
+          # vercel-args: ${{(env.ENVIRONMENT == 'prod' ||  env.ENVIRONMENT == 'stage') && '--prod --yes' || '--yes' }}
           working-directory: ${{env.APP_DIR}}
 
       - name: Resolve deployed URL # デプロイURLをjob出力に載せる
