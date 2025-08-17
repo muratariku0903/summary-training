@@ -30,6 +30,9 @@ export default defineConfig({
     trace: 'retain-on-failure',
     video: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    extraHTTPHeaders: {
+      'x-vercel-protection-bypass': process.env.VERCEL_BYPASS_SECRET || '',
+    },
   },
   projects: [
     // 1回だけログインして state を保存

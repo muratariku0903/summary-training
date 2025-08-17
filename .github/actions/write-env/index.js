@@ -27,7 +27,8 @@ const mappings = [
 
   ["E2E_ENABLED", "E2E_ENABLED"],
   ["E2E_BASE_URL", "E2E_BASE_URL"],
-  ["E2E_SECRET", "E2E_SECRET"]
+  ["E2E_SECRET", "E2E_SECRET"],
+  ["VERCEL_BYPASS_SECRET", "VERCEL_BYPASS_SECRET"],
 ];
 
 const lines = mappings
