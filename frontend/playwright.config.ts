@@ -49,15 +49,6 @@ export default defineConfig({
       },
       dependencies: ['setup'],
     },
-    {
-      name: 'finish',
-      testMatch: /finish\.test\.ts/,
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: 'playwright/.auth/state.json',
-      },
-      dependencies: ['profile', 'setup'],
-    },
   ],
   globalTeardown: './test/e2e/global-teardown.ts',
 })

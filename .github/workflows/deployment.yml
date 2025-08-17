@@ -83,8 +83,6 @@ jobs:
         run: npm run build
         working-directory: ${{env.APP_DIR}}
 
-  # 本番環境のSupabaseプロジェクトは手動で作成する
-  #　それ以外の環境については全自動でTerraformにて管理する
   deploy: # AWSリソースの作成とVercelへのデプロイ
     name: Deploy Infrastructure and App
     runs-on: ubuntu-latest # GitHub提供の Ubuntu環境の仮想マシンで実行
