@@ -25,6 +25,7 @@ import { useSnackbarStore } from '@/stores/useSnackbarStore'
 import { browserClient } from '@/lib/supabase/client/browserClient'
 import GoogleSignInButton from '@/components/elements/google-button/GoogleButton'
 import PasskeySignInButton from '@/components/elements/passkey-button/PasskeyButton'
+import { S } from '../../../../test/e2e/const/selector'
 
 export default function SignInPage() {
   const router = useRouter()
@@ -120,11 +121,13 @@ export default function SignInPage() {
               labelText='メールアドレス'
               {...register('email')}
               errorMessage={errors['email']?.message}
+              testId={S.signinEmailInput}
             />
             <TextInput
               labelText='パスワード'
               {...register('password')}
               errorMessage={errors['password']?.message}
+              testId={S.signinPasswordInput}
             />
             <Spacer size={4} />
             {submitError && (
@@ -135,6 +138,7 @@ export default function SignInPage() {
               label={isSubmitting ? 'ログイン中...' : 'ログイン'}
               border
               disable={isSubmitting}
+              testId={S.signinBtn}
             />
             <div className='pt-4'>
               <Link

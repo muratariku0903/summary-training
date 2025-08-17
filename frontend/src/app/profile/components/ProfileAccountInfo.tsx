@@ -12,6 +12,7 @@ import { AUTH_PROVIDERS, AuthProviders } from '@/lib/supabase/auth/types'
 import { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 import { FcGoogle } from 'react-icons/fc'
+import { S } from '../../../../test/e2e/const/selector'
 
 type ProfileAccountInfoProps = {
   user: User
@@ -47,6 +48,7 @@ export default function ProfileAccountInfo({
                   label='変更'
                   onClick={() => router.replace(PROTECTED_PATHS.EMAIL_CHANGE)}
                   className='text-sm px-3 py-1'
+                  testId={S.profileAccountEditEmailBtn}
                 />
               )
             }
@@ -64,6 +66,7 @@ export default function ProfileAccountInfo({
                     label='変更'
                     onClick={() => router.replace(PROTECTED_PATHS.PASSWORD_CHANGE)}
                     className='text-sm px-3 py-1'
+                    testId={S.profileAccountEditPasswordBtn}
                   />
                 }
               />

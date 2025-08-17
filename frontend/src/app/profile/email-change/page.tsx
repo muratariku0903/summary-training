@@ -16,6 +16,7 @@ import ReversalButton from '@/components/elements/reversal-button/ReversalButton
 import { ChangeEmailInput, changeEmailSchema } from '@/lib/supabase/auth/types'
 import { changeEmail } from '@/lib/supabase/auth/auth'
 import { UI_MESSAGES } from '@/lib/constants/ui'
+import { S } from '../../../../test/e2e/const/selector'
 
 export default function EmailChangePage() {
   const {
@@ -79,6 +80,7 @@ export default function EmailChangePage() {
                 labelText='新しいメールアドレス'
                 {...register('email')}
                 errorMessage={errors['email']?.message}
+                testId={S.newEmailInput}
               />
               <Spacer size={4} />
               {submitError && (
@@ -89,6 +91,7 @@ export default function EmailChangePage() {
                 label={isSubmitting ? '送信中...' : 'メールアドレスを変更'}
                 border
                 disable={isSubmitting}
+                testId={S.updateEmailBtn}
               />
             </form>
           </div>

@@ -11,6 +11,7 @@ import { SettingsIcon, SignOutIcon } from '@/components/icons/icons'
 import Link from 'next/link'
 import { useSnackbarStore } from '@/stores/useSnackbarStore'
 import { UI_MESSAGES } from '@/lib/constants/ui'
+import { S } from '../../../../test/e2e/const/selector'
 
 type HeaderProps = {
   menuType?: 'guest' | 'member' | 'hidden'
@@ -26,6 +27,7 @@ const Header: React.FC<HeaderProps> = ({ menuType }) => {
       label: '設定',
       onClick: () => router.replace(PROTECTED_PATHS.PROFILE),
       icon: <SettingsIcon />,
+      testId: S.userMenuProfile,
     },
     {
       label: 'サインアウト',
@@ -41,6 +43,7 @@ const Header: React.FC<HeaderProps> = ({ menuType }) => {
         }, 1500) // 1.5秒後に遷移
       },
       icon: <SignOutIcon />,
+      testId: S.userMenuSignout,
     },
   ]
 
@@ -51,9 +54,17 @@ const Header: React.FC<HeaderProps> = ({ menuType }) => {
       <Spacer size={8} horizontal />
       <UnderlineLink label='メリット' href='#' />
       <Spacer size={40} horizontal />
-      <ReversalLink label='ログイン' href={PUBLIC_PATHS.SIGNIN} />
+      <ReversalLink
+        label='ログイン'
+        href={PUBLIC_PATHS.SIGNIN}
+        testId={S.headerSigninLink}
+      />
       <Spacer size={8} horizontal />
-      <ReversalLink label='新規登録' href={PUBLIC_PATHS.SIGNUP} />
+      <ReversalLink
+        label='新規登録'
+        href={PUBLIC_PATHS.SIGNUP}
+        testId={S.headerSignupLink}
+      />
     </div>
   )
 
@@ -70,6 +81,7 @@ const Header: React.FC<HeaderProps> = ({ menuType }) => {
         size='md'
         menuItems={userMenuItems}
         menuAlignRight={true}
+        testId={S.userMenuIcon}
       />
     </div>
   )
