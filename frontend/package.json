@@ -9,6 +9,9 @@
     "start": "next start",
     "test": "vitest run",
     "test:cov": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "npx playwright show-report",
     "lint": "next lint",
     "env:dev": "cp supabase/config.dev.toml supabase/config.toml && cp supabase/.env.dev supabase/.env",
     "env:prod": "cp supabase/config.prod.toml supabase/config.toml && cp supabase/.env.prod supabase/.env",
@@ -38,6 +41,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.54.2",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.0",
     "@types/node": "^20",

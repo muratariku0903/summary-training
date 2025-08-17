@@ -5,11 +5,17 @@ type ReversalLinkProps = {
   label: string
   href: string
   onClick?: () => void
+  testId?: string
 }
 
-const ReversalLink: React.FC<ReversalLinkProps> = ({ label, href, onClick }) => {
+const ReversalLink: React.FC<ReversalLinkProps> = ({ label, href, onClick, testId }) => {
   return (
-    <a className={styles['reversal-link']} href={href} onClick={onClick}>
+    <a
+      className={styles['reversal-link']}
+      href={href}
+      onClick={onClick}
+      data-testid={testId}
+    >
       {label}
     </a>
   )

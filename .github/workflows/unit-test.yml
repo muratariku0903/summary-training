@@ -3,14 +3,14 @@ name: Unit Tests
 on:
   pull_request:
     paths:
-      - "**/*.ts"
-      - "**/*.tsx"
+      - "**/*.test.ts"
+      - "**/*.test.tsx"
       - "**/unit-test.yml"
   push:
     branches: [main, develop, feat-*]
     paths:
-      - "**/*.ts"
-      - "**/*.tsx"
+      - "**/*.test.ts"
+      - "**/*.test.tsx"
       - "**/unit-test.yml"
   workflow_dispatch:
 

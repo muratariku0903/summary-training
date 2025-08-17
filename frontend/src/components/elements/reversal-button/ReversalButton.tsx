@@ -23,6 +23,8 @@ export type ReversalButtonProps = {
   reverse?: boolean
   /** ボタンの種類: 'primary' | 'danger' (既定値: 'primary') */
   variant?: 'primary' | 'danger'
+  /** testId */
+  testId?: string
 }
 
 const ReversalButton: React.FC<ReversalButtonProps> = ({
@@ -33,6 +35,7 @@ const ReversalButton: React.FC<ReversalButtonProps> = ({
   reverse = false,
   variant = 'primary',
   disable = false,
+  testId,
 }) => {
   // 共通クラス
   const baseClasses =
@@ -60,6 +63,7 @@ const ReversalButton: React.FC<ReversalButtonProps> = ({
       className={`${baseClasses} ${borderClasses} ${colorClasses} ${disabledClasses}`}
       onClick={onClick}
       disabled={disable}
+      data-testid={testId}
     >
       {label}
     </button>
