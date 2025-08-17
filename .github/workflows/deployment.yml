@@ -190,10 +190,6 @@ jobs:
         run: npx playwright install --with-deps chromium
         working-directory: ${{env.APP_DIR}}
 
-      # - name: Wait for deployed app
-      #   run: npx wait-on ${{ env.E2E_BASE_URL}} --timeout 180000
-      #   working-directory: ${{env.APP_DIR}}
-
       - name: Write .env # .envファイルを生成
         uses: ./.github/actions/write-env
         with:
