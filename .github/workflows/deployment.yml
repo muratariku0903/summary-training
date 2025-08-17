@@ -52,6 +52,7 @@ env:
   # ↓ E2E
   E2E_ENABLED: ${{ (github.ref != 'refs/heads/prod' || github.ref != 'refs/heads/main') && true || false}}
   E2E_SECRET: ${{secrets.E2E_SECRET}}
+  VERCEL_BYPASS_SECRET: ${{secrets.VERCEL_BYPASS_SECRET}}
   # ↑
 
 jobs:
@@ -90,7 +91,6 @@ jobs:
     needs: setup # 「setup」ジョブが成功した場合にのみ実行
     outputs:
       vercel_preview_url: ${{ steps.resolve.outputs.vercel_preview_url }}
-      vercel_bypass_secret: ${{steps.temp-bypass.outputs.vercel_bypass_secret}}
 
     steps:
       - name: Checkout repository # 「setup」ジョブとは異なるランナーが使用されるので再度ソースコードをダウンロード
@@ -163,23 +163,6 @@ jobs:
         id: resolve
         run: echo "vercel_preview_url=${{ steps.vercel.outputs.preview-url }}" >> "$GITHUB_OUTPUT"
 
-      - name: Temporarily enable bypass for E2E # E2E実行前にのみ有効化
-        id: temp-bypass
-        run: |
-          RESPONSE=$(curl -X PATCH \
-            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "protectionBypass": {
-                "scope": "automation-bypass",
-                "expiresAt": "'$(date -d '+1 hour' -u +%Y-%m-%dT%H:%M:%SZ)'"
-              }
-            }' \
-            "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID }}")
-
-          BYPASS_SECRET=$(echo "$RESPONSE" | jq -r '.protectionBypass.secret')
-          echo "vercel_bypass_secret=${BYPASS_SECRET}" >> "$GITHUB_OUTPUT"
-
   e2e:
     name: E2E (Playwright against deployed URL)
     runs-on: ubuntu-latest
@@ -189,7 +172,6 @@ jobs:
       (github.event_name == 'push' && github.ref != 'refs/heads/main' && github.ref != 'refs/heads/prod')
     env:
       E2E_BASE_URL: ${{ needs.deploy.outputs.vercel_preview_url }}
-      VERCEL_BYPASS_SECRET: ${{needs.deploy.outputs.vercel_bypass_secret}}
 
     steps:
       - uses: actions/checkout@v4
@@ -220,15 +202,6 @@ jobs:
       - name: Run E2E
         run: npm run test:e2e
         working-directory: ${{env.APP_DIR}}
-
-      - name: Disable bypass after E2E
-        if: always()
-        run: |
-          curl -X PATCH \
-            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d '{"protectionBypass": null}' \
-            "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID }}"
 
       - name: Upload Playwright report
         if: always()

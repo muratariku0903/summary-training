@@ -30,6 +30,7 @@ export default defineConfig({
     trace: 'retain-on-failure',
     video: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    // vercel環境上でテストを実施する際は、ByPass認証必須
     extraHTTPHeaders: {
       'x-vercel-protection-bypass': process.env.VERCEL_BYPASS_SECRET || '',
     },
