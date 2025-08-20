@@ -253,7 +253,6 @@ jobs:
       # ログイン前処理などは .lighthouserc.cjs の puppeteerScript で実行されます
       - name: Run Lighthouse CI (collect + assert)
         run: |
-          echo "BASE_URL=${{ env.BASE_URL }}"
           npx lhci collect
           npx lhci assert
         working-directory: ${{ env.APP_DIR }}

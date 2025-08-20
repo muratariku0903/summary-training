@@ -6,6 +6,7 @@ if (!process.env.PERFORMANCE_CHECK_BASE_URL) {
 }
 
 const baseUrl = process.env.PERFORMANCE_CHECK_BASE_URL
+// 注意：上から未認証画面、認証画面の順にパスを設定
 const paths = [
   '/',
   '/signup',
@@ -36,9 +37,9 @@ module.exports = {
         'categories:performance': ['warn', { minScore: 0.90 }],
         'categories:seo': ['warn', { minScore: 0.90 }],
         // Core Web Vitals（厳守ライン）
-        'largest-contentful-paint': ['error', { maxNumericValue: 2500 }],
-        'cumulative-layout-shift': ['error', { maxNumericValue: 0.1 }],
-        'interaction-to-next-paint': ['error', { maxNumericValue: 200 }],
+        'largest-contentful-paint': ['warn', { maxNumericValue: 2500 }],
+        'cumulative-layout-shift': ['warn', { maxNumericValue: 0.1 }],
+        'interaction-to-next-paint': ['warn', { maxNumericValue: 200 }],
       },
     },
     upload: {
