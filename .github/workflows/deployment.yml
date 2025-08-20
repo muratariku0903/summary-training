@@ -212,3 +212,54 @@ jobs:
           name: playwright-traces
           path: ${{env.APP_DIR}}/test-results
           retention-days: 7
+
+  lhci:
+    name: Performance Check (Lighthouse CI against deployed stage URL)
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: |
+      github.ref == 'refs/heads/stage' ||
+      (github.event_name == 'pull_request' && github.base_ref == 'stage')
+    env:
+      APP_DIR: frontend
+      BASE_URL: ${{ needs.deploy.outputs.vercel_preview_url }}
+      LH_TEST_USER_EMAIL: ${{ secrets.LH_TEST_USER_EMAIL }}
+      LH_TEST_USER_PASSWORD: ${{ secrets.LH_TEST_USER_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ env.APP_DIR }}/package-lock.json
+
+      - name: Write .env.lhci
+        run: |
+          cat > ${{ env.APP_DIR }}/.env.lhci <<'EOF'
+          PERFORMANCE_CHECK_BASE_URL=${{ env.BASE_URL }}
+          LH_TEST_USER_EMAIL=${{ env.LH_TEST_USER_EMAIL }}
+          LH_TEST_USER_PASSWORD=${{ env.LH_TEST_USER_PASSWORD }}
+          VERCEL_BYPASS_SECRET=${{env.VERCEL_BYPASS_SECRET}}
+          EOF
+
+      - name: Install deps (includes puppeteer/lhci)
+        run: npm ci --legacy-peer-deps
+        working-directory: ${{ env.APP_DIR }}
+
+      # ログイン前処理などは .lighthouserc.cjs の puppeteerScript で実行されます
+      - name: Run Lighthouse CI (collect + assert)
+        run: |
+          npx lhci collect
+          npx lhci assert
+          npx lhci upload
+        working-directory: ${{ env.APP_DIR }}
+
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lhci-report
+          path: ./${{ env.APP_DIR }}/lhci-report
+          retention-days: 7

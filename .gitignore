@@ -34,6 +34,7 @@ yarn-error.log*
 .env*
 !.env.sample
 !.env.e2e.sample
+!.env.lhci.sample
 
 # vercel
 .vercel
@@ -58,3 +59,6 @@ playwright/
 playwright-report/
 blob-report/
 playwright/.auth/        # 保存したログインstate（機密の可能性）
+
+.lighthouseci/
+lhci-report
