@@ -23,8 +23,9 @@ module.exports = {
       url: urls,
       numberOfRuns: 3,
       settings: {
-        // 認証が必要なら、短命Cookieを Secrets から入れる（任意）
-        // extraHeaders: JSON.stringify({ Cookie: process.env.LHCI_AUTH_COOKIE || '' }),
+        extraHeaders: JSON.stringify({
+          'x-vercel-protection-bypass': process.env.VERCEL_BYPASS_SECRET,
+        }),
       },
       // 計測前にログインスクリプトを実行
       puppeteerScript: './scripts/lh-login.cjs',

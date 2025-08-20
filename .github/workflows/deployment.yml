@@ -214,7 +214,7 @@ jobs:
           retention-days: 7
 
   lhci:
-    name: Lighthouse CI (against deployed stage URL)
+    name: Performance Check (Lighthouse CI against deployed stage URL)
     runs-on: ubuntu-latest
     needs: deploy
     if: |
@@ -243,14 +243,11 @@ jobs:
           PERFORMANCE_CHECK_BASE_URL=${{ env.BASE_URL }}
           LH_TEST_USER_EMAIL=${{ env.LH_TEST_USER_EMAIL }}
           LH_TEST_USER_PASSWORD=${{ env.LH_TEST_USER_PASSWORD }}
+          VERCEL_BYPASS_SECRET=${{env.VERCEL_BYPASS_SECRET}}
           EOF
 
       - name: Install deps (includes puppeteer/lhci)
         run: npm ci --legacy-peer-deps
-        working-directory: ${{ env.APP_DIR }}
-
-      - name: Wait for deployed URL
-        run: npx wait-on ${{ env.BASE_URL }} --timeout 300000
         working-directory: ${{ env.APP_DIR }}
 
       # ログイン前処理などは .lighthouserc.cjs の puppeteerScript で実行されます

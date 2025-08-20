@@ -9,6 +9,8 @@ const NEEDS_LOGIN_PATHS = [
  */
 module.exports = async (browser, context) => {
   const page = await browser.newPage()
+  const bypassSecret = process.env.VERCEL_BYPASS_SECRET
+  await page.setExtraHTTPHeaders({ 'x-vercel-protection-bypass': bypassSecret })
 
   const baseUrl = process.env.PERFORMANCE_CHECK_BASE_URL
   const target = new URL(context.url, baseUrl);
