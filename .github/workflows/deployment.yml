@@ -255,6 +255,7 @@ jobs:
         run: |
           npx lhci collect
           npx lhci assert
+          npx lhci upload
         working-directory: ${{ env.APP_DIR }}
 
       - name: Upload Lighthouse reports
