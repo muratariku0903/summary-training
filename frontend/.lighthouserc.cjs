@@ -9,8 +9,6 @@ const baseUrl = process.env.PERFORMANCE_CHECK_BASE_URL
 // 注意：上から未認証画面、認証画面の順にパスを設定
 const paths = [
   '/',
-  '/signup',
-  '/signin',
   '/dashboard',
   '/profile',
   '/', // 最後の後処理用

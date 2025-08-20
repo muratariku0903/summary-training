@@ -262,5 +262,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: lhci-report
-          path: ${{ env.APP_DIR }}/lhci-report
+          path: ./${{ env.APP_DIR }}/lhci-report
           retention-days: 7
