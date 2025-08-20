@@ -219,9 +219,7 @@ jobs:
     needs: deploy
     if: |
       github.ref == 'refs/heads/stage' ||
-      (github.event_name == 'pull_request' && github.base_ref == 'stage') ||
-      startsWith(github.ref, 'refs/heads/feat-') ||
-      (github.event_name == 'pull_request' && startsWith(github.head_ref, 'feat-'))
+      (github.event_name == 'pull_request' && github.base_ref == 'stage')
     env:
       APP_DIR: frontend
       BASE_URL: ${{ needs.deploy.outputs.vercel_preview_url }}
