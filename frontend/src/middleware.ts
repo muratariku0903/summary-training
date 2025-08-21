@@ -10,6 +10,7 @@ import dayjs from 'dayjs'
 import { deleteTokenFromCookie } from './lib/api/utils'
 import { checkValidSessionLevel } from './lib/supabase/auth/server'
 import { sanitizeLog } from './utils/log'
+import { Session, SupabaseClient } from '@supabase/supabase-js'
 
 /**
  * Next.js ミドルウェア
@@ -47,18 +48,12 @@ export async function middleware(req: NextRequest) {
 
     // ユーザー情報を取得して、MFA設定をしてるユーザーであればセッションレベルがAAL2であるかチェック
     // AAL2でない場合はセッション情報を破棄してサインイン画面へリダイレクト
-    const { data: user, error: getUserError } =
-      await supabaseMiddlerWareClient.auth.getUser(session.access_token)
-    if (getUserError) {
-      console.warn('fail get user:', getUserError)
-    }
-    if (user.user) {
-      const { valid } = await checkValidSessionLevel(user.user, supabaseMiddlerWareClient)
-      if (!valid) {
-        const signinUrl = req.nextUrl.clone()
-        signinUrl.pathname = PUBLIC_PATHS.SIGNIN
-        return await deleteTokenFromCookie(NextResponse.redirect(signinUrl))
-      }
+    // ただし、PROTECTED_PATHS.MFA_VERIFYは除く（OAuth認証後追加で、MFA認証が必要な場合に遷移させるため）
+    const validSession = await hasValidSession(supabaseMiddlerWareClient, session)
+    if (!validSession && pathname !== PROTECTED_PATHS.MFA_VERIFY) {
+      const signinUrl = req.nextUrl.clone()
+      signinUrl.pathname = PUBLIC_PATHS.SIGNIN
+      return await deleteTokenFromCookie(NextResponse.redirect(signinUrl))
     }
   }
 
@@ -81,4 +76,25 @@ export const config = {
   matcher: [
     '/((?!api|_next/static|_next/image|favicon.ico|\\.well-known|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
+}
+
+// 認証ユーザーが適切なセッション情報を保持してるかチェック
+const hasValidSession = async (
+  client: SupabaseClient,
+  session: Session,
+): Promise<boolean> => {
+  const { data: user, error: getUserError } = await client.auth.getUser(
+    session.access_token,
+  )
+  if (getUserError) {
+    console.warn('fail get user:', getUserError)
+    return false
+  }
+  if (user.user) {
+    const { valid } = await checkValidSessionLevel(user.user, client)
+
+    return valid ?? false
+  }
+
+  return false
 }
