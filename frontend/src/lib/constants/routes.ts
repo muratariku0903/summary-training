@@ -15,6 +15,7 @@ export const PROTECTED_PATHS = {
   PASSWORD_CHANGE: '/profile/password-change',
   EMAIL_CHANGE: '/profile/email-change',
   EMAIL_CHANGE_CALLBACK: '/profile/email-change-callback',
+  MFA_VERIFY: '/mfa-verify',
 } as const
 
 /**
