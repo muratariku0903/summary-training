@@ -8,8 +8,8 @@ on:
       - stage
       - develop
       - feat-**
-  pull_request:
-    branches: [main, prod, stage]
+  # pull_request:
+  #   branches: [main, prod, stage]
 
 permissions:
   id-token: write # OIDCトークン取得を許可
