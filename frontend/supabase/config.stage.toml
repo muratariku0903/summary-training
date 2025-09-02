@@ -4,4 +4,8 @@ project_id = "summary-training-stage"
 enabled   = true
 sql_paths = ['./seeds/*.sql']
 
-
+[functions.generate-exercises]
+enabled = true
+verify_jwt = true
+import_map = "./functions/generate-exercises/deno.json"
+entrypoint = "./functions/generate-exercises/index.ts"
