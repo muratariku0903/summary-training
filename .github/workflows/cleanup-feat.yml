@@ -42,16 +42,28 @@ jobs:
 
       - name: Compute feature slug
         id: slug
+        env:
+          # ❶ GitHubコンテキストは run: に直埋めせず、まず env に渡す
+          BRANCH_REF: ${{ github.event_name == 'pull_request'
+            && github.event.pull_request.head.ref || github.event.ref }}
+
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BR="${{ github.event.pull_request.head.ref }}"
-          else
-            BR="${{ github.event.ref }}"  # delete イベント
-          fi
-          # 小文字化 & 英数/ハイフン以外をハイフンへ
-          SLUG="$(echo "$BR" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9-]+/-/g')"
-          echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
-          echo "SLUG=$SLUG"
+          set -euo pipefail
+          # ❷ 必ずダブルクォートで参照
+          BR="$BRANCH_REF"
+
+          # refs/heads/ が付いていれば除去（deleteイベント等の差異吸収）
+          BR="${BR#refs/heads/}"
+
+          # ❸ 小文字化 + 許可文字以外はハイフンに置換（trで無害化）
+          #    許可: a-z 0-9 -
+          lower="${BR,,}"
+          safe="$(printf '%s' "$lower" | tr -c 'a-z0-9-' '-')"
+          # 連続ハイフンを1つに、先頭末尾のハイフン除去
+          safe="$(printf '%s' "$safe" | tr -s '-')"
+          safe="${safe#-}"; safe="${safe%-}"
+
+          echo "slug=$safe" >> "$GITHUB_OUTPUT"
 
       - name: Link Supabase (dev project)
         env:
