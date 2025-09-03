@@ -8,7 +8,6 @@ import { z } from 'https://esm.sh/zod@3.23.8'
 
 type ExerciseType = Database['public']['Enums']['exercise_type']
 
-// === env ===
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const CRON_SECRET = Deno.env.get('CRON_SECRET') // 任意: Scheduler用ヘッダ

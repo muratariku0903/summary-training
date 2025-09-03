@@ -3,13 +3,3 @@ project_id = "summary-training-dev"
 [db.seed]
 enabled   = true
 sql_paths = ['./seeds/*.sql']
-
-[functions]
-import_map = "functions/deno.json"
-verify_jwt = true
-
-# [functions.generate-exercises]
-# enabled = true
-# verify_jwt = true
-# import_map = "./functions/generate-exercises/deno.json"
-# entrypoint = "./functions/generate-exercises/index.ts"

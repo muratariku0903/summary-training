@@ -64,6 +64,6 @@ jobs:
 
       - name: Deploy all Edge Functions
         run: |
-          supabase functions deploy --project-ref "${{ env.SUPABASE_PROJECT_ID }}"  --use-api
+          supabase functions deploy --project-ref "${{ env.SUPABASE_PROJECT_ID }}"  --use-api --import-map "functions/deno.json"
           supabase functions list
         working-directory: ${{ env.APP_DIR }}/supabase
