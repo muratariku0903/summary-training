@@ -62,7 +62,45 @@ jobs:
                         --password "${{ env.SUPABASE_DATABASE_PASSWORD }}"
         working-directory: ${{ env.APP_DIR }}/supabase
 
-      - name: Deploy all Edge Functions
+      - name: Prepare branch-specific function (feat-* only) # feat環境ごと分けてデプロイ
+        if: startsWith(github.ref_name, 'feat-')
+        run: |
+          set -euo pipefail
+          cd functions
+
+          BR="${GITHUB_REF_NAME}"
+          # ブランチ名をスラッグ化（小文字＋英数/ハイフン以外をハイフンへ）
+          SLUG="$(echo "$BR" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9-]+/-/g')"
+          echo "Branch slug: ${SLUG}"
+
+          # 既存の同ブランチ派生を掃除（再実行時の衝突回避）
+          find . -maxdepth 1 -type d -name "*-${SLUG}" -prune -exec rm -rf {} +
+
+          # functions/ 配下のフォルダを総ざらい
+          for dir in */ ; do
+            base="${dir%/}"
+
+            # 共有/隠し/既に派生済みはスキップ
+            case "$base" in _*|.*) continue ;; esac
+            # （feat-派生を再帰コピーしない）
+            if [[ "$base" == *"-${SLUG}" ]] || [[ "$base" == *"-feat-"* ]]; then
+              continue
+            fi
+            # エントリがないもの（ユーティリティなど）を除外
+            if [[ ! -f "$base/index.ts" && ! -f "$base/index.tsx" && ! -f "$base/index.js" ]]; then
+              continue
+            fi
+
+            new="${base}-${SLUG}"
+            echo "Copying ${base} -> ${new}"
+            rm -rf "$new"
+            cp -R "$base" "$new"
+          done
+
+          echo "Done copying all functions for feat branch."
+        working-directory: ${{ env.APP_DIR }}/supabase
+
+      - name: Deploy Edge Functions
         run: |
           supabase functions deploy --project-ref "${{ env.SUPABASE_PROJECT_ID }}"  --use-api --import-map "functions/deno.json"
           supabase functions list
