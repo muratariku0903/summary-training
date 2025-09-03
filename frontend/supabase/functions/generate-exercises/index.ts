@@ -1,7 +1,8 @@
 // Deno runtime (Supabase Edge Functions)
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '../_shared/types/database.ts'
-import { j, ymdJST } from '../_shared/utils/utils.ts'
+import { ymdJST } from '../_shared/utils/utils.ts'
+import { jsonOk, jsonErr } from '../_shared/http/http.ts'
 import { openai } from '../_shared/openai/openai_client.ts'
 import OpenAI from 'https://esm.sh/openai@4.55.3/index.js'
 import { z } from 'https://esm.sh/zod@3.23.8'
@@ -20,7 +21,7 @@ Deno.serve(async (req) => {
     if (CRON_SECRET) {
       const given = req.headers.get('x-cron-secret')
       if (given !== CRON_SECRET) {
-        return j({ ok: false, error: 'unauthorized' }, 401)
+        return jsonErr({ ok: false, error: 'unauthorized' }, 401)
       }
     }
 
@@ -80,10 +81,10 @@ Deno.serve(async (req) => {
       out.push({ exercise_id: data!.id, storage_path: path })
     }
 
-    return j({ ok: true, generated: out })
+    return jsonOk({ ok: true, generated: out })
   } catch (e) {
     console.error(e)
-    return j({ ok: false, error: String(e) }, 500)
+    return jsonErr({ ok: false, error: String(e) }, 500)
   }
 })
 

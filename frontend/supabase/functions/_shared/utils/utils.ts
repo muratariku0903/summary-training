@@ -1,10 +1,3 @@
-export function j(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'content-type': 'application/json; charset=utf-8' },
-  })
-}
-
 // JSTのYYYY/MM/DDを返す
 export function ymdJST(d = new Date()) {
   const j = new Date(d.getTime() + 9 * 60 * 60 * 1000)
