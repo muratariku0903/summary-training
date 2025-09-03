@@ -1,15 +1,9 @@
 {
   "cSpell.words": ["descope", "lhci", "magiclink", "MAILPIT", "vercel"],
   "github.copilot.advanced": {},
-  "github.copilot.chat.agent.runTasks": false
-  // "files.exclude": {
-  //   "**/.env*": true,
-  //   "**/.git": true,
-  //   "**/dist": true
-  // },
-  // "search.exclude": {
-  //   "**/.env*": true,
-  //   "**/.git": true,
-  //   "**/dist": true
-  // }
+  "github.copilot.chat.agent.runTasks": false,
+  "deno.enable": true,
+  // Edge Functions 配下だけで有効化（Next.js 側には影響させない）
+  "deno.enablePaths": ["frontend/supabase/functions"],
+  "deno.config": "frontend/supabase/functions/deno.json"
 }

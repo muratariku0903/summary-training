@@ -1,0 +1,107 @@
+name: Deploy Edge Functions
+
+on:
+  push:
+    branches:
+      - prod
+      - main
+      - stage
+      - develop
+      - feat-**
+    paths:
+      - frontend/supabase/functions/** # 関数が変わったら
+      - frontend/supabase/config.*.toml # 環境別 config を変えたら
+      - .github/workflows/deploy-edge-functions.yml
+  workflow_dispatch: {} # 手動実行もOK
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: edge-functions-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_DIR: frontend
+  # 環境名をブランチから決定（prod / stage / dev）
+  ENVIRONMENT: ${{ github.ref == 'refs/heads/prod' && 'prod' || github.ref == 'refs/heads/stage' && 'stage' || 'dev' }}
+
+  # ==== Supabase プロジェクトごとの値（リポジトリの Secrets/Vars に登録しておく）====
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  SUPABASE_PROJECT_ID: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_PROJECT_ID_PROD || github.ref == 'refs/heads/stage' && secrets.SUPABASE_PROJECT_ID_STG || secrets.SUPABASE_PROJECT_ID_DEV }}
+  SUPABASE_URL: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_URL_PROD         || github.ref == 'refs/heads/stage' && secrets.SUPABASE_URL_STG         || secrets.SUPABASE_URL_DEV }}
+  SUPABASE_DATABASE_PASSWORD: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_DATABASE_PASSWORD_PROD || github.ref == 'refs/heads/stage' && secrets.SUPABASE_DATABASE_PASSWORD_STG || secrets.SUPABASE_DATABASE_PASSWORD_DEV }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.SUPABASE_SERVICE_ROLE_KEY_PROD || github.ref == 'refs/heads/stage' && secrets.SUPABASE_SERVICE_ROLE_KEY_STG || secrets.SUPABASE_SERVICE_ROLE_KEY_DEV }}
+
+jobs:
+  deploy-edge-functions:
+    name: Deploy Edge Functions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Prepare Supabase config.toml
+        run: |
+          echo "Using Supabase config for '${{ env.ENVIRONMENT }}'"
+          cp config.${{ env.ENVIRONMENT }}.toml config.toml
+        working-directory: ${{ env.APP_DIR }}/supabase
+
+      - name: Link Supabase project (non-interactive)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ env.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase link --project-ref "${{ env.SUPABASE_PROJECT_ID }}" \
+                        --password "${{ env.SUPABASE_DATABASE_PASSWORD }}"
+        working-directory: ${{ env.APP_DIR }}/supabase
+
+      - name: Prepare branch-specific function (feat-* only) # feat環境ごと分けてデプロイ
+        if: startsWith(github.ref_name, 'feat-')
+        run: |
+          set -euo pipefail
+          cd functions
+
+          BR="${GITHUB_REF_NAME}"
+          # ブランチ名をスラッグ化（小文字＋英数/ハイフン以外をハイフンへ）
+          SLUG="$(echo "$BR" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9-]+/-/g')"
+          echo "Branch slug: ${SLUG}"
+
+          # 既存の同ブランチ派生を掃除（再実行時の衝突回避）
+          find . -maxdepth 1 -type d -name "*-${SLUG}" -prune -exec rm -rf {} +
+
+          # functions/ 配下のフォルダを総ざらい
+          for dir in */ ; do
+            base="${dir%/}"
+
+            # 共有/隠し/既に派生済みはスキップ
+            case "$base" in _*|.*) continue ;; esac
+            # （feat-派生を再帰コピーしない）
+            if [[ "$base" == *"-${SLUG}" ]] || [[ "$base" == *"-feat-"* ]]; then
+              continue
+            fi
+            # エントリがないもの（ユーティリティなど）を除外
+            if [[ ! -f "$base/index.ts" && ! -f "$base/index.tsx" && ! -f "$base/index.js" ]]; then
+              continue
+            fi
+
+            new="${base}-${SLUG}"
+            echo "Copying ${base} -> ${new}"
+            rm -rf "$new"
+            cp -R "$base" "$new"
+          done
+
+          echo "Done copying all functions for feat branch."
+        working-directory: ${{ env.APP_DIR }}/supabase
+
+      - name: Deploy Edge Functions
+        run: |
+          supabase functions deploy --project-ref "${{ env.SUPABASE_PROJECT_ID }}"  --use-api --import-map "functions/deno.json"
+          supabase functions list
+        working-directory: ${{ env.APP_DIR }}/supabase
