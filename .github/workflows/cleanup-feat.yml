@@ -1,0 +1,104 @@
+name: Cleanup Feature
+
+on:
+  # PR が develop にマージ（= closed かつ merged）されたとき
+  pull_request:
+    types: [closed]
+    branches: [develop] # ← dev ブランチ名に合わせて変更可
+  # 予防線: feat-* ブランチそのものが削除されたときも実行
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  APP_DIR: frontend
+
+  # dev 環境の Supabase プロジェクトを対象に削除
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID_DEV }}
+  SUPABASE_DATABASE_PASSWORD: ${{ secrets.SUPABASE_DATABASE_PASSWORD_DEV }}
+
+jobs:
+  cleanup-edge-functions:
+    # 条件:
+    # - PR イベント: merged=true かつ head が feat-*
+    # - delete イベント: そのまま実行（対象ブランチ名は github.event.ref）
+    if: >
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.merged == true &&
+       startsWith(github.event.pull_request.head.ref, 'feat-'))
+      || (github.event_name == 'delete')
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Compute feature slug
+        id: slug
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BR="${{ github.event.pull_request.head.ref }}"
+          else
+            BR="${{ github.event.ref }}"  # delete イベント
+          fi
+          # 小文字化 & 英数/ハイフン以外をハイフンへ
+          SLUG="$(echo "$BR" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9-]+/-/g')"
+          echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
+          echo "SLUG=$SLUG"
+
+      - name: Link Supabase (dev project)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ env.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase link --project-ref "${{ env.SUPABASE_PROJECT_ID }}" \
+                        --password "${{ env.SUPABASE_DATABASE_PASSWORD }}"
+        working-directory: ${{ env.APP_DIR }}/supabase
+
+      - name: Delete all feature-suffixed functions (-${{ steps.slug.outputs.slug }})
+        run: |
+          set -euo pipefail
+          cd functions
+
+          SLUG="${{ steps.slug.outputs.slug }}"
+          echo "Deleting functions that end with: -${SLUG}"
+
+          # 候補: リポジトリに存在する “ベース関数” 一覧から派生名を作る
+          # （*_shared などは除外。エントリが無いユーティリティも除外）
+          deleted_any=0
+          for dir in */ ; do
+            base="${dir%/}"
+            case "$base" in _*|.*) continue ;; esac
+            if [[ ! -f "$base/index.ts" && ! -f "$base/index.tsx" && ! -f "$base/index.js" ]]; then
+              continue
+            fi
+            derived="${base}-${SLUG}"
+            echo "::group::Delete ${derived}"
+            # 存在しない場合はエラーにせずスキップ
+            if supabase functions delete "${derived}" --project-ref "${{ env.SUPABASE_PROJECT_ID }}" ; then
+              echo "Deleted: ${derived}"
+              deleted_any=1
+            else
+              echo "Not found or already removed: ${derived} (skip)"
+            fi
+            echo "::endgroup::"
+          done
+
+          # 参考: プロジェクト内に “手作業で作った他の派生” がある可能性もあるので
+          # 必要なら `supabase functions list --output json` を使って
+          # `*-SLUG` 後方一致で総ざらいする拡張も可能です。
+
+          if [ "$deleted_any" -eq 0 ]; then
+            echo "No derived feature functions matched; nothing to delete."
+          fi
+        working-directory: ${{ env.APP_DIR }}/supabase
+
+      - name: List functions (after cleanup)
+        run: supabase functions list
+        working-directory: ${{ env.APP_DIR }}/supabase
