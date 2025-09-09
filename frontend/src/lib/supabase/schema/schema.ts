@@ -274,6 +274,51 @@ export type Database = {
           },
         ]
       }
+      oauth_clients: {
+        Row: {
+          client_id: string
+          client_name: string | null
+          client_secret_hash: string
+          client_uri: string | null
+          created_at: string
+          deleted_at: string | null
+          grant_types: string
+          id: string
+          logo_uri: string | null
+          redirect_uris: string
+          registration_type: Database["auth"]["Enums"]["oauth_registration_type"]
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          client_name?: string | null
+          client_secret_hash: string
+          client_uri?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          grant_types: string
+          id: string
+          logo_uri?: string | null
+          redirect_uris: string
+          registration_type: Database["auth"]["Enums"]["oauth_registration_type"]
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          client_name?: string | null
+          client_secret_hash?: string
+          client_uri?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          grant_types?: string
+          id?: string
+          logo_uri?: string | null
+          redirect_uris?: string
+          registration_type?: Database["auth"]["Enums"]["oauth_registration_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       one_time_tokens: {
         Row: {
           created_at: string
@@ -707,6 +752,7 @@ export type Database = {
       code_challenge_method: "s256" | "plain"
       factor_status: "unverified" | "verified"
       factor_type: "totp" | "webauthn" | "phone"
+      oauth_registration_type: "dynamic" | "manual"
       one_time_token_type:
         | "confirmation_token"
         | "reauthentication_token"
@@ -738,6 +784,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      exercise_generator_seeds: {
+        Row: {
+          created_at: string
+          fingerprint_sha256: string | null
+          generator_profile_id: string
+          id: string
+          idempotency_key: string | null
+          locale: string | null
+          meta: Json
+          raw_text: string | null
+          status: Database["public"]["Enums"]["seed_status"]
+          summary: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fingerprint_sha256?: string | null
+          generator_profile_id: string
+          id?: string
+          idempotency_key?: string | null
+          locale?: string | null
+          meta?: Json
+          raw_text?: string | null
+          status?: Database["public"]["Enums"]["seed_status"]
+          summary?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fingerprint_sha256?: string | null
+          generator_profile_id?: string
+          id?: string
+          idempotency_key?: string | null
+          locale?: string | null
+          meta?: Json
+          raw_text?: string | null
+          status?: Database["public"]["Enums"]["seed_status"]
+          summary?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_generator_seeds_generator_profile_id_fkey"
+            columns: ["generator_profile_id"]
+            isOneToOne: false
+            referencedRelation: "seed_generator_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercises: {
         Row: {
           create_type: Database["public"]["Enums"]["create_type"]
@@ -813,6 +912,99 @@ export type Database = {
         }
         Relationships: []
       }
+      llms: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          meta: Json
+          model: string
+          updated_at: string
+          vendor: Database["public"]["Enums"]["llm_vendor"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          meta?: Json
+          model: string
+          updated_at?: string
+          vendor: Database["public"]["Enums"]["llm_vendor"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          meta?: Json
+          model?: string
+          updated_at?: string
+          vendor?: Database["public"]["Enums"]["llm_vendor"]
+        }
+        Relationships: []
+      }
+      seed_generator_profiles: {
+        Row: {
+          config: Json
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          meta: Json
+          name: string
+          profile_type: Database["public"]["Enums"]["seed_profile_type"]
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          meta?: Json
+          name: string
+          profile_type: Database["public"]["Enums"]["seed_profile_type"]
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          meta?: Json
+          name?: string
+          profile_type?: Database["public"]["Enums"]["seed_profile_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      seed_generator_themes: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           avatar_url: string | null
@@ -877,6 +1069,9 @@ export type Database = {
       create_type: "system" | "user" | "admin" | "import"
       exercise_status: "draft" | "ready" | "hidden"
       exercise_type: "summary" | "explain" | "rewrite"
+      llm_vendor: "openai" | "google" | "anthropic"
+      seed_profile_type: "ai_theme" | "youtube_channels" | "web" | "storage"
+      seed_status: "active" | "paused" | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1451,6 +1646,7 @@ export const Constants = {
       code_challenge_method: ["s256", "plain"],
       factor_status: ["unverified", "verified"],
       factor_type: ["totp", "webauthn", "phone"],
+      oauth_registration_type: ["dynamic", "manual"],
       one_time_token_type: [
         "confirmation_token",
         "reauthentication_token",
@@ -1469,6 +1665,9 @@ export const Constants = {
       create_type: ["system", "user", "admin", "import"],
       exercise_status: ["draft", "ready", "hidden"],
       exercise_type: ["summary", "explain", "rewrite"],
+      llm_vendor: ["openai", "google", "anthropic"],
+      seed_profile_type: ["ai_theme", "youtube_channels", "web", "storage"],
+      seed_status: ["active", "paused", "archived"],
     },
   },
   storage: {
