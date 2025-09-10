@@ -1,5 +1,5 @@
 {
-  "cSpell.words": ["descope", "lhci", "magiclink", "MAILPIT", "vercel"],
+  "cSpell.words": ["descope", "lhci", "llms", "magiclink", "MAILPIT", "vercel"],
   "github.copilot.advanced": {},
   "github.copilot.chat.agent.runTasks": false,
   "deno.enable": true,
