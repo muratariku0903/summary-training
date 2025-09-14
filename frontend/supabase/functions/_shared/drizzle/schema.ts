@@ -15,7 +15,6 @@ export const seedGeneratorThemes = pgTable('seed_generator_themes', {
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   created_by: text('created_by'), // enum: seed_generator_theme_created_type
   description: text('description'),
-  status: text('status').default('active').notNull(),
   is_active: boolean('is_active').default(false).notNull(),
   title: text('title'),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),

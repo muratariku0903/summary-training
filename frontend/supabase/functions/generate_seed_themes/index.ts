@@ -110,7 +110,8 @@ Deno.serve(async (req) => {
               title: generateThemeData.themeTitle,
               description: generateThemeData.themeDescription,
               canonical_key: generateThemeData.canonicalKey,
-              status: 'active',
+              created_by: 'system',
+              is_active: true,
             })
             .returning({ id: seedGeneratorThemes.id })
 
