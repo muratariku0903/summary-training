@@ -2,6 +2,7 @@ import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 
 const SUPABASE_DB_URL = Deno.env.get('SUPABASE_DB_URL')!
+console.log('SUPABASE_DB_URL: ', SUPABASE_DB_URL)
 
 const sql = postgres(SUPABASE_DB_URL, {
   max: 1,
