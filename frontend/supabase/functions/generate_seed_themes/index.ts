@@ -92,6 +92,7 @@ Deno.serve(async (req) => {
         })
         continue
       }
+      console.log('generateThemeData: ', generateThemeData)
 
       // 作成されたテーマを保存
       try {
