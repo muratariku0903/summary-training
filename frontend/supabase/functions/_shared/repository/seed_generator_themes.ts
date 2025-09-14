@@ -74,7 +74,9 @@ export async function isSimilarTheme(
     return { success: false, error: error.message }
   }
 
-  if (!data) {
+  console.log('find_similar_themes: ', data)
+
+  if (!data || (data && data.length === 0)) {
     return {
       success: true,
       data: { hit: false },
