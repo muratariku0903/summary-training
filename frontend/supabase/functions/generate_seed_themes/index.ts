@@ -57,6 +57,7 @@ Deno.serve(async (req) => {
     const { generate_theme_count } = parseData
 
     const executionCount = generate_theme_count ?? 1
+    console.log('executionCount:', executionCount)
     const results: Result[] = []
     for (let i = 0; i < executionCount; i++) {
       // カテゴリーをランダムに取得
@@ -74,13 +75,14 @@ Deno.serve(async (req) => {
         })
         continue
       }
+      console.log('pick category: ', category.name)
 
       // テーマを作成(テーマが既存のテーマと重複したら再作成)
       const {
         success: generateThemeSuccess,
         data: generateThemeData,
         error: generateThemeError,
-      } = await generateTheme({ category, maxRetryCount: 5 })
+      } = await generateTheme({ category, maxRetryCount: 3 })
       if (!generateThemeSuccess) {
         results.push({
           execution: i + 1,
@@ -191,6 +193,8 @@ const generateTheme = async (
     if (!generateSeedThemeSuccess) {
       return { success: false, error: generateSeedThemeError }
     }
+    console.log('generated theme title: ', generatedTheme.title)
+    console.log('generated theme description: ', generatedTheme.description)
 
     theme = generatedTheme
 
@@ -208,6 +212,7 @@ const generateTheme = async (
     if (!isExactSimilarThemeSuccess) {
       return { success: false, error: isExactSimilarThemeError }
     }
+    console.log('existsExactSimilarTheme: ', existsExactSimilarTheme)
     if (existsExactSimilarTheme) {
       retryCount++
       continue // 重複テーマのため再試行
@@ -225,6 +230,7 @@ const generateTheme = async (
     if (!isSimilarThemeSuccess) {
       return { success: false, error: isSimilarThemeError }
     }
+    console.log('isSimilarThemeData: ', isSimilarThemeData)
     if (isSimilarThemeData.hit) {
       retryCount++
       continue // 重複テーマのため再試行
