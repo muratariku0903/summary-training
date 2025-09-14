@@ -10,7 +10,7 @@ import {
 } from '../_shared/repository/seed_generator_themes.ts'
 import { normalizeCanonical } from '../_shared/utils/utils.ts'
 import { SeedGeneratorCategoriesRow } from '../_shared/types/seed_generator_categories.ts'
-import { drizzleDB } from '../_shared/drizzle/client.ts'
+import { drizzleDB, testConnection } from '../_shared/drizzle/client.ts'
 import {
   seedGeneratorThemeCategories,
   seedGeneratorThemes,
@@ -33,6 +33,19 @@ type Result = {
 }
 
 Deno.serve(async (req) => {
+  try {
+    // 接続テスト（オプション）
+    const isConnected = await testConnection()
+    if (!isConnected) {
+      return jsonErr({ ok: false, error: 'Database connection failed' }, 500)
+    }
+
+    // ...existing code...
+  } catch (e) {
+    console.error('unexpected error', e)
+    return jsonErr({ ok: false, error: String(e) }, 500)
+  }
+
   try {
     if (CRON_SECRET) {
       const given = req.headers.get('x-cron-secret')
