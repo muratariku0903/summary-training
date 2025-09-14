@@ -1,15 +1,13 @@
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 
-const SUPABASE_DB_URL = Deno.env.get('SUPABASE_DB_URL')!
-console.log('SUPABASE_DB_URL: ', SUPABASE_DB_URL)
+const TRANSACTION_POOLER_URL = Deno.env.get('TRANSACTION_POOLER_URL')!
 
-const sql = postgres(SUPABASE_DB_URL, {
+const sql = postgres(TRANSACTION_POOLER_URL, {
   max: 1,
   idle_timeout: 0,
   connect_timeout: 10,
   prepare: false,
-  ssl: 'require',
 })
 
 export const drizzleDB = drizzle(sql)
