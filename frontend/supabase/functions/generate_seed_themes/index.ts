@@ -40,13 +40,6 @@ Deno.serve(async (req) => {
       return jsonErr({ ok: false, error: 'Database connection failed' }, 500)
     }
 
-    // ...existing code...
-  } catch (e) {
-    console.error('unexpected error', e)
-    return jsonErr({ ok: false, error: String(e) }, 500)
-  }
-
-  try {
     if (CRON_SECRET) {
       const given = req.headers.get('x-cron-secret')
       if (given !== CRON_SECRET)
