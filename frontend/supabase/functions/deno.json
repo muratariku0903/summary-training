@@ -1,6 +1,9 @@
 {
   "imports": {
-    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2",
+    "postgres": "npm:postgres@3.4.5",
+    "drizzle-orm": "npm:drizzle-orm@0.33.0",
+    "drizzle-orm/": "npm:/drizzle-orm@0.33.0/"
   },
   "compilerOptions": {
     "lib": ["deno.ns", "deno.window", "dom", "dom.iterable"]

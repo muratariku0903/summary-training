@@ -2,7 +2,11 @@
   "version": "5",
   "specifiers": {
     "npm:@supabase/supabase-js@2": "2.57.2",
-    "npm:@types/node@*": "24.2.0"
+    "npm:@types/node@*": "24.2.0",
+    "npm:drizzle-orm@*": "0.44.5_postgres@3.4.7_postgres@3.4.5",
+    "npm:drizzle-orm@0.33.0": "0.33.0_postgres@3.4.5",
+    "npm:postgres@*": "3.4.7",
+    "npm:postgres@3.4.5": "3.4.5"
   },
   "npm": {
     "@supabase/auth-js@2.71.1": {
@@ -70,6 +74,39 @@
         "@types/node"
       ]
     },
+    "drizzle-orm@0.33.0_postgres@3.4.5": {
+      "integrity": "sha512-SHy72R2Rdkz0LEq0PSG/IdvnT3nGiWuRk+2tXZQ90GVq/XQhpCzu/EFT3V2rox+w8MlkBQxifF8pCStNYnERfA==",
+      "dependencies": [
+        "postgres@3.4.5"
+      ],
+      "optionalPeers": [
+        "postgres@3.4.5"
+      ]
+    },
+    "drizzle-orm@0.44.5_postgres@3.4.7": {
+      "integrity": "sha512-jBe37K7d8ZSKptdKfakQFdeljtu3P2Cbo7tJoJSVZADzIKOBo9IAJPOmMsH2bZl90bZgh8FQlD8BjxXA/zuBkQ==",
+      "dependencies": [
+        "postgres@3.4.7"
+      ],
+      "optionalPeers": [
+        "postgres@3.4.7"
+      ]
+    },
+    "drizzle-orm@0.44.5_postgres@3.4.7_postgres@3.4.5": {
+      "integrity": "sha512-jBe37K7d8ZSKptdKfakQFdeljtu3P2Cbo7tJoJSVZADzIKOBo9IAJPOmMsH2bZl90bZgh8FQlD8BjxXA/zuBkQ==",
+      "dependencies": [
+        "postgres@3.4.5"
+      ],
+      "optionalPeers": [
+        "postgres@3.4.5"
+      ]
+    },
+    "postgres@3.4.5": {
+      "integrity": "sha512-cDWgoah1Gez9rN3H4165peY9qfpEo+SA61oQv65O3cRUE1pOEoJWwddwcqKE8XZYjbblOJlYDlLV4h67HrEVDg=="
+    },
+    "postgres@3.4.7": {
+      "integrity": "sha512-Jtc2612XINuBjIl/QTWsV5UvE8UHuNblcO3vVADSrKsrc6RqGX6lOW1cEo3CM2v0XG4Nat8nI+YM7/f26VxXLw=="
+    },
     "tr46@0.0.3": {
       "integrity": "sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw=="
     },
@@ -94,6 +131,7 @@
     "https://esm.sh/@supabase/node-fetch@^2.6.13?target=denonext": "https://esm.sh/@supabase/node-fetch@2.6.15?target=denonext",
     "https://esm.sh/@supabase/node-fetch@^2.6.14?target=denonext": "https://esm.sh/@supabase/node-fetch@2.6.15?target=denonext",
     "https://esm.sh/@supabase/storage-js@^2.10.4?target=denonext": "https://esm.sh/@supabase/storage-js@2.11.0?target=denonext",
+    "https://esm.sh/@supabase/supabase-js@2": "https://esm.sh/@supabase/supabase-js@2.56.1",
     "https://esm.sh/tr46@~0.0.3?target=denonext": "https://esm.sh/tr46@0.0.3?target=denonext",
     "https://esm.sh/webidl-conversions@^3.0.0?target=denonext": "https://esm.sh/webidl-conversions@3.0.1?target=denonext",
     "https://esm.sh/whatwg-url@^5.0.0?target=denonext": "https://esm.sh/whatwg-url@5.0.0?target=denonext"
@@ -107,7 +145,9 @@
     "https://esm.sh/@supabase/realtime-js@2.15.4/denonext/realtime-js.mjs": "014803e3c1776dfe9c0c05c4f890252c66afce791fe1d93ecf687d7e773febcc",
     "https://esm.sh/@supabase/storage-js@2.11.0/denonext/storage-js.mjs": "86f098636aef56302e6a7389b8eba859874180b0857661be196c3cce387b6461",
     "https://esm.sh/@supabase/storage-js@2.11.0?target=denonext": "d7e8b6651554f79445c88d1beaa8c5e2fcb960a6f67449e4903f532ea3301539",
+    "https://esm.sh/@supabase/supabase-js@2.56.1": "5cc7adee6789b3c1bd9959694ee1564da6005b87ef7bae8fd4e595e5959a5ccd",
     "https://esm.sh/@supabase/supabase-js@2.56.1/denonext/dist/module/SupabaseClient.mjs": "b4bfe316075d2adf4962fe3f03253b7b2c9d5d940ce3979374b1510237704c74",
+    "https://esm.sh/@supabase/supabase-js@2.56.1/denonext/supabase-js.mjs": "5b73fda4c976f0061ce33ba4f403bbb03a254304d93a4eb610d1a27d10404675",
     "https://esm.sh/@supabase/supabase-js@2.56.1/dist/module/SupabaseClient.js": "802fc5068c169ac5524baee081e8506d11c61843480b3aa7bda35b942c39672f",
     "https://esm.sh/openai@4.55.3": "b8d2b2f0709fd3f831311300c53d1fd00476e0e30be0ef190e0feabcc9adc849",
     "https://esm.sh/openai@4.55.3/denonext/_shims/MultipartBody.mjs": "f4357bfacbf3392e64df1a51c6b6947a562ef3dda8be1709089b57f00e15dc37",
@@ -174,5 +214,11 @@
     "https://esm.sh/whatwg-url@5.0.0?target=denonext": "f001a2cadf81312d214ca330033f474e74d81a003e21e8c5d70a1f46dc97b02d",
     "https://esm.sh/zod@3.23.8": "15e60c792ac21d4818f181671c7c74bf33bf7526d487dc524911e42785d8b5c2",
     "https://esm.sh/zod@3.23.8/denonext/zod.mjs": "0776ff1b85cde578a80a14b7921d72dbf17ba4de827f5ddf9c3423d7ab8562cf"
+  },
+  "workspace": {
+    "dependencies": [
+      "npm:drizzle-orm@0.33.0",
+      "npm:postgres@3.4.5"
+    ]
   }
 }
