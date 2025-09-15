@@ -79,6 +79,8 @@ export const generateSeed = async (
     ],
   })
 
+  console.log('openai.chat.completions.create: ', res)
+
   const content = res.choices?.[0]?.message?.content
   if (!content) throw new Error('OpenAI returned no content')
 
