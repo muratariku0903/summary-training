@@ -16,6 +16,8 @@ type GenerateSeedResult = {
 type GenerateExerciseSeedParams = {
   client: SupabaseClient<Database>
   profileId: string
+  themeId: string | null
+  llmId: string | null
   seedData: GenerateSeedResult
 }
 type GenerateExerciseSeedResponse =
@@ -29,14 +31,16 @@ type GenerateExerciseSeedResponse =
       data?: never
       error: string
     }
-export const generateExerciseSeed = async (
+export const saveSeed = async (
   params: GenerateExerciseSeedParams,
 ): Promise<GenerateExerciseSeedResponse> => {
-  const { client, profileId, seedData } = params
+  const { client, profileId, themeId, llmId, seedData } = params
 
   const row: ExerciseGeneratorSeedsInsertRow = {
     status: 'active',
     generator_profile_id: profileId,
+    theme_id: themeId,
+    llm_id: llmId,
     title: seedData.title,
     summary: seedData.summary,
     raw_text: seedData.rawText,
@@ -82,7 +86,11 @@ type GenerateSeedFromThemeParams = {
 type GenerateSeedFromThemeResponse =
   | {
       success: true
-      data: GenerateSeedResult
+      data: {
+        themeId: string
+        llmId: string
+        result: GenerateSeedResult
+      }
       error?: never
     }
   | {
@@ -91,7 +99,7 @@ type GenerateSeedFromThemeResponse =
       error: string
     }
 
-export const generateSeedFromTheme = async (
+export const generateSeedDataFromTheme = async (
   params: GenerateSeedFromThemeParams,
 ): Promise<GenerateSeedFromThemeResponse> => {
   const { client, config } = params
@@ -182,10 +190,14 @@ export const generateSeedFromTheme = async (
       return {
         success: true,
         data: {
-          locale: 'ja_JP',
-          title: data.title,
-          summary: data.description,
-          rawText: data.body,
+          themeId: targetTheme.id,
+          llmId: targetLlm.id,
+          result: {
+            locale: 'ja_JP',
+            title: data.title,
+            summary: data.description,
+            rawText: data.body,
+          },
         },
       }
     }

@@ -21,11 +21,13 @@ export type Database = {
           generator_profile_id: string
           id: string
           idempotency_key: string | null
+          llm_id: string | null
           locale: string | null
           meta: Json
           raw_text: string | null
           status: Database["public"]["Enums"]["seed_status"]
           summary: string | null
+          theme_id: string | null
           title: string | null
           updated_at: string
         }
@@ -35,11 +37,13 @@ export type Database = {
           generator_profile_id: string
           id?: string
           idempotency_key?: string | null
+          llm_id?: string | null
           locale?: string | null
           meta?: Json
           raw_text?: string | null
           status?: Database["public"]["Enums"]["seed_status"]
           summary?: string | null
+          theme_id?: string | null
           title?: string | null
           updated_at?: string
         }
@@ -49,11 +53,13 @@ export type Database = {
           generator_profile_id?: string
           id?: string
           idempotency_key?: string | null
+          llm_id?: string | null
           locale?: string | null
           meta?: Json
           raw_text?: string | null
           status?: Database["public"]["Enums"]["seed_status"]
           summary?: string | null
+          theme_id?: string | null
           title?: string | null
           updated_at?: string
         }
@@ -63,6 +69,20 @@ export type Database = {
             columns: ["generator_profile_id"]
             isOneToOne: false
             referencedRelation: "seed_generator_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_generator_seeds_llm_id_fkey"
+            columns: ["llm_id"]
+            isOneToOne: false
+            referencedRelation: "llms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_generator_seeds_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "seed_generator_themes"
             referencedColumns: ["id"]
           },
         ]

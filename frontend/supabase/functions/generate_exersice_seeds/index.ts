@@ -2,9 +2,9 @@ import { createClient } from '@supabase/supabase-js'
 import { z } from 'https://esm.sh/zod@3.23.8'
 import type { Database } from '../_shared/types/database.ts'
 import {
-  generateExerciseSeed,
-  generateSeedFromTheme,
+  generateSeedDataFromTheme,
   generateSeedFromThemeConfigSchema,
+  saveSeed,
 } from './_shared/seed_generator.ts'
 import { jsonErr, jsonOk } from '../_shared/http/http.ts'
 
@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
           success: seedSuccess,
           data: seedData,
           error: seedError,
-        } = await generateSeedFromTheme({ client: supabase, config: parseData })
+        } = await generateSeedDataFromTheme({ client: supabase, config: parseData })
         if (!seedSuccess) {
           throw new Error(`fail generate seed data from theme: ${seedError}`)
         }
@@ -77,10 +77,12 @@ Deno.serve(async (req) => {
           success: generateSuccess,
           data: generateData,
           error: generateError,
-        } = await generateExerciseSeed({
+        } = await saveSeed({
           client: supabase,
           profileId: profile_id,
-          seedData,
+          themeId: seedData.themeId,
+          llmId: seedData.llmId,
+          seedData: seedData.result,
         })
         if (!generateSuccess) {
           throw new Error(`fail generate exercise seed: ${generateError}`)

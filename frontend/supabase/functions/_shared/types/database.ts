@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: '12.2.3 (519615d)'
+    PostgrestVersion: "12.2.3 (519615d)"
   }
   public: {
     Tables: {
@@ -21,11 +21,13 @@ export type Database = {
           generator_profile_id: string
           id: string
           idempotency_key: string | null
+          llm_id: string | null
           locale: string | null
           meta: Json
           raw_text: string | null
-          status: Database['public']['Enums']['seed_status']
+          status: Database["public"]["Enums"]["seed_status"]
           summary: string | null
+          theme_id: string | null
           title: string | null
           updated_at: string
         }
@@ -35,11 +37,13 @@ export type Database = {
           generator_profile_id: string
           id?: string
           idempotency_key?: string | null
+          llm_id?: string | null
           locale?: string | null
           meta?: Json
           raw_text?: string | null
-          status?: Database['public']['Enums']['seed_status']
+          status?: Database["public"]["Enums"]["seed_status"]
           summary?: string | null
+          theme_id?: string | null
           title?: string | null
           updated_at?: string
         }
@@ -49,60 +53,76 @@ export type Database = {
           generator_profile_id?: string
           id?: string
           idempotency_key?: string | null
+          llm_id?: string | null
           locale?: string | null
           meta?: Json
           raw_text?: string | null
-          status?: Database['public']['Enums']['seed_status']
+          status?: Database["public"]["Enums"]["seed_status"]
           summary?: string | null
+          theme_id?: string | null
           title?: string | null
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: 'exercise_generator_seeds_generator_profile_id_fkey'
-            columns: ['generator_profile_id']
+            foreignKeyName: "exercise_generator_seeds_generator_profile_id_fkey"
+            columns: ["generator_profile_id"]
             isOneToOne: false
-            referencedRelation: 'seed_generator_profiles'
-            referencedColumns: ['id']
+            referencedRelation: "seed_generator_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_generator_seeds_llm_id_fkey"
+            columns: ["llm_id"]
+            isOneToOne: false
+            referencedRelation: "llms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_generator_seeds_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "seed_generator_themes"
+            referencedColumns: ["id"]
           },
         ]
       }
       exercises: {
         Row: {
-          create_type: Database['public']['Enums']['create_type']
+          create_type: Database["public"]["Enums"]["create_type"]
           created_at: string
           created_by: string | null
           description: string | null
           difficulty: number
-          exercise_type: Database['public']['Enums']['exercise_type']
+          exercise_type: Database["public"]["Enums"]["exercise_type"]
           id: string
-          status: Database['public']['Enums']['exercise_status']
+          status: Database["public"]["Enums"]["exercise_status"]
           storage_path: string
           title: string
           updated_at: string
         }
         Insert: {
-          create_type: Database['public']['Enums']['create_type']
+          create_type: Database["public"]["Enums"]["create_type"]
           created_at?: string
           created_by?: string | null
           description?: string | null
           difficulty?: number
-          exercise_type: Database['public']['Enums']['exercise_type']
+          exercise_type: Database["public"]["Enums"]["exercise_type"]
           id?: string
-          status?: Database['public']['Enums']['exercise_status']
+          status?: Database["public"]["Enums"]["exercise_status"]
           storage_path: string
           title: string
           updated_at?: string
         }
         Update: {
-          create_type?: Database['public']['Enums']['create_type']
+          create_type?: Database["public"]["Enums"]["create_type"]
           created_at?: string
           created_by?: string | null
           description?: string | null
           difficulty?: number
-          exercise_type?: Database['public']['Enums']['exercise_type']
+          exercise_type?: Database["public"]["Enums"]["exercise_type"]
           id?: string
-          status?: Database['public']['Enums']['exercise_status']
+          status?: Database["public"]["Enums"]["exercise_status"]
           storage_path?: string
           title?: string
           updated_at?: string
@@ -150,7 +170,7 @@ export type Database = {
           meta: Json
           model: string
           updated_at: string
-          vendor: Database['public']['Enums']['llm_vendor']
+          vendor: Database["public"]["Enums"]["llm_vendor"]
         }
         Insert: {
           created_at?: string
@@ -159,7 +179,7 @@ export type Database = {
           meta?: Json
           model: string
           updated_at?: string
-          vendor: Database['public']['Enums']['llm_vendor']
+          vendor: Database["public"]["Enums"]["llm_vendor"]
         }
         Update: {
           created_at?: string
@@ -168,7 +188,7 @@ export type Database = {
           meta?: Json
           model?: string
           updated_at?: string
-          vendor?: Database['public']['Enums']['llm_vendor']
+          vendor?: Database["public"]["Enums"]["llm_vendor"]
         }
         Relationships: []
       }
@@ -199,11 +219,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'seed_generator_categories_parent_id_fkey'
-            columns: ['parent_id']
+            foreignKeyName: "seed_generator_categories_parent_id_fkey"
+            columns: ["parent_id"]
             isOneToOne: false
-            referencedRelation: 'seed_generator_categories'
-            referencedColumns: ['id']
+            referencedRelation: "seed_generator_categories"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -216,7 +236,7 @@ export type Database = {
           is_active: boolean
           meta: Json
           name: string
-          profile_type: Database['public']['Enums']['seed_profile_type']
+          profile_type: Database["public"]["Enums"]["seed_profile_type"]
           updated_at: string
         }
         Insert: {
@@ -227,7 +247,7 @@ export type Database = {
           is_active?: boolean
           meta?: Json
           name: string
-          profile_type: Database['public']['Enums']['seed_profile_type']
+          profile_type: Database["public"]["Enums"]["seed_profile_type"]
           updated_at?: string
         }
         Update: {
@@ -238,7 +258,7 @@ export type Database = {
           is_active?: boolean
           meta?: Json
           name?: string
-          profile_type?: Database['public']['Enums']['seed_profile_type']
+          profile_type?: Database["public"]["Enums"]["seed_profile_type"]
           updated_at?: string
         }
         Relationships: []
@@ -258,18 +278,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'seed_generator_theme_categories_category_id_fkey'
-            columns: ['category_id']
+            foreignKeyName: "seed_generator_theme_categories_category_id_fkey"
+            columns: ["category_id"]
             isOneToOne: false
-            referencedRelation: 'seed_generator_categories'
-            referencedColumns: ['id']
+            referencedRelation: "seed_generator_categories"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'seed_generator_theme_categories_theme_id_fkey'
-            columns: ['theme_id']
+            foreignKeyName: "seed_generator_theme_categories_theme_id_fkey"
+            columns: ["theme_id"]
             isOneToOne: false
-            referencedRelation: 'seed_generator_themes'
-            referencedColumns: ['id']
+            referencedRelation: "seed_generator_themes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -278,7 +298,7 @@ export type Database = {
           canonical_key: string
           created_at: string
           created_by:
-            | Database['public']['Enums']['seed_generator_theme_created_type']
+            | Database["public"]["Enums"]["seed_generator_theme_created_type"]
             | null
           description: string | null
           id: string
@@ -290,7 +310,7 @@ export type Database = {
           canonical_key?: string
           created_at?: string
           created_by?:
-            | Database['public']['Enums']['seed_generator_theme_created_type']
+            | Database["public"]["Enums"]["seed_generator_theme_created_type"]
             | null
           description?: string | null
           id?: string
@@ -302,7 +322,7 @@ export type Database = {
           canonical_key?: string
           created_at?: string
           created_by?:
-            | Database['public']['Enums']['seed_generator_theme_created_type']
+            | Database["public"]["Enums"]["seed_generator_theme_created_type"]
             | null
           description?: string | null
           id?: string
@@ -348,27 +368,27 @@ export type Database = {
     }
     Functions: {
       citext: {
-        Args: { '': boolean } | { '': string } | { '': unknown }
+        Args: { "": boolean } | { "": string } | { "": unknown }
         Returns: string
       }
       citext_hash: {
-        Args: { '': string }
+        Args: { "": string }
         Returns: number
       }
       citextin: {
-        Args: { '': unknown }
+        Args: { "": unknown }
         Returns: string
       }
       citextout: {
-        Args: { '': string }
+        Args: { "": string }
         Returns: unknown
       }
       citextrecv: {
-        Args: { '': unknown }
+        Args: { "": unknown }
         Returns: string
       }
       citextsend: {
-        Args: { '': string }
+        Args: { "": string }
         Returns: string
       }
       find_similar_themes: {
@@ -380,27 +400,27 @@ export type Database = {
         }[]
       }
       gtrgm_compress: {
-        Args: { '': unknown }
+        Args: { "": unknown }
         Returns: unknown
       }
       gtrgm_decompress: {
-        Args: { '': unknown }
+        Args: { "": unknown }
         Returns: unknown
       }
       gtrgm_in: {
-        Args: { '': unknown }
+        Args: { "": unknown }
         Returns: unknown
       }
       gtrgm_options: {
-        Args: { '': unknown }
+        Args: { "": unknown }
         Returns: undefined
       }
       gtrgm_out: {
-        Args: { '': unknown }
+        Args: { "": unknown }
         Returns: unknown
       }
       set_limit: {
-        Args: { '': number }
+        Args: { "": number }
         Returns: number
       }
       show_limit: {
@@ -408,18 +428,18 @@ export type Database = {
         Returns: number
       }
       show_trgm: {
-        Args: { '': string }
+        Args: { "": string }
         Returns: string[]
       }
     }
     Enums: {
-      create_type: 'system' | 'user' | 'admin' | 'import'
-      exercise_status: 'draft' | 'ready' | 'hidden'
-      exercise_type: 'summary' | 'explain' | 'rewrite'
-      llm_vendor: 'openai' | 'google' | 'anthropic'
-      seed_generator_theme_created_type: 'system' | 'admin'
-      seed_profile_type: 'ai_theme' | 'youtube_channels' | 'web' | 'storage'
-      seed_status: 'active' | 'paused' | 'archived'
+      create_type: "system" | "user" | "admin" | "import"
+      exercise_status: "draft" | "ready" | "hidden"
+      exercise_type: "summary" | "explain" | "rewrite"
+      llm_vendor: "openai" | "google" | "anthropic"
+      seed_generator_theme_created_type: "system" | "admin"
+      seed_profile_type: "ai_theme" | "youtube_channels" | "web" | "storage"
+      seed_status: "active" | "paused" | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -438,7 +458,7 @@ export type Database = {
           owner: string | null
           owner_id: string | null
           public: boolean | null
-          type: Database['storage']['Enums']['buckettype']
+          type: Database["storage"]["Enums"]["buckettype"]
           updated_at: string | null
         }
         Insert: {
@@ -451,7 +471,7 @@ export type Database = {
           owner?: string | null
           owner_id?: string | null
           public?: boolean | null
-          type?: Database['storage']['Enums']['buckettype']
+          type?: Database["storage"]["Enums"]["buckettype"]
           updated_at?: string | null
         }
         Update: {
@@ -464,7 +484,7 @@ export type Database = {
           owner?: string | null
           owner_id?: string | null
           public?: boolean | null
-          type?: Database['storage']['Enums']['buckettype']
+          type?: Database["storage"]["Enums"]["buckettype"]
           updated_at?: string | null
         }
         Relationships: []
@@ -474,21 +494,21 @@ export type Database = {
           created_at: string
           format: string
           id: string
-          type: Database['storage']['Enums']['buckettype']
+          type: Database["storage"]["Enums"]["buckettype"]
           updated_at: string
         }
         Insert: {
           created_at?: string
           format?: string
           id: string
-          type?: Database['storage']['Enums']['buckettype']
+          type?: Database["storage"]["Enums"]["buckettype"]
           updated_at?: string
         }
         Update: {
           created_at?: string
           format?: string
           id?: string
-          type?: Database['storage']['Enums']['buckettype']
+          type?: Database["storage"]["Enums"]["buckettype"]
           updated_at?: string
         }
         Relationships: []
@@ -562,11 +582,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'objects_bucketId_fkey'
-            columns: ['bucket_id']
+            foreignKeyName: "objects_bucketId_fkey"
+            columns: ["bucket_id"]
             isOneToOne: false
-            referencedRelation: 'buckets'
-            referencedColumns: ['id']
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -594,11 +614,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'prefixes_bucketId_fkey'
-            columns: ['bucket_id']
+            foreignKeyName: "prefixes_bucketId_fkey"
+            columns: ["bucket_id"]
             isOneToOne: false
-            referencedRelation: 'buckets'
-            referencedColumns: ['id']
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -638,11 +658,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 's3_multipart_uploads_bucket_id_fkey'
-            columns: ['bucket_id']
+            foreignKeyName: "s3_multipart_uploads_bucket_id_fkey"
+            columns: ["bucket_id"]
             isOneToOne: false
-            referencedRelation: 'buckets'
-            referencedColumns: ['id']
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -685,18 +705,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 's3_multipart_uploads_parts_bucket_id_fkey'
-            columns: ['bucket_id']
+            foreignKeyName: "s3_multipart_uploads_parts_bucket_id_fkey"
+            columns: ["bucket_id"]
             isOneToOne: false
-            referencedRelation: 'buckets'
-            referencedColumns: ['id']
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 's3_multipart_uploads_parts_upload_id_fkey'
-            columns: ['upload_id']
+            foreignKeyName: "s3_multipart_uploads_parts_upload_id_fkey"
+            columns: ["upload_id"]
             isOneToOne: false
-            referencedRelation: 's3_multipart_uploads'
-            referencedColumns: ['id']
+            referencedRelation: "s3_multipart_uploads"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -862,7 +882,7 @@ export type Database = {
       }
     }
     Enums: {
-      buckettype: 'STANDARD' | 'ANALYTICS'
+      buckettype: "STANDARD" | "ANALYTICS"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -870,33 +890,33 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] &
-        DefaultSchema['Views'])
-    ? (DefaultSchema['Tables'] &
-        DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -905,23 +925,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -930,23 +950,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -955,53 +975,53 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
-    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
-    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
   public: {
     Enums: {
-      create_type: ['system', 'user', 'admin', 'import'],
-      exercise_status: ['draft', 'ready', 'hidden'],
-      exercise_type: ['summary', 'explain', 'rewrite'],
-      llm_vendor: ['openai', 'google', 'anthropic'],
-      seed_generator_theme_created_type: ['system', 'admin'],
-      seed_profile_type: ['ai_theme', 'youtube_channels', 'web', 'storage'],
-      seed_status: ['active', 'paused', 'archived'],
+      create_type: ["system", "user", "admin", "import"],
+      exercise_status: ["draft", "ready", "hidden"],
+      exercise_type: ["summary", "explain", "rewrite"],
+      llm_vendor: ["openai", "google", "anthropic"],
+      seed_generator_theme_created_type: ["system", "admin"],
+      seed_profile_type: ["ai_theme", "youtube_channels", "web", "storage"],
+      seed_status: ["active", "paused", "archived"],
     },
   },
   storage: {
     Enums: {
-      buckettype: ['STANDARD', 'ANALYTICS'],
+      buckettype: ["STANDARD", "ANALYTICS"],
     },
   },
 } as const
