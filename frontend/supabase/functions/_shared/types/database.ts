@@ -25,6 +25,7 @@ export type Database = {
           locale: string | null
           meta: Json
           raw_text: string | null
+          raw_text_trgm_generated: string | null
           status: Database["public"]["Enums"]["seed_status"]
           summary: string | null
           theme_id: string | null
@@ -41,6 +42,7 @@ export type Database = {
           locale?: string | null
           meta?: Json
           raw_text?: string | null
+          raw_text_trgm_generated?: string | null
           status?: Database["public"]["Enums"]["seed_status"]
           summary?: string | null
           theme_id?: string | null
@@ -57,6 +59,7 @@ export type Database = {
           locale?: string | null
           meta?: Json
           raw_text?: string | null
+          raw_text_trgm_generated?: string | null
           status?: Database["public"]["Enums"]["seed_status"]
           summary?: string | null
           theme_id?: string | null
@@ -367,6 +370,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _trgm_normalize: {
+        Args: { s: string }
+        Returns: string
+      }
       citext: {
         Args: { "": boolean } | { "": string } | { "": unknown }
         Returns: string
@@ -390,6 +397,24 @@ export type Database = {
       citextsend: {
         Args: { "": string }
         Returns: string
+      }
+      find_similar_seeds_by_raw_text: {
+        Args: { lim?: number; min_sim?: number; q: string }
+        Returns: {
+          id: string
+          sim: number
+          snippet: string
+          title: string
+        }[]
+      }
+      find_similar_seeds_by_title: {
+        Args: { lim?: number; min_sim?: number; q: string }
+        Returns: {
+          id: string
+          sim: number
+          snippet: string
+          title: string
+        }[]
       }
       find_similar_themes: {
         Args: { lim?: number; min_sim?: number; q: string }

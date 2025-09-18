@@ -22,11 +22,15 @@ type GenerateSeedParams = {
     maxChars?: number
     temperature?: number
   }
+  duplicateChecker?: (
+    data: GenerateSeedData,
+  ) => Promise<{ duplicate: boolean; duplicateReason: string | null }>
+  maxRetries?: number
 }
 type GenerateSeedResponse =
   | {
       success: true
-      data: GenerateSeedData
+      data: GenerateSeedData & { attempts: number }
       error?: never
     }
   | {
@@ -37,7 +41,14 @@ type GenerateSeedResponse =
 export const generateSeed = async (
   params: GenerateSeedParams,
 ): Promise<GenerateSeedResponse> => {
-  const { title, description, model, additionalPrompt } = params
+  const {
+    title,
+    description,
+    model,
+    additionalPrompt,
+    duplicateChecker,
+    maxRetries = 3,
+  } = params
   const topic = [title, description].join('\n')
 
   const system = [
@@ -66,44 +77,91 @@ export const generateSeed = async (
     user.push(additionalPrompt.user)
   }
 
-  const res = await openai.chat.completions.create({
-    model: model,
-    response_format: { type: 'json_object' },
-    temperature: additionalPrompt?.temperature ?? 0.5,
-    max_tokens: 1000,
-    messages: [
-      // AIに全体的な指示や役割、振る舞いを伝えるため
-      { role: 'system', content: system.join('\n') },
-      // ユーザーからの質問や命令を表現
-      { role: 'user', content: user.join('\n') },
-    ],
-  })
+  // 重複理由を蓄積する配列
+  const duplicateReasons: string[] = []
 
-  console.log('openai.chat.completions.create: ', res)
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    if (duplicateReasons.length > 0) {
+      user.push(
+        '\n【重要】以下の理由で重複が検出されています。これらを避けて異なる内容を生成してください：',
+      )
+      duplicateReasons.forEach((reason, index) => {
+        user.push(`${index + 1}. ${reason}`)
+      })
+      user.push('\n上記と異なる角度・視点・内容で生成してください。')
+    }
 
-  const content = res.choices?.[0]?.message?.content
-  if (!content) throw new Error('OpenAI returned no content')
+    const res = await openai.chat.completions.create({
+      model: model,
+      response_format: { type: 'json_object' },
+      temperature: additionalPrompt?.temperature ?? 0.5,
+      max_tokens: 1000,
+      messages: [
+        // AIに全体的な指示や役割、振る舞いを伝えるため
+        { role: 'system', content: system.join('\n') },
+        // ユーザーからの質問や命令を表現
+        { role: 'user', content: user.join('\n') },
+      ],
+    })
 
-  let json: unknown
-  try {
-    json = JSON.parse(content)
-  } catch {
-    return { success: false, error: 'Invalid JSON from OpenAI' }
+    console.log('openai.chat.completions.create: ', res)
+
+    const content = res.choices?.[0]?.message?.content
+    if (!content) {
+      return { success: false, error: 'OpenAI returned no content' }
+    }
+
+    let json: unknown
+    try {
+      json = JSON.parse(content)
+    } catch {
+      return { success: false, error: 'Invalid JSON from OpenAI' }
+    }
+
+    const { data, error, success } = generateSeedData.safeParse(json)
+    if (!success) {
+      if (attempt === maxRetries) {
+        const msg = error.issues
+          .map((i) => `${i.path.join('.')}: ${i.message}`)
+          .join('; ')
+
+        return { success: false, error: `schema validation failed: ${msg}` }
+      }
+
+      continue
+    }
+
+    const g: GenerateSeedData = {
+      title: data.title,
+      difficulty: data.difficulty,
+      description: data.description,
+      body: data.body,
+    }
+
+    // 重複チェック
+    if (duplicateChecker) {
+      const duplicateResult = await duplicateChecker(g)
+      if (duplicateResult.duplicate) {
+        console.log(`Duplicate detected on attempt ${attempt}, retrying...`)
+        if (duplicateResult.duplicateReason) {
+          duplicateReasons.push(duplicateResult.duplicateReason)
+        }
+
+        if (attempt === maxRetries) {
+          return {
+            success: false,
+            error: `All attempts resulted in duplicates: ${attempt}`,
+          }
+        }
+        continue // 次の試行へ
+      }
+
+      return { success: true, data: { ...g, attempts: attempt } }
+    }
   }
 
-  const { data, error, success } = generateSeedData.safeParse(json)
-  if (!success) {
-    const msg = error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')
-
-    return { success: false, error: `schema validation failed: ${msg}` }
+  return {
+    success: false,
+    error: 'Unexpected error: exceeded maximum retries',
   }
-
-  const g: GenerateSeedData = {
-    title: data.title,
-    difficulty: data.difficulty,
-    description: data.description,
-    body: data.body,
-  }
-
-  return { success: true, data: g }
 }

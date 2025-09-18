@@ -2,9 +2,18 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../../_shared/types/database.ts'
 import { z } from 'https://esm.sh/zod@3.23.8'
 import { generateSeed } from '../../_shared/openai/functions/generate_seed.ts'
-import { ExerciseGeneratorSeedsInsertRow } from '../../_shared/types/exercise_generator_seeds.ts'
+import {
+  ExerciseGeneratorSeedsInsertRow,
+  ExerciseGeneratorSeedsRow,
+} from '../../_shared/types/exercise_generator_seeds.ts'
 import { getRandomTheme } from '../../_shared/repository/seed_generator_themes.ts'
 import { getLLMByVendorAndModel } from '../../_shared/repository/llms.ts'
+import {
+  DupHit,
+  findSimilarByRawText,
+  findSimilarByTitle,
+} from '../../_shared/repository/exercise_generator_seeds.ts'
+import { Result } from '../../_shared/types/common.ts'
 
 type GenerateSeedResult = {
   locale: string
@@ -179,6 +188,23 @@ export const generateSeedDataFromTheme = async (
         title: title ?? '',
         description: description ?? '',
         model,
+        duplicateChecker: async (data) => {
+          const { success: checkDuplicateSuccess, data: checkDuplicateData } =
+            await checkDuplicateSeed(client, {
+              title: data.title,
+              rawText: data.body,
+            })
+          if (!checkDuplicateSuccess) {
+            return { duplicate: false, duplicateReason: null }
+          }
+
+          return {
+            duplicate: checkDuplicateData.decision === 'duplicate',
+            duplicateReason: checkDuplicateData.reasons
+              .map((e) => `重複項目：${e.by} 理由：${e.hits.join(',')} `)
+              .join(','),
+          }
+        },
       })
       if (!success) {
         return {
@@ -208,4 +234,34 @@ export const generateSeedDataFromTheme = async (
         error: `unsupported vendor: ${vendor}`,
       }
   }
+}
+
+const checkDuplicateSeed = async (
+  supabase: SupabaseClient<Database>,
+  candidate: {
+    title: ExerciseGeneratorSeedsRow['title']
+    rawText: ExerciseGeneratorSeedsRow['raw_text']
+  },
+): Promise<
+  Result<{
+    decision: 'duplicate' | 'unique'
+    reasons: { by: 'title' | 'text'; hits: DupHit[] }[]
+  }>
+> => {
+  const [byTitle, byText] = await Promise.all([
+    findSimilarByTitle(supabase, candidate.title ?? ''),
+    findSimilarByRawText(supabase, candidate.rawText ?? ''),
+  ])
+
+  const reasons: { by: 'title' | 'text'; hits: DupHit[] }[] = []
+  if (byTitle.success && byTitle.data.length >= 1) {
+    reasons.push({ by: 'title', hits: byTitle.data })
+  }
+  if (byText.success && byText.data.length >= 1) {
+    reasons.push({ by: 'text', hits: byText.data })
+  }
+
+  const decision = reasons.length >= 1 ? 'duplicate' : 'unique'
+
+  return { success: true, data: { decision, reasons } }
 }
