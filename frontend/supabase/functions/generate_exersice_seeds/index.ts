@@ -22,10 +22,9 @@ Deno.serve(async (req) => {
   try {
     if (CRON_SECRET) {
       const given = req.headers.get('x-cron-secret')
-      if (given !== CRON_SECRET)
-        return new Response(JSON.stringify({ ok: false, error: 'unauthorized' }), {
-          status: 401,
-        })
+      if (given !== CRON_SECRET) {
+        return jsonErr({ ok: false, error: 'unauthorized' }, 401)
+      }
     }
 
     console.log('req: ', req)
@@ -48,10 +47,16 @@ Deno.serve(async (req) => {
       .select('*')
       .eq('id', profile_id)
       .single()
-    if (pErr || !profile) throw new Error('profile not found')
-    if (!profile.is_active) throw new Error('profile is not active')
+    if (pErr || !profile) {
+      return jsonErr({ ok: false, error: 'profile not found' }, 404)
+    }
+    if (!profile.is_active) {
+      return jsonErr({ ok: false, error: 'profile is not active' }, 400)
+    }
 
     const { profile_type, config } = profile
+    console.log('profile_type: ', profile_type)
+    console.log('config: ', config)
 
     switch (profile_type) {
       case 'ai_theme': {
@@ -61,7 +66,10 @@ Deno.serve(async (req) => {
           error: parseError,
         } = generateSeedFromThemeConfigSchema.safeParse(config)
         if (!parseSuccess) {
-          throw new Error('invalid config of ai_theme', parseError)
+          return jsonErr(
+            { ok: false, error: `invalid config of ai_theme: ${parseError}` },
+            400,
+          )
         }
 
         const {
@@ -70,8 +78,12 @@ Deno.serve(async (req) => {
           error: seedError,
         } = await generateSeedDataFromTheme({ client: supabase, config: parseData })
         if (!seedSuccess) {
-          throw new Error(`fail generate seed data from theme: ${seedError}`)
+          return jsonErr(
+            { ok: false, error: `fail generate seed data from theme: ${seedError}` },
+            500,
+          )
         }
+        console.log('generate seed data success')
 
         const {
           success: generateSuccess,
@@ -85,7 +97,10 @@ Deno.serve(async (req) => {
           seedData: seedData.result,
         })
         if (!generateSuccess) {
-          throw new Error(`fail generate exercise seed: ${generateError}`)
+          return jsonErr(
+            { ok: false, error: `fail generate exercise seed: ${generateError}` },
+            500,
+          )
         }
 
         return jsonOk({ ok: true, seed_id: generateData.seed_id })
