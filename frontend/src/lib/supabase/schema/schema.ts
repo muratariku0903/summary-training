@@ -21,11 +21,14 @@ export type Database = {
           generator_profile_id: string
           id: string
           idempotency_key: string | null
+          llm_id: string | null
           locale: string | null
           meta: Json
           raw_text: string | null
+          raw_text_trgm_generated: string | null
           status: Database["public"]["Enums"]["seed_status"]
           summary: string | null
+          theme_id: string | null
           title: string | null
           updated_at: string
         }
@@ -35,11 +38,14 @@ export type Database = {
           generator_profile_id: string
           id?: string
           idempotency_key?: string | null
+          llm_id?: string | null
           locale?: string | null
           meta?: Json
           raw_text?: string | null
+          raw_text_trgm_generated?: string | null
           status?: Database["public"]["Enums"]["seed_status"]
           summary?: string | null
+          theme_id?: string | null
           title?: string | null
           updated_at?: string
         }
@@ -49,11 +55,14 @@ export type Database = {
           generator_profile_id?: string
           id?: string
           idempotency_key?: string | null
+          llm_id?: string | null
           locale?: string | null
           meta?: Json
           raw_text?: string | null
+          raw_text_trgm_generated?: string | null
           status?: Database["public"]["Enums"]["seed_status"]
           summary?: string | null
+          theme_id?: string | null
           title?: string | null
           updated_at?: string
         }
@@ -63,6 +72,20 @@ export type Database = {
             columns: ["generator_profile_id"]
             isOneToOne: false
             referencedRelation: "seed_generator_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_generator_seeds_llm_id_fkey"
+            columns: ["llm_id"]
+            isOneToOne: false
+            referencedRelation: "llms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_generator_seeds_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "seed_generator_themes"
             referencedColumns: ["id"]
           },
         ]
@@ -347,6 +370,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _trgm_normalize: {
+        Args: { s: string }
+        Returns: string
+      }
       citext: {
         Args: { "": boolean } | { "": string } | { "": unknown }
         Returns: string
@@ -370,6 +397,24 @@ export type Database = {
       citextsend: {
         Args: { "": string }
         Returns: string
+      }
+      find_similar_seeds_by_raw_text: {
+        Args: { lim?: number; min_sim?: number; q: string }
+        Returns: {
+          id: string
+          sim: number
+          snippet: string
+          title: string
+        }[]
+      }
+      find_similar_seeds_by_title: {
+        Args: { lim?: number; min_sim?: number; q: string }
+        Returns: {
+          id: string
+          sim: number
+          snippet: string
+          title: string
+        }[]
       }
       find_similar_themes: {
         Args: { lim?: number; min_sim?: number; q: string }

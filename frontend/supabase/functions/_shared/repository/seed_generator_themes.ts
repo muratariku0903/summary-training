@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database.ts'
+import { SeedGeneratorThemesRow } from '../types/seed_generator_themes.ts'
 
 type IsExactSimilarThemeParams = {
   client: SupabaseClient<Database>
@@ -87,4 +88,61 @@ export async function isSimilarTheme(
     success: true,
     data: { hit: true, theme: data[0] },
   }
+}
+
+// ...existing code...
+
+type GetRandomThemeParams = {
+  client: SupabaseClient<Database>
+}
+type GetRandomThemeResponse =
+  | {
+      success: true
+      data: SeedGeneratorThemesRow
+      error?: never
+    }
+  | {
+      success: false
+      data?: never
+      error: string
+    }
+export async function getRandomTheme(
+  params: GetRandomThemeParams,
+): Promise<GetRandomThemeResponse> {
+  const { client } = params
+
+  // アクティブなテーマの総数を取得
+  const { count, error: countError } = await client
+    .from('seed_generator_themes')
+    .select('*', { count: 'exact', head: true })
+    .eq('is_active', true)
+
+  if (countError) {
+    return { success: false, error: countError.message }
+  }
+
+  if (!count || count === 0) {
+    return { success: false, error: 'not found theme' }
+  }
+
+  // ランダムなオフセットを生成
+  const randomOffset = Math.floor(Math.random() * count)
+
+  // ランダムなテーマを取得
+  const { data, error } = await client
+    .from('seed_generator_themes')
+    .select('*')
+    .eq('is_active', true)
+    .range(randomOffset, randomOffset)
+    .limit(1)
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  if (!data) {
+    return { success: false, error: 'unexpected error data is null' }
+  }
+
+  return { success: true, data: data[0] }
 }
