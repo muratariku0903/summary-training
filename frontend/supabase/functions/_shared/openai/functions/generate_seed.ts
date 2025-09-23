@@ -91,6 +91,9 @@ export const generateSeed = async (
       user.push('\n上記と異なる角度・視点・内容で生成してください。')
     }
 
+    console.log('system prompt: ', system.join('\n'))
+    console.log('user prompt: ', user.join('\n'))
+
     const res = await openai.chat.completions.create({
       model: model,
       response_format: { type: 'json_object' },
@@ -137,6 +140,7 @@ export const generateSeed = async (
       description: data.description,
       body: data.body,
     }
+    console.log('generateSeedData: ', g)
 
     // 重複チェック
     if (duplicateChecker) {

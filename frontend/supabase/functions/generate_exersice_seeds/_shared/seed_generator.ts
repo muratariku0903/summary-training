@@ -163,6 +163,7 @@ export const generateSeedDataFromTheme = async (
     }
   }
   const targetTheme = themeResult.data
+  console.log('targetTheme: ', targetTheme)
 
   // LLMの結果チェック
   if (llmResult.error) {
@@ -178,6 +179,7 @@ export const generateSeedDataFromTheme = async (
     }
   }
   const targetLlm = llmResult.data
+  console.log('targetLlm: ', targetLlm)
 
   const { title, description } = targetTheme
   const { vendor, model } = targetLlm
