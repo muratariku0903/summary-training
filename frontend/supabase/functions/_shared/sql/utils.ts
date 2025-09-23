@@ -14,6 +14,7 @@ export const runOnce = async <T>(params: RunOnceParams<T>): Promise<Result<T>> =
   try {
     // トランザクションの開始
     await client.queryArray`begin`
+    console.log('transaction start')
 
     // 排他ロック（多重起動回避）
     const lockRes = await client.queryObject<{ locked: boolean }>(acquireLockQuery)
@@ -22,10 +23,12 @@ export const runOnce = async <T>(params: RunOnceParams<T>): Promise<Result<T>> =
 
       return { success: false, error: Error('another-run-in-progress') }
     }
+    console.log('transaction locked')
 
     const result = await exec(client)
 
     await client.queryArray`commit`
+    console.log('transaction commit')
 
     return {
       success: true,
@@ -35,6 +38,7 @@ export const runOnce = async <T>(params: RunOnceParams<T>): Promise<Result<T>> =
     console.error('error', '[aggregate] error:', e)
     try {
       await client.queryArray`rollback`
+      console.log('transaction rollback')
     } catch {
       /* noop */
     }

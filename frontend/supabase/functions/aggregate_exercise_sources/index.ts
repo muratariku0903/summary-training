@@ -49,6 +49,7 @@ Deno.serve(async (req) => {
       return jsonErr({ ok: false, error: String(parseError) }, 400)
     }
     const { aggregate_type } = parseData
+    console.log('aggregate_type: ', aggregate_type)
 
     const { success, data, error } = await runOnce({
       pool,
@@ -58,11 +59,13 @@ Deno.serve(async (req) => {
         await client.queryObject<{ id: string; theme_id: string }>(
           SQL_UPSERT_SOURCES_BY_THEMES,
         )
+        console.log('success source upsert')
 
         // 2) 未リンクの Seed を一括リンク
         await client.queryObject<{ source_id: string; seed_id: string }>(
           SQL_INSERT_SEED_SOURCE_LINKS_BY_THEME,
         )
+        console.log('success insert link seed source')
 
         // 3) 参考メトリクス取得（任意）
         const metrics = await client.queryObject<{
