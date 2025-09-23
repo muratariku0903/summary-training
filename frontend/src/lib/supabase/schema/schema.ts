@@ -90,6 +90,77 @@ export type Database = {
           },
         ]
       }
+      exercise_generator_source_seeds: {
+        Row: {
+          seed_id: string
+          source_id: string
+        }
+        Insert: {
+          seed_id: string
+          source_id: string
+        }
+        Update: {
+          seed_id?: string
+          source_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_generator_source_seeds_seed_id_fkey"
+            columns: ["seed_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_generator_seeds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_generator_source_seeds_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_generator_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercise_generator_sources: {
+        Row: {
+          aggregate_type: Database["public"]["Enums"]["source_aggregate_type"]
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          theme_id: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          aggregate_type?: Database["public"]["Enums"]["source_aggregate_type"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          theme_id?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          aggregate_type?: Database["public"]["Enums"]["source_aggregate_type"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          theme_id?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_generator_sources_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "seed_generator_themes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercises: {
         Row: {
           create_type: Database["public"]["Enums"]["create_type"]
@@ -465,6 +536,7 @@ export type Database = {
       seed_generator_theme_created_type: "system" | "admin"
       seed_profile_type: "ai_theme" | "youtube_channels" | "web" | "storage"
       seed_status: "active" | "paused" | "archived"
+      source_aggregate_type: "theme" | "custom"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1042,6 +1114,7 @@ export const Constants = {
       seed_generator_theme_created_type: ["system", "admin"],
       seed_profile_type: ["ai_theme", "youtube_channels", "web", "storage"],
       seed_status: ["active", "paused", "archived"],
+      source_aggregate_type: ["theme", "custom"],
     },
   },
   storage: {
