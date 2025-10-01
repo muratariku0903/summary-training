@@ -2,13 +2,13 @@ import { Pool } from 'https://deno.land/x/postgres@v0.17.2/pool.ts'
 import { Result } from '../types/common.ts'
 import { PoolClient } from 'https://deno.land/x/postgres@v0.17.2/client.ts'
 
-type RunOnceParams<T> = {
+type RunParams<T> = {
   pool: Pool
-  acquireLockQuery: string
   exec: (client: PoolClient) => Promise<T>
+  acquireLockQuery?: string
 }
-export const runOnce = async <T>(params: RunOnceParams<T>): Promise<Result<T>> => {
-  const { pool, acquireLockQuery, exec } = params
+export const run = async <T>(params: RunParams<T>): Promise<Result<T>> => {
+  const { pool, exec, acquireLockQuery } = params
   const client = await pool.connect()
 
   try {
@@ -17,13 +17,15 @@ export const runOnce = async <T>(params: RunOnceParams<T>): Promise<Result<T>> =
     console.log('transaction start')
 
     // 排他ロック（多重起動回避）
-    const lockRes = await client.queryObject<{ locked: boolean }>(acquireLockQuery)
-    if (!lockRes.rows[0]?.locked) {
-      await client.queryArray`rollback`
+    if (acquireLockQuery) {
+      const lockRes = await client.queryObject<{ locked: boolean }>(acquireLockQuery)
+      if (!lockRes.rows[0]?.locked) {
+        await client.queryArray`rollback`
 
-      return { success: false, error: Error('another-run-in-progress') }
+        return { success: false, error: Error('another-run-in-progress') }
+      }
+      console.log('transaction locked')
     }
-    console.log('transaction locked')
 
     const result = await exec(client)
 

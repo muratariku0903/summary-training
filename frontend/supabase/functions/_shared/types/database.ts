@@ -14,6 +14,206 @@ export type Database = {
   }
   public: {
     Tables: {
+      exercise_generator_output_configs: {
+        Row: {
+          created_at: string
+          data_type: Database["public"]["Enums"]["exercise_output_data_type"]
+          description: string | null
+          difficulty: Database["public"]["Enums"]["exercise_output_difficulty"]
+          exercise_type: Database["public"]["Enums"]["exercise_output_exercise_type"]
+          id: string
+          llm_id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data_type: Database["public"]["Enums"]["exercise_output_data_type"]
+          description?: string | null
+          difficulty: Database["public"]["Enums"]["exercise_output_difficulty"]
+          exercise_type: Database["public"]["Enums"]["exercise_output_exercise_type"]
+          id?: string
+          llm_id: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data_type?: Database["public"]["Enums"]["exercise_output_data_type"]
+          description?: string | null
+          difficulty?: Database["public"]["Enums"]["exercise_output_difficulty"]
+          exercise_type?: Database["public"]["Enums"]["exercise_output_exercise_type"]
+          id?: string
+          llm_id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_ex_out_cfg_llm"
+            columns: ["llm_id"]
+            isOneToOne: false
+            referencedRelation: "llms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercise_generator_output_configs_schemas: {
+        Row: {
+          created_at: string
+          data_type: Database["public"]["Enums"]["exercise_output_data_type"]
+          difficulty: Database["public"]["Enums"]["exercise_output_difficulty"]
+          exercise_type: Database["public"]["Enums"]["exercise_output_exercise_type"]
+          llm_id: string
+          schema: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data_type: Database["public"]["Enums"]["exercise_output_data_type"]
+          difficulty: Database["public"]["Enums"]["exercise_output_difficulty"]
+          exercise_type: Database["public"]["Enums"]["exercise_output_exercise_type"]
+          llm_id: string
+          schema: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data_type?: Database["public"]["Enums"]["exercise_output_data_type"]
+          difficulty?: Database["public"]["Enums"]["exercise_output_difficulty"]
+          exercise_type?: Database["public"]["Enums"]["exercise_output_exercise_type"]
+          llm_id?: string
+          schema?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_ex_out_cfg_schema_llm"
+            columns: ["llm_id"]
+            isOneToOne: false
+            referencedRelation: "llms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercise_generator_profile_source_patterns: {
+        Row: {
+          first_used_at: string
+          id: string
+          last_used_at: string
+          pattern_size: number
+          profile_id: string
+          source_ids: string[]
+          source_set_key: string | null
+          usage_count: number
+        }
+        Insert: {
+          first_used_at?: string
+          id?: string
+          last_used_at?: string
+          pattern_size: number
+          profile_id: string
+          source_ids: string[]
+          source_set_key?: string | null
+          usage_count?: number
+        }
+        Update: {
+          first_used_at?: string
+          id?: string
+          last_used_at?: string
+          pattern_size?: number
+          profile_id?: string
+          source_ids?: string[]
+          source_set_key?: string | null
+          usage_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_generator_profile_source_patterns_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_generator_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercise_generator_profile_sources: {
+        Row: {
+          profile_id: string
+          source_id: string
+        }
+        Insert: {
+          profile_id: string
+          source_id: string
+        }
+        Update: {
+          profile_id?: string
+          source_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_generator_profile_sources_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_generator_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_generator_profile_sources_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_generator_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercise_generator_profiles: {
+        Row: {
+          allow_repeat_when_exhausted: boolean
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          output_config_id: string
+          source_combo_max: number
+          source_combo_min: number
+          updated_at: string
+        }
+        Insert: {
+          allow_repeat_when_exhausted?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          output_config_id: string
+          source_combo_max?: number
+          source_combo_min?: number
+          updated_at?: string
+        }
+        Update: {
+          allow_repeat_when_exhausted?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          output_config_id?: string
+          source_combo_max?: number
+          source_combo_min?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_ex_gen_profiles_output_config"
+            columns: ["output_config_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_generator_output_configs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_generator_seeds: {
         Row: {
           created_at: string
@@ -166,9 +366,11 @@ export type Database = {
           create_type: Database["public"]["Enums"]["create_type"]
           created_at: string
           created_by: string | null
+          delete_flg: boolean
           description: string | null
-          difficulty: number
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
           exercise_type: Database["public"]["Enums"]["exercise_type"]
+          generate_profile_id: string
           id: string
           status: Database["public"]["Enums"]["exercise_status"]
           storage_path: string
@@ -179,9 +381,11 @@ export type Database = {
           create_type: Database["public"]["Enums"]["create_type"]
           created_at?: string
           created_by?: string | null
+          delete_flg?: boolean
           description?: string | null
-          difficulty?: number
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
           exercise_type: Database["public"]["Enums"]["exercise_type"]
+          generate_profile_id: string
           id?: string
           status?: Database["public"]["Enums"]["exercise_status"]
           storage_path: string
@@ -192,16 +396,26 @@ export type Database = {
           create_type?: Database["public"]["Enums"]["create_type"]
           created_at?: string
           created_by?: string | null
+          delete_flg?: boolean
           description?: string | null
-          difficulty?: number
+          difficulty?: Database["public"]["Enums"]["difficulty_level"]
           exercise_type?: Database["public"]["Enums"]["exercise_type"]
+          generate_profile_id?: string
           id?: string
           status?: Database["public"]["Enums"]["exercise_status"]
           storage_path?: string
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "exercises_generate_profile_id_fkey"
+            columns: ["generate_profile_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_generator_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       idp_links: {
         Row: {
@@ -515,6 +729,28 @@ export type Database = {
         Args: { "": unknown }
         Returns: unknown
       }
+      pick_random_unused_source_pattern: {
+        Args:
+          | {
+              p_allow_duplicates?: boolean
+              p_kmax?: number
+              p_kmin?: number
+              p_max_attempts?: number
+              p_profile_id: string
+            }
+          | {
+              p_kmax?: number
+              p_kmin?: number
+              p_max_attempts?: number
+              p_profile_id: string
+            }
+        Returns: {
+          pattern_id: string
+          pattern_size: number
+          source_ids: string[]
+          source_set_key: string
+        }[]
+      }
       set_limit: {
         Args: { "": number }
         Returns: number
@@ -527,9 +763,17 @@ export type Database = {
         Args: { "": string }
         Returns: string[]
       }
+      uuid_array_sorted_key: {
+        Args: { arr: string[] }
+        Returns: string
+      }
     }
     Enums: {
       create_type: "system" | "user" | "admin" | "import"
+      difficulty_level: "easy" | "medium" | "hard"
+      exercise_output_data_type: "text" | "audio" | "text/audio"
+      exercise_output_difficulty: "easy" | "medium" | "hard"
+      exercise_output_exercise_type: "summary" | "rewrite"
       exercise_status: "draft" | "ready" | "hidden"
       exercise_type: "summary" | "explain" | "rewrite"
       llm_vendor: "openai" | "google" | "anthropic"
@@ -830,6 +1074,10 @@ export type Database = {
         Args: { bucketid: string; metadata: Json; name: string; owner: string }
         Returns: undefined
       }
+      delete_leaf_prefixes: {
+        Args: { bucket_ids: string[]; names: string[] }
+        Returns: undefined
+      }
       delete_prefix: {
         Args: { _bucket_id: string; _name: string }
         Returns: boolean
@@ -895,6 +1143,10 @@ export type Database = {
           name: string
           updated_at: string
         }[]
+      }
+      lock_top_prefixes: {
+        Args: { bucket_ids: string[]; names: string[] }
+        Returns: undefined
       }
       operation: {
         Args: Record<PropertyKey, never>
@@ -966,12 +1218,16 @@ export type Database = {
           levels?: number
           limits?: number
           prefix: string
+          sort_column?: string
+          sort_column_after?: string
+          sort_order?: string
           start_after?: string
         }
         Returns: {
           created_at: string
           id: string
           key: string
+          last_accessed_at: string
           metadata: Json
           name: string
           updated_at: string
@@ -1108,6 +1364,10 @@ export const Constants = {
   public: {
     Enums: {
       create_type: ["system", "user", "admin", "import"],
+      difficulty_level: ["easy", "medium", "hard"],
+      exercise_output_data_type: ["text", "audio", "text/audio"],
+      exercise_output_difficulty: ["easy", "medium", "hard"],
+      exercise_output_exercise_type: ["summary", "rewrite"],
       exercise_status: ["draft", "ready", "hidden"],
       exercise_type: ["summary", "explain", "rewrite"],
       llm_vendor: ["openai", "google", "anthropic"],

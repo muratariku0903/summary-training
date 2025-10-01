@@ -1,7 +1,6 @@
-import { Pool } from 'https://deno.land/x/postgres@v0.17.2/mod.ts'
 import { z } from 'https://esm.sh/zod@3.23.8'
 import { jsonErr, jsonOk } from '../_shared/http/http.ts'
-import { runOnce } from '../_shared/sql/utils.ts'
+import { run } from '../_shared/db/process.ts'
 import {
   SQL_ACQUIRE_LOCK_THEME_SOURCES,
   SQL_INSERT_SEED_SOURCE_LINKS_BY_THEME,
@@ -9,19 +8,9 @@ import {
   SQL_UPSERT_SOURCES_BY_THEMES,
 } from './_shared/sql.ts'
 import { AGGREGATE_TYPES } from '../_shared/types/exercise_generator_sources.ts'
+import { POOL } from '../_shared/db/client.ts'
 
 const CRON_SECRET = Deno.env.get('CRON_SECRET')
-const TRANSACTION_POOLER_URL = Deno.env.get('TRANSACTION_POOLER_URL')!
-
-// プールは関数外で作成（コールドスタート後の再利用）
-// プールサイズ
-// 同時に保持するコネクション数の上限
-// リクエストが4つ以上来た場合、空きコネクションができるまで待機
-// lazy接続
-// 遅延接続を有効にする設定
-// true: 実際に必要になるまでコネクションを作成しない
-// false: プール作成時に全コネクションを即座に作成
-const pool = new Pool(TRANSACTION_POOLER_URL, 3, true)
 
 const reqSchema = z.object({
   aggregate_type: z.nativeEnum(AGGREGATE_TYPES),
@@ -51,8 +40,8 @@ Deno.serve(async (req) => {
     const { aggregate_type } = parseData
     console.log('aggregate_type: ', aggregate_type)
 
-    const { success, data, error } = await runOnce({
-      pool,
+    const { success, data, error } = await run({
+      pool: POOL,
       acquireLockQuery: SQL_ACQUIRE_LOCK_THEME_SOURCES,
       exec: async (client) => {
         // // 1) テーマに対応する Source をUpsert
