@@ -8,6 +8,7 @@ import { SQL_PICK_RANDOM_UNUSED_SOURCE_PATTERN } from './sql.ts'
 import { generateExercise as generateExerciseByOpenAI } from '../../openai/functions/generate_exercise.ts'
 import { ymdJST } from '../../utils/utils.ts'
 import { ExercisesInsertRow } from '../../types/exercises.ts'
+import { logger } from '../../log/log.ts'
 
 /**
  * プロファイルIDから設定情報を完全取得するレスポンス型
@@ -29,6 +30,8 @@ export async function resolveOutputConfigByProfileId(
   supabase: SupabaseClient<Database>,
   profileId: string,
 ): Promise<Result<GenerateExerciseOutputConfigByProfileIdResponse>> {
+  logger.start(resolveOutputConfigByProfileId.name)
+
   // まずプロファイルと設定を取得
   const { data: profileData, error: profileError } = await supabase
     .from('exercise_generator_profiles')
@@ -78,6 +81,7 @@ export async function resolveOutputConfigByProfileId(
       schema: schemaData,
     },
   }
+  logger.end(resolveOutputConfigByProfileId.name)
 
   return { success: true, data: result }
 }
@@ -100,6 +104,8 @@ type ResolveSourcesResponse = Tables<'exercise_generator_sources'>[]
 export const resolveSourcesByProfileId = async (
   params: ResolveSourcesParams,
 ): Promise<Result<ResolveSourcesResponse>> => {
+  logger.start(resolveSourcesByProfileId.name)
+
   const { supabase, profileId, sourceCombMin, sourceCombMax, allowRepeatWhenExhausted } =
     params
   const { data: sourcesData, error: sourcesError } = await supabase
@@ -119,7 +125,7 @@ export const resolveSourcesByProfileId = async (
   }
 
   // ソースが決定しない場合はランダムでソースを取得
-  console.log('pick random sources')
+  logger.debug('pick random sources')
   const {
     success: runSuccess,
     data: runData,
@@ -251,6 +257,17 @@ export const generateExerciseByLlmFromSourcesParams = async (
   }
 }
 
+/**
+ * 生成された題材をDBとストレージに保存する関数
+ *
+ * 処理フロー：
+ * 1. DBに題材メタデータを保存
+ * 2. ストレージに題材の詳細データ（JSON）を保存
+ * 3. ストレージ保存失敗時はDBレコードを論理削除
+ *
+ * @param params 保存に必要なパラメータ
+ * @returns 保存結果またはエラー
+ */
 type SaveGeneratedExerciseParams = {
   supabase: SupabaseClient<Database>
   exercise: {
@@ -268,18 +285,6 @@ type SaveGeneratedExerciseResponse = {
   storagePath: string
   exercise: Tables<'exercises'>
 }
-
-/**
- * 生成された題材をDBとストレージに保存する関数
- *
- * 処理フロー：
- * 1. DBに題材メタデータを保存
- * 2. ストレージに題材の詳細データ（JSON）を保存
- * 3. ストレージ保存失敗時はDBレコードを論理削除
- *
- * @param params 保存に必要なパラメータ
- * @returns 保存結果またはエラー
- */
 export const saveGeneratedExercise = async (
   params: SaveGeneratedExerciseParams,
 ): Promise<Result<SaveGeneratedExerciseResponse>> => {
