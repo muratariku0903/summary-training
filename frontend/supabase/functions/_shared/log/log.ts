@@ -20,10 +20,13 @@ export class Logger {
       level: logLevel,
       // ログフォーマット: JSON形式で構造化し、タイムスタンプとレベルを追加
       format: format.combine(
-        format.timestamp(),
-        format.json(),
-        // Edge Functionsのログエクスプローラは、console.logの出力内容を
-        // そのまま取り込むため、ここでJSONにすることで構造化ログになります。
+        format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        // format.json(),
+        format.printf(({ level, message, timestamp, ...meta }) => {
+          const metaStr =
+            Object.keys(meta).length > 0 ? `\n${JSON.stringify(meta, null, 2)}` : ''
+          return `[${timestamp}] ${level.toUpperCase()}: ${message}${metaStr}`
+        }),
       ),
       transports: [new transports.Console()],
     })
