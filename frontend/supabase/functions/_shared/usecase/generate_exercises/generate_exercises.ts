@@ -226,7 +226,7 @@ export const generateExerciseByLlmFromSourcesParams = async (
     .from('exercise_generator_seeds')
     .select('*')
     .in('id', seedIds)
-    .eq('is_active', true)
+    .eq('status', 'active')
   if (seedsError) {
     return { success: false, error: seedsError }
   }
