@@ -21,12 +21,7 @@ export class Logger {
       // ログフォーマット: JSON形式で構造化し、タイムスタンプとレベルを追加
       format: format.combine(
         format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        // format.json(),
-        format.printf(({ level, message, timestamp, ...meta }) => {
-          const metaStr =
-            Object.keys(meta).length > 0 ? `\n${JSON.stringify(meta, null, 2)}` : ''
-          return `[${timestamp}] ${level.toUpperCase()}: ${message}${metaStr}`
-        }),
+        format.json(),
       ),
       transports: [new transports.Console()],
     })
