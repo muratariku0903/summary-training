@@ -195,7 +195,7 @@ export const generateExerciseByLlmFromSourcesParams = async (
   const {
     supabase,
     sources,
-    llm: { vendor, model },
+    llm: { vendor, model, max_tokens },
     schema: { schema },
   } = params
 
@@ -236,7 +236,7 @@ export const generateExerciseByLlmFromSourcesParams = async (
     case 'openai': {
       const { success, data, error } = await generateExerciseByOpenAI({
         schema,
-        model,
+        model: { name: model, max_tokens },
         sources: seedsData.map((s) => s.raw_text ?? ''),
       })
       if (!success) {

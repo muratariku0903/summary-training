@@ -8,6 +8,7 @@ import {
 } from '../../types/common.ts'
 
 import { z } from 'https://esm.sh/zod@3.23.8'
+import { logger } from '../../log/log.ts'
 
 export const generateExerciseSchema = z
   .object({
@@ -22,7 +23,11 @@ export const generateExerciseSchema = z
 export const generateExercise: LlmExerciseGenerator = async (
   params: LlmExerciseGeneratorParams,
 ): Promise<Result<LlmExerciseGeneratorResponse>> => {
-  const { schema, model, sources } = params
+  const {
+    schema,
+    model: { name: modelName, max_tokens: modelMaxTokens },
+    sources,
+  } = params
 
   const {
     success: parseSuccess,
@@ -63,13 +68,24 @@ export const generateExercise: LlmExerciseGenerator = async (
   const user = [`sources: ${sources}`]
   if (additionalUser) user.concat(additionalUser)
 
+  logger.info(`system合計文字数: ${system.join('\n').length}`)
+  logger.info(`user合計文字数: ${user.join('\n').length}`)
+
+  let maxTokens = max_tokens ?? calculateMaxTokens(max_chars ?? 2000)
+  if (modelMaxTokens && maxTokens > modelMaxTokens) {
+    logger.warn(
+      `指定された最大トークン(${maxTokens})がモデル:${modelName}の最大トークンを超過`,
+    )
+    maxTokens = modelMaxTokens
+  }
+
   try {
     const res = await openai.chat.completions.create({
-      model,
+      model: modelName,
       response_format: { type: 'json_object' },
       temperature: temperature ?? 0.5,
       // 「生成する文字列の数」を制限するパラメータ
-      max_tokens: max_tokens ?? calculateMaxTokens(max_chars ?? 2000),
+      max_tokens: maxTokens,
       messages: [
         // AIに全体的な指示や役割、振る舞いを伝えるため
         { role: 'system', content: system.join('\n') },

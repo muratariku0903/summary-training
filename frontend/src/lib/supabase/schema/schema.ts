@@ -455,6 +455,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          max_tokens: number | null
           meta: Json
           model: string
           updated_at: string
@@ -464,6 +465,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          max_tokens?: number | null
           meta?: Json
           model: string
           updated_at?: string
@@ -473,6 +475,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          max_tokens?: number | null
           meta?: Json
           model?: string
           updated_at?: string

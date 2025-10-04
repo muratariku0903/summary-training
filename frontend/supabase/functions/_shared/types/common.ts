@@ -18,7 +18,7 @@ export type LlmExerciseGeneratorResponse = z.infer<
 
 export type LlmExerciseGeneratorParams = {
   schema: Json
-  model: string
+  model: { name: string; max_tokens: number | null }
   sources: string[]
 }
 export type LlmExerciseGenerator = (

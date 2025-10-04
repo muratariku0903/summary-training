@@ -56,6 +56,15 @@ export class Logger {
   }
 
   /**
+   * 警告レベルのログを出力
+   * @param message ログメッセージ
+   * @param meta 構造化するための追加メタデータ（オブジェクト）
+   */
+  public warn(message: string, meta: Record<string, unknown> = {}): void {
+    this.winstonLogger.warn(message, meta)
+  }
+
+  /**
    * エラーレベルのログを出力
    * Errorオブジェクトとメッセージを組み合わせて出力し、スタックトレースを含めます
    * @param message ログメッセージ
