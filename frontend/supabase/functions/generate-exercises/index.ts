@@ -10,6 +10,8 @@ import {
   resolveSourcesByProfileId,
   saveGeneratedExercise,
 } from '../_shared/usecase/generate_exercises/generate_exercises.ts'
+import { deletePattern } from '../_shared/repository/exercise_generator_source_patterns.ts'
+import { logger } from '../_shared/log/log.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -81,44 +83,62 @@ Deno.serve(async (req) => {
           return jsonErr({ ok: false, error: resolveSourceError.message }, 500)
         }
 
-        // スキーマに従って題材を生成
-        const generateExerciseParams = {
-          supabase,
-          sources: resolveSourceData,
-          llm: output_config.schema.llm,
-          schema: output_config.schema,
-        }
-        const {
-          success: generateSuccess,
-          data: generateData,
-          error: generateError,
-        } = await generateExerciseByLlmFromSourcesParams(generateExerciseParams)
-        if (!generateSuccess) {
-          return jsonErr({ ok: false, error: generateError.message }, 500)
-        }
+        try {
+          // スキーマに従って題材を生成
+          const generateExerciseParams = {
+            supabase,
+            sources: resolveSourceData.sources,
+            llm: output_config.schema.llm,
+            schema: output_config.schema,
+          }
+          const {
+            success: generateSuccess,
+            data: generateData,
+            error: generateError,
+          } = await generateExerciseByLlmFromSourcesParams(generateExerciseParams)
+          if (!generateSuccess) {
+            throw jsonErr({ ok: false, error: generateError.message }, 500)
+          }
 
-        // 生成された題材をDBとストレージに保存
-        const saveExerciseParams = {
-          supabase,
-          exercise: {
-            title: generateData.title,
-            difficulty: output_config.difficulty,
-            description: generateData.description,
-            body: generateData.body,
-          },
-          exerciseType: output_config.exercise_type,
-          profileId: profile_id,
-        }
-        const {
-          success: saveSuccess,
-          data: saveData,
-          error: saveError,
-        } = await saveGeneratedExercise(saveExerciseParams)
-        if (!saveSuccess) {
-          return jsonErr({ ok: false, error: saveError.message }, 500)
-        }
+          // 生成された題材をDBとストレージに保存
+          const saveExerciseParams = {
+            supabase,
+            exercise: {
+              title: generateData.title,
+              difficulty: output_config.difficulty,
+              description: generateData.description,
+              body: generateData.body,
+            },
+            exerciseType: output_config.exercise_type,
+            profileId: profile_id,
+          }
+          const {
+            success: saveSuccess,
+            data: saveData,
+            error: saveError,
+          } = await saveGeneratedExercise(saveExerciseParams)
+          if (!saveSuccess) {
+            throw jsonErr({ ok: false, error: saveError.message }, 500)
+          }
 
-        return jsonOk({ ok: true, saveData })
+          return jsonOk({ ok: true, saveData })
+        } catch (e) {
+          if (resolveSourceData.patternId) {
+            // パターンが新たに生成されていた場合は削除しておく
+            const { success, error } = await deletePattern(
+              supabase,
+              resolveSourceData.patternId,
+            )
+            if (!success) {
+              logger.error(
+                `ソースパターン:${resolveSourceData.patternId}の削除に失敗しました`,
+                error,
+              )
+            }
+          }
+
+          return jsonErr({ ok: false, error: e }, 500)
+        }
       }
 
       default:

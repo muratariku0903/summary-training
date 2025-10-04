@@ -100,7 +100,10 @@ type ResolveSourcesParams = {
   sourceCombMax: number
   allowRepeatWhenExhausted: boolean
 }
-type ResolveSourcesResponse = Tables<'exercise_generator_sources'>[]
+type ResolveSourcesResponse = {
+  patternId: Tables<'exercise_generator_profile_source_patterns'>['id'] | null
+  sources: Tables<'exercise_generator_sources'>[]
+}
 export const resolveSourcesByProfileId = async (
   params: ResolveSourcesParams,
 ): Promise<Result<ResolveSourcesResponse>> => {
@@ -121,11 +124,14 @@ export const resolveSourcesByProfileId = async (
     return { success: false, error: sourcesError }
   }
   if (sourcesData.length > 0) {
-    return { success: true, data: sourcesData.map((e) => e.source) }
+    return {
+      success: true,
+      data: { patternId: null, sources: sourcesData.map((e) => e.source) },
+    }
   }
 
   // ソースが決定しない場合はランダムでソースを取得
-  logger.debug('pick random sources')
+  logger.debug('ソースの指定がないため、ランダムにソースを選択')
   const {
     success: runSuccess,
     data: runData,
@@ -134,6 +140,7 @@ export const resolveSourcesByProfileId = async (
     pool: POOL,
     exec: async (client) => {
       const result = await client.queryObject<{
+        pattern_id: string | null
         source_ids: string[]
       }>(SQL_PICK_RANDOM_UNUSED_SOURCE_PATTERN, [
         profileId,
@@ -147,29 +154,29 @@ export const resolveSourcesByProfileId = async (
     },
   })
   if (!runSuccess) {
-    console.error('fail pick random sources')
+    console.error('ランダムソース選択に失敗しました')
     return { success: false, error: Error(runError.message) }
   }
   if (!runData || runData.length === 0) {
-    console.error('fail pick random sources')
+    console.error('ランダムソース選択に失敗しました')
     return {
       success: false,
       error: Error('fail resolve sources, maybe cannot find unique source pattern'),
     }
   }
 
-  const sourceIds = runData[0].source_ids
-  console.log('sourceIds: ', sourceIds)
+  const { pattern_id, source_ids } = runData[0]
+  console.log('sourceIds: ', source_ids)
 
   const { data: sourceRecords, error: sourceRecordsError } = await supabase
     .from('exercise_generator_sources')
     .select('*')
-    .in('id', sourceIds)
+    .in('id', source_ids)
   if (sourceRecordsError) {
     return { success: false, error: sourceRecordsError }
   }
 
-  return { success: true, data: sourceRecords }
+  return { success: true, data: { patternId: pattern_id, sources: sourceRecords } }
 }
 
 /**

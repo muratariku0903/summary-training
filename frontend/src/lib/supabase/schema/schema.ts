@@ -98,6 +98,7 @@ export type Database = {
       }
       exercise_generator_profile_source_patterns: {
         Row: {
+          delete_flg: boolean
           first_used_at: string
           id: string
           last_used_at: string
@@ -108,6 +109,7 @@ export type Database = {
           usage_count: number
         }
         Insert: {
+          delete_flg?: boolean
           first_used_at?: string
           id?: string
           last_used_at?: string
@@ -118,6 +120,7 @@ export type Database = {
           usage_count?: number
         }
         Update: {
+          delete_flg?: boolean
           first_used_at?: string
           id?: string
           last_used_at?: string
@@ -748,6 +751,7 @@ export type Database = {
               p_profile_id: string
             }
         Returns: {
+          pattern_id: string
           source_ids: string[]
         }[]
       }
