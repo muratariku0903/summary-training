@@ -1,50 +1,56 @@
 import { Pool } from 'https://deno.land/x/postgres@v0.17.2/pool.ts'
 import { Result } from '../types/common.ts'
 import { PoolClient } from 'https://deno.land/x/postgres@v0.17.2/client.ts'
+import { logger } from '../log/log.ts'
 
-type RunOnceParams<T> = {
+type RunParams<T> = {
   pool: Pool
-  acquireLockQuery: string
   exec: (client: PoolClient) => Promise<T>
+  acquireLockQuery?: string
 }
-export const runOnce = async <T>(params: RunOnceParams<T>): Promise<Result<T>> => {
-  const { pool, acquireLockQuery, exec } = params
+export const run = async <T>(params: RunParams<T>): Promise<Result<T>> => {
+  logger.start(run.name)
+
+  const { pool, exec, acquireLockQuery } = params
   const client = await pool.connect()
 
   try {
     // トランザクションの開始
     await client.queryArray`begin`
-    console.log('transaction start')
+    logger.info('transaction start')
 
     // 排他ロック（多重起動回避）
-    const lockRes = await client.queryObject<{ locked: boolean }>(acquireLockQuery)
-    if (!lockRes.rows[0]?.locked) {
-      await client.queryArray`rollback`
+    if (acquireLockQuery) {
+      const lockRes = await client.queryObject<{ locked: boolean }>(acquireLockQuery)
+      if (!lockRes.rows[0]?.locked) {
+        await client.queryArray`rollback`
 
-      return { success: false, error: Error('another-run-in-progress') }
+        return { success: false, error: Error('another-run-in-progress') }
+      }
+      logger.info('transaction locked')
     }
-    console.log('transaction locked')
 
     const result = await exec(client)
 
     await client.queryArray`commit`
-    console.log('transaction commit')
+    logger.info('transaction commit')
 
     return {
       success: true,
       data: result,
     }
   } catch (e) {
-    console.error('error', '[aggregate] error:', e)
+    logger.error('run sql error: ', e)
     try {
       await client.queryArray`rollback`
-      console.log('transaction rollback')
+      logger.info('transaction rollback')
     } catch {
       /* noop */
     }
     return { success: false, error: Error(String(e)) }
   } finally {
     client.release()
+    logger.end(run.name)
   }
 }
 
