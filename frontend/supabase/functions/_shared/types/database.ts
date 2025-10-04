@@ -745,10 +745,7 @@ export type Database = {
               p_profile_id: string
             }
         Returns: {
-          pattern_id: string
-          pattern_size: number
           source_ids: string[]
-          source_set_key: string
         }[]
       }
       set_limit: {

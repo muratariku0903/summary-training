@@ -1,9 +1,6 @@
 export const SQL_PICK_RANDOM_UNUSED_SOURCE_PATTERN = `
   SELECT
-    pattern_id,
-    source_ids,
-    source_set_key,
-    pattern_size    
+    source_ids
   FROM public.pick_random_unused_source_pattern(
           $1,    -- p_profile_id
           $2,    -- p_kmin (最小ソース数)
