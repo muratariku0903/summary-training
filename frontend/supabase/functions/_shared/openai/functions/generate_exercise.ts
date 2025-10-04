@@ -56,7 +56,7 @@ export const generateExercise: LlmExerciseGenerator = async (
       "body": "string",
       }`,
     'bodyは必ず sources に関連するものにしてください',
-    'bodyにはでいるだけ、 sources に関連し、かつ具体性のある話題にしてください',
+    'bodyにはでいるだけ、 sources に関連し、かつ具体性のある話題にしてください(具体的な事例などがあればその事実を含めるとなお良い)',
     `bodyは最小${min_chars ?? 500}文字、最大${max_chars ?? 2000}文字`,
     'titleとdescriptionは生成したbodyに関連するものにしてください',
     'titleは最大30文字',
