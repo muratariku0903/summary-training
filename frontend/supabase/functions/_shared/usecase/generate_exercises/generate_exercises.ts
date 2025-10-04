@@ -9,6 +9,7 @@ import { generateExercise as generateExerciseByOpenAI } from '../../openai/funct
 import { ymdJST } from '../../utils/utils.ts'
 import { ExercisesInsertRow } from '../../types/exercises.ts'
 import { logger } from '../../log/log.ts'
+import { UnusedSourcePatternNotFoundError } from '../../error/error.ts'
 
 /**
  * プロファイルIDから設定情報を完全取得するレスポンス型
@@ -106,7 +107,7 @@ type ResolveSourcesResponse = {
 }
 export const resolveSourcesByProfileId = async (
   params: ResolveSourcesParams,
-): Promise<Result<ResolveSourcesResponse>> => {
+): Promise<Result<ResolveSourcesResponse, Error | UnusedSourcePatternNotFoundError>> => {
   logger.start(resolveSourcesByProfileId.name)
 
   const { supabase, profileId, sourceCombMin, sourceCombMax, allowRepeatWhenExhausted } =
@@ -157,11 +158,16 @@ export const resolveSourcesByProfileId = async (
     console.error('ランダムソース選択に失敗しました')
     return { success: false, error: Error(runError.message) }
   }
-  if (!runData || runData.length === 0) {
-    console.error('ランダムソース選択に失敗しました')
+  if (runData.length === 0) {
+    console.error('未使用のソースパターンを取得できませんでした')
     return {
       success: false,
-      error: Error('fail resolve sources, maybe cannot find unique source pattern'),
+      error: new UnusedSourcePatternNotFoundError(
+        profileId,
+        sourceCombMin,
+        sourceCombMax,
+        allowRepeatWhenExhausted,
+      ),
     }
   }
 

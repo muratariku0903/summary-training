@@ -12,6 +12,7 @@ import {
 } from '../_shared/usecase/generate_exercises/generate_exercises.ts'
 import { deletePattern } from '../_shared/repository/exercise_generator_source_patterns.ts'
 import { logger } from '../_shared/log/log.ts'
+import { UnusedSourcePatternNotFoundError } from '../_shared/error/error.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -80,6 +81,13 @@ Deno.serve(async (req) => {
           error: resolveSourceError,
         } = await resolveSourcesByProfileId(resolveSourceParams)
         if (!resolveSourceSuccess) {
+          if (resolveSourceError instanceof UnusedSourcePatternNotFoundError) {
+            return jsonOk({
+              ok: true,
+              message: '未選択のソースパターンの取得ができなかったため処理を終了します',
+            })
+          }
+
           return jsonErr({ ok: false, error: resolveSourceError.message }, 500)
         }
 
