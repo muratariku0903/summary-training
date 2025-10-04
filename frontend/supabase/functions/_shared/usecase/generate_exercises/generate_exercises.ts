@@ -134,10 +134,7 @@ export const resolveSourcesByProfileId = async (
     pool: POOL,
     exec: async (client) => {
       const result = await client.queryObject<{
-        pattern_id: string
         source_ids: string[]
-        source_set_key: string
-        pattern_size: number
       }>(SQL_PICK_RANDOM_UNUSED_SOURCE_PATTERN, [
         profileId,
         sourceCombMin,
