@@ -63,10 +63,10 @@ export const generateExercise: LlmExerciseGenerator = async (
     'descriptionは最大150文字',
     "禁止事項: 抽象的・汎用的なタイトル（例: '文書要約' '技術解説' 'リライト課題' など）。",
   ]
-  if (additionalSystem) system.concat(additionalSystem)
+  if (additionalSystem) system.push(...additionalSystem)
 
   const user = [`sources: ${sources}`]
-  if (additionalUser) user.concat(additionalUser)
+  if (additionalUser) user.push(...additionalUser)
 
   logger.info(`system合計文字数: ${system.join('\n').length}`)
   logger.info(`user合計文字数: ${user.join('\n').length}`)
