@@ -51,7 +51,7 @@ export class Logger {
    * @param message ログメッセージ
    * @param meta 構造化するための追加メタデータ（オブジェクト）
    */
-  public debug(message: string, meta: Record<string, unknown> = {}): void {
+  public debug(message: string, meta: unknown = {}): void {
     this.winstonLogger.debug(message, meta)
   }
 
