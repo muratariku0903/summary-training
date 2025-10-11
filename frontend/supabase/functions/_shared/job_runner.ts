@@ -1,3 +1,4 @@
+import { UnknownKeysParam, z, ZodTypeAny } from 'https://esm.sh/zod@3.23.8'
 import { logger } from './log/log.ts'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database, Tables } from '../_shared/types/database.ts'
@@ -9,21 +10,31 @@ import {
   UnexpectedError,
 } from './error/error.ts'
 import { ErrorCategory, ErrorCode } from './error/code.ts'
-import { baseRequestSchema, requestParse } from './http/request.ts'
+import { requestParse } from './http/request.ts'
 
-export type RunJobParams = {
+export type RawShapeOf<T> =
+  T extends z.ZodObject<
+    infer S extends z.ZodRawShape,
+    UnknownKeysParam,
+    ZodTypeAny,
+    unknown,
+    unknown
+  >
+    ? S
+    : never
+
+export type RunJobParams<T extends z.ZodRawShape> = {
   req: Request
+  reqSchema: z.ZodObject<T>
   supabase: SupabaseClient<Database>
   jobKey: string
   jobProcess: (
-    params: JobProcessParams,
+    params: z.infer<z.ZodObject<T>>,
   ) => Promise<Result<JobProcessResponse, JobProcessError>>
   requestId?: string
 }
-type RunJobResponse = undefined
-type JobProcessParams = {
-  req: Request
-}
+type RunJobResponse = JobProcessResponse
+
 type JobProcessResponse = {
   status: Tables<'job_runs'>['status']
   metrics: JobProcessResponseMetrics
@@ -50,21 +61,21 @@ type JobProcessResponseMetrics = {
   profileId?: string
 }
 type JobProcessError = BaseError
-export const runJob = async (
-  params: RunJobParams,
+export const runJob = async <T extends z.ZodRawShape>(
+  params: RunJobParams<T>,
 ): Promise<
   Result<RunJobResponse, InvalidRequestError | RunJobError | UnexpectedError>
 > => {
   logger.start(runJob.name)
 
-  const { req, supabase, jobKey, jobProcess, requestId } = params
+  const { req, reqSchema, supabase, jobKey, jobProcess, requestId } = params
 
   // リクエストのバリデーション＆パース
   const {
     success: parseSuccess,
     data: parseData,
     error: parseError,
-  } = await requestParse(req, baseRequestSchema)
+  } = await requestParse(req, reqSchema)
   if (!parseSuccess) {
     return {
       success: false,
@@ -97,7 +108,7 @@ export const runJob = async (
       success: jobProcessSuccess,
       data: jobProcessData,
       error: jobProcessError,
-    } = await jobProcess({ req })
+    } = await jobProcess(parseData)
     if (!jobProcessSuccess) {
       const { error: updateError } = await supabase
         .from('job_runs')
@@ -116,6 +127,8 @@ export const runJob = async (
           error: new RunJobError(jobKey, 'UPDATE', updateError, runJob.name, 'job_runs'),
         }
       }
+
+      return { success: false, error: jobProcessError }
     }
 
     const { error: updateError } = await supabase
@@ -134,7 +147,7 @@ export const runJob = async (
       }
     }
 
-    return { success: true, data: undefined }
+    return { success: true, data: jobProcessData }
   } catch (e) {
     logger.error(runJob.name, e)
     return { success: false, error: new UnexpectedError(runJob.name, e) }

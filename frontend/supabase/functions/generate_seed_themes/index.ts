@@ -9,8 +9,8 @@ import {
   seedGeneratorThemeCategories,
   seedGeneratorThemes,
 } from '../_shared/drizzle/schema.ts'
-import { runJob, RunJobParams } from '../_shared/job_runner.ts'
-import { baseRequestSchema, requestParse } from '../_shared/http/request.ts'
+import { RawShapeOf, runJob, RunJobParams } from '../_shared/job_runner.ts'
+import { baseRequestSchema } from '../_shared/http/request.ts'
 import {
   InvalidRequestError,
   OperationError,
@@ -30,6 +30,7 @@ const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 const reqSchema = baseRequestSchema.extend({
   generate_theme_count: z.number().optional(),
 })
+type ShapeOfReqSchema = RawShapeOf<typeof reqSchema>
 
 Deno.serve(async (req) => {
   logger.debug('req: ', req)
@@ -40,9 +41,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const params: RunJobParams = {
+    const params: RunJobParams<ShapeOfReqSchema> = {
       req,
       supabase,
+      reqSchema,
       jobKey: JOB_NAMES.GENERATE_SEED_THEMES,
       jobProcess,
     }
@@ -58,26 +60,14 @@ Deno.serve(async (req) => {
   }
 })
 
-const jobProcess: RunJobParams['jobProcess'] = async (params) => {
-  const { req } = params
-
-  // リクエストのバリデーション＆パース
-  const {
-    success: parseSuccess,
-    data: parseData,
-    error: parseError,
-  } = await requestParse(req, reqSchema)
-  if (!parseSuccess) {
-    return {
-      success: false,
-      error: new InvalidRequestError(jobProcess.name, parseError.message),
-    }
-  }
-  const { generate_theme_count } = parseData
+const jobProcess: RunJobParams<ShapeOfReqSchema>['jobProcess'] = async (params) => {
+  const { generate_theme_count } = params
 
   const executionCount = generate_theme_count ?? 1
   logger.info(`実行回数: ${executionCount}`)
-  let metrics: ExtractResultData<RunJobParams['jobProcess']>['metrics'] = {
+  let metrics: ExtractResultData<
+    RunJobParams<ShapeOfReqSchema>['jobProcess']
+  >['metrics'] = {
     storage: [],
     db: [],
     errors: [],
