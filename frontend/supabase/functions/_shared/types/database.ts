@@ -453,6 +453,60 @@ export type Database = {
         }
         Relationships: []
       }
+      job_runs: {
+        Row: {
+          attempt: number
+          created_at: string
+          duration_ms: number | null
+          error_code: string | null
+          error_detail: string | null
+          error_summary: string | null
+          finished_at: string | null
+          id: string
+          job_key: string
+          metrics: Json
+          request_id: string | null
+          run_mode: Database["public"]["Enums"]["job_run_mode"]
+          started_at: string | null
+          status: Database["public"]["Enums"]["job_status"]
+          updated_at: string
+        }
+        Insert: {
+          attempt?: number
+          created_at?: string
+          duration_ms?: number | null
+          error_code?: string | null
+          error_detail?: string | null
+          error_summary?: string | null
+          finished_at?: string | null
+          id?: string
+          job_key: string
+          metrics?: Json
+          request_id?: string | null
+          run_mode: Database["public"]["Enums"]["job_run_mode"]
+          started_at?: string | null
+          status: Database["public"]["Enums"]["job_status"]
+          updated_at?: string
+        }
+        Update: {
+          attempt?: number
+          created_at?: string
+          duration_ms?: number | null
+          error_code?: string | null
+          error_detail?: string | null
+          error_summary?: string | null
+          finished_at?: string | null
+          id?: string
+          job_key?: string
+          metrics?: Json
+          request_id?: string | null
+          run_mode?: Database["public"]["Enums"]["job_run_mode"]
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["job_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       llms: {
         Row: {
           created_at: string
@@ -780,6 +834,8 @@ export type Database = {
       exercise_output_exercise_type: "summary" | "rewrite"
       exercise_status: "draft" | "ready" | "hidden"
       exercise_type: "summary" | "explain" | "rewrite"
+      job_run_mode: "scheduled" | "manual" | "retry" | "test"
+      job_status: "running" | "success" | "failed" | "warn"
       llm_vendor: "openai" | "google" | "anthropic"
       seed_generator_theme_created_type: "system" | "admin"
       seed_profile_type: "ai_theme" | "youtube_channels" | "web" | "storage"
@@ -1374,6 +1430,8 @@ export const Constants = {
       exercise_output_exercise_type: ["summary", "rewrite"],
       exercise_status: ["draft", "ready", "hidden"],
       exercise_type: ["summary", "explain", "rewrite"],
+      job_run_mode: ["scheduled", "manual", "retry", "test"],
+      job_status: ["running", "success", "failed", "warn"],
       llm_vendor: ["openai", "google", "anthropic"],
       seed_generator_theme_created_type: ["system", "admin"],
       seed_profile_type: ["ai_theme", "youtube_channels", "web", "storage"],

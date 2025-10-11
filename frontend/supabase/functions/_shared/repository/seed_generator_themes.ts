@@ -1,28 +1,21 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database.ts'
 import { SeedGeneratorThemesRow } from '../types/seed_generator_themes.ts'
+import { logger } from '../log/log.ts'
+import { Result } from '../types/common.ts'
+import { DatabaseFunctionsError, DatabaseQueryError } from '../error/error.ts'
 
 type IsExactSimilarThemeParams = {
   client: SupabaseClient<Database>
   themeCanonicalKey: string
 }
-type IsExactSimilarThemeResponse =
-  | {
-      success: true
-      data: boolean
-      error?: never
-    }
-  | {
-      success: false
-      data?: never
-      error: string
-    }
+type IsExactSimilarThemeResponse = boolean
 export async function isExactSimilarTheme(
   params: IsExactSimilarThemeParams,
-): Promise<IsExactSimilarThemeResponse> {
+): Promise<Result<IsExactSimilarThemeResponse, DatabaseQueryError>> {
   const { client, themeCanonicalKey } = params
 
-  console.log('canonicalKey: ', themeCanonicalKey)
+  logger.debug('canonicalKey: ', themeCanonicalKey)
 
   const { data, error } = await client
     .from('seed_generator_themes')
@@ -31,7 +24,15 @@ export async function isExactSimilarTheme(
     .limit(1)
 
   if (error) {
-    return { success: false, error: error.message }
+    return {
+      success: false,
+      error: new DatabaseQueryError(
+        isExactSimilarTheme.name,
+        'SELECT',
+        'seed_generator_themes',
+        error.message,
+      ),
+    }
   }
 
   return { success: true, data: (data?.length ?? 0) > 0 }
@@ -44,26 +45,16 @@ type IsSimilarThemeParams = {
 }
 type IsSimilarThemeResponse =
   | {
-      success: true
-      data:
-        | {
-            hit: true
-            theme: Database['public']['Functions']['find_similar_themes']['Returns'][number]
-          }
-        | {
-            hit: false
-            theme?: never
-          }
-      error?: never
+      hit: true
+      theme: Database['public']['Functions']['find_similar_themes']['Returns'][number]
     }
   | {
-      success: false
-      data?: never
-      error: string
+      hit: false
+      theme?: never
     }
 export async function isSimilarTheme(
   params: IsSimilarThemeParams,
-): Promise<IsSimilarThemeResponse> {
+): Promise<Result<IsSimilarThemeResponse, DatabaseFunctionsError>> {
   const { client, theme, minSim } = params
 
   const { data, error } = await client.rpc('find_similar_themes', {
@@ -72,10 +63,16 @@ export async function isSimilarTheme(
     lim: 1,
   })
   if (error) {
-    return { success: false, error: error.message }
+    return {
+      success: false,
+      error: new DatabaseFunctionsError(
+        isExactSimilarTheme.name,
+        'find_similar_themes',
+        error.message,
+      ),
+    }
   }
-
-  console.log('find_similar_themes: ', data)
+  logger.debug('find_similar_themes: ', data)
 
   if (!data || (data && data.length === 0)) {
     return {
