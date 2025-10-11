@@ -1,7 +1,7 @@
 import { UnknownKeysParam, z, ZodTypeAny } from 'https://esm.sh/zod@3.23.8'
 import { logger } from './log/log.ts'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Database, Tables } from '../_shared/types/database.ts'
+import type { Database, Json, Tables } from '../_shared/types/database.ts'
 import { Result } from './types/common.ts'
 import {
   BaseError,
@@ -59,6 +59,7 @@ type JobProcessResponseMetrics = {
     message: string
   }[]
   profileId?: string
+  extra?: Json
 }
 type JobProcessError = BaseError
 export const runJob = async <T extends z.ZodRawShape>(

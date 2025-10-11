@@ -2,13 +2,14 @@ import { Pool } from 'https://deno.land/x/postgres@v0.17.2/pool.ts'
 import { Result } from '../types/common.ts'
 import { PoolClient } from 'https://deno.land/x/postgres@v0.17.2/client.ts'
 import { logger } from '../log/log.ts'
+import { BaseError, DatabaseQueryError, UnexpectedError } from '../error/error.ts'
 
 type RunParams<T> = {
   pool: Pool
-  exec: (client: PoolClient) => Promise<T>
+  exec: (client: PoolClient) => Promise<Result<T, BaseError>>
   acquireLockQuery?: string
 }
-export const run = async <T>(params: RunParams<T>): Promise<Result<T>> => {
+export const run = async <T>(params: RunParams<T>): Promise<Result<T, BaseError>> => {
   logger.start(run.name)
 
   const { pool, exec, acquireLockQuery } = params
@@ -25,19 +26,32 @@ export const run = async <T>(params: RunParams<T>): Promise<Result<T>> => {
       if (!lockRes.rows[0]?.locked) {
         await client.queryArray`rollback`
 
-        return { success: false, error: Error('another-run-in-progress') }
+        return {
+          success: false,
+          error: new DatabaseQueryError(
+            run.name,
+            'SELECT',
+            undefined,
+            `query: ${acquireLockQuery}`,
+            '排他ロック（多重起動回避）の取得に失敗しました',
+          ),
+        }
       }
       logger.info('transaction locked')
     }
 
-    const result = await exec(client)
+    const { success: execSuccess, data: execData, error: execError } = await exec(client)
+    if (!execSuccess) {
+      logger.error('exec error: ', execError)
+      return { success: false, error: execError }
+    }
 
     await client.queryArray`commit`
     logger.info('transaction commit')
 
     return {
       success: true,
-      data: result,
+      data: execData,
     }
   } catch (e) {
     logger.error('run sql error: ', e)
@@ -47,7 +61,7 @@ export const run = async <T>(params: RunParams<T>): Promise<Result<T>> => {
     } catch {
       /* noop */
     }
-    return { success: false, error: Error(String(e)) }
+    return { success: false, error: new UnexpectedError(run.name, e) }
   } finally {
     client.release()
     logger.end(run.name)

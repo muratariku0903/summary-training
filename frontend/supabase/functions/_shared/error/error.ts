@@ -1,3 +1,4 @@
+import { PostgrestError } from '@supabase/supabase-js'
 import { Database, Tables } from '../types/database.ts'
 import {
   DatabaseQueryOperation,
@@ -146,8 +147,9 @@ export class DatabaseQueryError extends BaseError {
 /**
  * データベース関数実行時のエラー
  */
+
 export class DatabaseFunctionsError extends BaseError {
-  public readonly code: ErrorCode = ERROR_CODES.DATABASE_FUNCTION_ERROR
+  public readonly code: ErrorCode = ERROR_CODES.DATABASE_DIRECTLY_QUERY_ERROR
   public readonly category: ErrorCategory = ERROR_CATEGORIES.SYSTEM_ERROR
   public readonly functionName: string
   public readonly summary?: string
@@ -168,7 +170,33 @@ export class DatabaseFunctionsError extends BaseError {
 }
 
 /**
- * データベースクエリ実行時のエラー
+ * クエリ直接実行時のエラー
+ */
+export class DirectlyExecutingQueryError extends BaseError {
+  public readonly code: ErrorCode = ERROR_CODES.DATABASE_FUNCTION_ERROR
+  public readonly category: ErrorCategory = ERROR_CATEGORIES.SYSTEM_ERROR
+  public readonly functionName: string
+  public readonly summary?: string
+  public readonly detail?: string
+
+  constructor(functionName: string, error: unknown, query: string) {
+    let message = 'クエリ実行エラー'
+
+    if (error instanceof PostgrestError) {
+      message += ` エラー名: ${PostgrestError.name}, code: ${error.code}, cause: ${error.cause}, message: ${error.message}`
+    } else {
+      message += ` 予期せぬエラー: ${error}`
+    }
+
+    super(message)
+    this.functionName = functionName
+    this.summary = message
+    this.detail = `query: ${query}`
+  }
+}
+
+/**
+ * 生成AIのエラー
  */
 export class LlmError extends BaseError {
   public readonly code: ErrorCode

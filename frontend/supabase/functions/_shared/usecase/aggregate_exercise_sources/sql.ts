@@ -1,4 +1,4 @@
-import { createAdvisoryLockQuery } from '../../_shared/db/process.ts'
+import { createAdvisoryLockQuery } from '../../db/process.ts'
 
 export const SQL_ACQUIRE_LOCK_THEME_SOURCES = createAdvisoryLockQuery(
   'aggregate_exercise_sources_v1',
