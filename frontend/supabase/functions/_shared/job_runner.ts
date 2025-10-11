@@ -93,6 +93,7 @@ export const runJob = async <T extends z.ZodRawShape>(
         status: 'running',
         attempt: 1,
         request_id: requestId,
+        started_at: new Date().toISOString(),
       })
       .select('id')
       .single()
