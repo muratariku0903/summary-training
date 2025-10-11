@@ -74,12 +74,16 @@ export const runJob = async (
   const { job_run_mode } = parseData
 
   try {
-    const { error: insertError } = await supabase.from('job_runs').insert({
-      job_key: jobKey,
-      run_mode: job_run_mode,
-      status: 'running',
-      request_id: requestId,
-    })
+    const { data: insertData, error: insertError } = await supabase
+      .from('job_runs')
+      .insert({
+        job_key: jobKey,
+        run_mode: job_run_mode,
+        status: 'running',
+        request_id: requestId,
+      })
+      .select('id')
+      .single()
     if (insertError) {
       logger.error(runJob.name, insertError)
       return {
@@ -87,6 +91,7 @@ export const runJob = async (
         error: new RunJobError(jobKey, 'INSERT', insertError, runJob.name, 'job_runs'),
       }
     }
+    const jobRunId = insertData.id
 
     const {
       success: jobProcessSuccess,
@@ -94,13 +99,16 @@ export const runJob = async (
       error: jobProcessError,
     } = await jobProcess({ req })
     if (!jobProcessSuccess) {
-      const { error: updateError } = await supabase.from('job_runs').update({
-        status: 'failed',
-        error_code: jobProcessError.code,
-        error_summary: jobProcessError.summary,
-        error_detail: jobProcessError.detail,
-        finished_at: new Date().toISOString(),
-      })
+      const { error: updateError } = await supabase
+        .from('job_runs')
+        .update({
+          status: 'failed',
+          error_code: jobProcessError.code,
+          error_summary: jobProcessError.summary,
+          error_detail: jobProcessError.detail,
+          finished_at: new Date().toISOString(),
+        })
+        .eq('id', jobRunId)
       if (updateError) {
         logger.error(runJob.name, updateError)
         return {
@@ -110,11 +118,14 @@ export const runJob = async (
       }
     }
 
-    const { error: updateError } = await supabase.from('job_runs').update({
-      status: jobProcessData?.status,
-      metrics: jobProcessData?.metrics,
-      finished_at: new Date().toISOString(),
-    })
+    const { error: updateError } = await supabase
+      .from('job_runs')
+      .update({
+        status: jobProcessData?.status,
+        metrics: jobProcessData?.metrics,
+        finished_at: new Date().toISOString(),
+      })
+      .eq('id', jobRunId)
     if (updateError) {
       logger.error(runJob.name, updateError)
       return {
