@@ -3,7 +3,12 @@ import type { Database } from '../types/database.ts'
 import { SeedGeneratorThemesRow } from '../types/seed_generator_themes.ts'
 import { logger } from '../log/log.ts'
 import { Result } from '../types/common.ts'
-import { DatabaseFunctionsError, DatabaseQueryError } from '../error/error.ts'
+import {
+  DatabaseFunctionsError,
+  DatabaseQueryError,
+  EmptyTableError,
+  UnexpectedError,
+} from '../error/error.ts'
 
 type IsExactSimilarThemeParams = {
   client: SupabaseClient<Database>
@@ -87,26 +92,49 @@ export async function isSimilarTheme(
   }
 }
 
-// ...existing code...
-
 type GetRandomThemeParams = {
   client: SupabaseClient<Database>
+  themeId?: string | null
 }
-type GetRandomThemeResponse =
-  | {
-      success: true
-      data: SeedGeneratorThemesRow
-      error?: never
-    }
-  | {
-      success: false
-      data?: never
-      error: string
-    }
-export async function getRandomTheme(
+type GetRandomThemeResponse = SeedGeneratorThemesRow
+
+export async function getTheme(
   params: GetRandomThemeParams,
-): Promise<GetRandomThemeResponse> {
-  const { client } = params
+): Promise<
+  Result<GetRandomThemeResponse, DatabaseQueryError | EmptyTableError | UnexpectedError>
+> {
+  const { client, themeId } = params
+
+  if (themeId) {
+    const { data, error } = await client
+      .from('seed_generator_themes')
+      .select('*')
+      .eq('id', themeId)
+      .eq('is_active', true)
+      .single()
+    if (error) {
+      return {
+        success: false,
+        error: new DatabaseQueryError(
+          getTheme.name,
+          'SELECT',
+          'seed_generator_themes',
+          error.message,
+        ),
+      }
+    }
+    if (!data) {
+      if (!data) {
+        return {
+          success: false,
+          error: new UnexpectedError(
+            getTheme.name,
+            `テーマが存在しませんでした themeId: ${themeId}`,
+          ),
+        }
+      }
+    }
+  }
 
   // アクティブなテーマの総数を取得
   const { count, error: countError } = await client
@@ -115,11 +143,21 @@ export async function getRandomTheme(
     .eq('is_active', true)
 
   if (countError) {
-    return { success: false, error: countError.message }
+    return {
+      success: false,
+      error: new DatabaseQueryError(
+        getTheme.name,
+        'COUNT',
+        'seed_generator_themes',
+      ),
+    }
   }
 
   if (!count || count === 0) {
-    return { success: false, error: 'not found theme' }
+    return {
+      success: false,
+      error: new EmptyTableError(getTheme.name, 'seed_generator_themes'),
+    }
   }
 
   // ランダムなオフセットを生成
@@ -134,11 +172,22 @@ export async function getRandomTheme(
     .limit(1)
 
   if (error) {
-    return { success: false, error: error.message }
+    return {
+      success: false,
+      error: new DatabaseQueryError(
+        getTheme.name,
+        'SELECT',
+        'seed_generator_themes',
+        error.message,
+      ),
+    }
   }
 
   if (!data) {
-    return { success: false, error: 'unexpected error data is null' }
+    return {
+      success: false,
+      error: new UnexpectedError(getTheme.name, 'テーマが存在しませんでした'),
+    }
   }
 
   return { success: true, data: data[0] }
