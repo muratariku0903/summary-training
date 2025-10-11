@@ -110,37 +110,43 @@ const jobProcess: RunJobParams<ShapeOfReqSchema>['jobProcess'] = async (params) 
 
     // 作成されたテーマを保存
     try {
-      await drizzleDB.transaction(async (tx) => {
-        // テーマを挿入
-        const [insertedTheme] = await tx
-          .insert(seedGeneratorThemes)
-          .values({
-            title: generateThemeData.themeTitle,
-            description: generateThemeData.themeDescription,
-            canonical_key: generateThemeData.canonicalKey,
-            created_by: 'system',
-            is_active: true,
-          })
-          .returning({ id: seedGeneratorThemes.id })
+      const { insertedTheme, insertedThemeCategories } = await drizzleDB.transaction(
+        async (tx) => {
+          // テーマを挿入
+          const [insertedTheme] = await tx
+            .insert(seedGeneratorThemes)
+            .values({
+              title: generateThemeData.themeTitle,
+              description: generateThemeData.themeDescription,
+              canonical_key: generateThemeData.canonicalKey,
+              created_by: 'system',
+              is_active: true,
+            })
+            .returning({ id: seedGeneratorThemes.id })
 
-        // カテゴリ関連を挿入
-        await tx.insert(seedGeneratorThemeCategories).values({
-          theme_id: insertedTheme.id,
-          category_id: category.id,
-        })
+          // カテゴリ関連を挿入
+          const [insertedThemeCategories] = await tx
+            .insert(seedGeneratorThemeCategories)
+            .values({
+              theme_id: insertedTheme.id,
+              category_id: category.id,
+            })
+            .returning()
 
-        return insertedTheme
-      })
+          return { insertedTheme, insertedThemeCategories }
+        },
+      )
       metrics = {
         ...metrics,
         db: [
           ...metrics.db,
-          { tableName: 'seed_generator_themes', insert: 1, update: 0, delete: 0 },
+          { tableName: 'seed_generator_themes', insert: [insertedTheme.id] },
           {
             tableName: 'seed_generator_theme_categories',
-            insert: 1,
-            update: 0,
-            delete: 0,
+            insert: [
+              insertedThemeCategories.theme_id,
+              insertedThemeCategories.category_id,
+            ],
           },
         ],
       }

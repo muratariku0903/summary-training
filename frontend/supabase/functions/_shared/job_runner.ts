@@ -48,9 +48,9 @@ type JobProcessResponseMetrics = {
   }[]
   db: {
     tableName: keyof Database['public']['Tables']
-    insert: number
-    update: number
-    delete: number
+    insert?: string[]
+    update?: string[]
+    delete?: string[]
   }[]
   errors: {
     functionName: string
@@ -91,6 +91,7 @@ export const runJob = async <T extends z.ZodRawShape>(
         job_key: jobKey,
         run_mode: job_run_mode,
         status: 'running',
+        attempt: 1,
         request_id: requestId,
       })
       .select('id')
