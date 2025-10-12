@@ -9,6 +9,8 @@ import {
 
 import { z } from 'https://esm.sh/zod@3.23.8'
 import { logger } from '../../log/log.ts'
+import { InvalidRequestError, LlmError, UnexpectedError } from '../../error/error.ts'
+import { ERROR_CODES } from '../../error/code.ts'
 
 export const generateExerciseSchema = z
   .object({
@@ -22,7 +24,9 @@ export const generateExerciseSchema = z
   .strict()
 export const generateExercise: LlmExerciseGenerator = async (
   params: LlmExerciseGeneratorParams,
-): Promise<Result<LlmExerciseGeneratorResponse>> => {
+): Promise<
+  Result<LlmExerciseGeneratorResponse, InvalidRequestError | LlmError | UnexpectedError>
+> => {
   const {
     schema,
     model: { name: modelName, max_tokens: modelMaxTokens },
@@ -35,7 +39,10 @@ export const generateExercise: LlmExerciseGenerator = async (
     error: parseError,
   } = generateExerciseSchema.safeParse(schema)
   if (!parseSuccess) {
-    return { success: false, error: Error(parseError.message) }
+    return {
+      success: false,
+      error: new InvalidRequestError(generateExercise.name, parseError.message),
+    }
   }
 
   const {
@@ -95,21 +102,50 @@ export const generateExercise: LlmExerciseGenerator = async (
     })
 
     const content = res.choices?.[0]?.message?.content
-    if (!content) return { success: false, error: Error('OpenAI returned no content') }
+    if (!content)
+      return {
+        success: false,
+        error: new LlmError(
+          ERROR_CODES.LLM_GENERATE_CONTENT_EMPTY,
+          generateExercise.name,
+          'openai',
+          modelName,
+          `system: ${system.join('\n')}, user: ${user.join('\n')}`,
+        ),
+      }
 
     let json: unknown
     try {
       json = JSON.parse(content)
       console.log(json)
     } catch {
-      return { success: false, error: Error('Invalid JSON from OpenAI generated') }
+      return {
+        success: false,
+        error: new LlmError(
+          ERROR_CODES.LLM_GENERATE_CONTENT_INVALID_FORMAT,
+          generateExercise.name,
+          'openai',
+          modelName,
+          `system: ${system.join('\n')}, user: ${user.join('\n')}`,
+        ),
+      }
     }
 
     const { data, error, success } = llmExerciseGeneratorResponseSchema.safeParse(json)
     if (!success) {
       const msg = error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')
 
-      return { success: false, error: Error(`schema validation failed: ${msg}`) }
+      return {
+        success: false,
+        error: new LlmError(
+          ERROR_CODES.LLM_GENERATE_CONTENT_INVALID_SCHEMA,
+          generateExercise.name,
+          'openai',
+          modelName,
+          `system: ${system.join('\n')}, user: ${user.join('\n')}`,
+          msg,
+        ),
+      }
     }
 
     const g: LlmExerciseGeneratorResponse = {
@@ -120,8 +156,11 @@ export const generateExercise: LlmExerciseGenerator = async (
 
     return { success: true, data: g }
   } catch (e) {
-    console.error('fail generate openai.chat.completions.create', e)
-    return { success: false, error: e instanceof Error ? e : Error(String(e)) }
+    logger.error('fail generate openai.chat.completions.create', e)
+    return {
+      success: false,
+      error: new UnexpectedError(generateExercise.name, e),
+    }
   }
 }
 

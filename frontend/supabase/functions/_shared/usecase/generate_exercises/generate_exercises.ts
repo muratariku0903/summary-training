@@ -9,7 +9,15 @@ import { generateExercise as generateExerciseByOpenAI } from '../../openai/funct
 import { ymdJST } from '../../utils/utils.ts'
 import { ExercisesInsertRow } from '../../types/exercises.ts'
 import { logger } from '../../log/log.ts'
-import { UnusedSourcePatternNotFoundError } from '../../error/error.ts'
+import {
+  BaseError,
+  DatabaseQueryError,
+  DirectlyExecutingQueryError,
+  OperationError,
+  StorageError,
+  UnexpectedError,
+} from '../../error/error.ts'
+import { ERROR_CODES, STORAGE_OPERATION } from '../../error/code.ts'
 
 /**
  * プロファイルIDから設定情報を完全取得するレスポンス型
@@ -30,9 +38,7 @@ type GenerateExerciseOutputConfigByProfileIdResponse =
 export async function resolveOutputConfigByProfileId(
   supabase: SupabaseClient<Database>,
   profileId: string,
-): Promise<Result<GenerateExerciseOutputConfigByProfileIdResponse>> {
-  logger.start(resolveOutputConfigByProfileId.name)
-
+): Promise<Result<GenerateExerciseOutputConfigByProfileIdResponse, DatabaseQueryError>> {
   // まずプロファイルと設定を取得
   const { data: profileData, error: profileError } = await supabase
     .from('exercise_generator_profiles')
@@ -44,15 +50,19 @@ export async function resolveOutputConfigByProfileId(
     )
     .eq('id', profileId)
     .single()
-
   if (profileError) {
-    if (profileError.code === 'PGRST116') {
-      return { success: true, data: null }
+    return {
+      success: false,
+      error: new DatabaseQueryError(
+        resolveOutputConfigByProfileId.name,
+        'SELECT',
+        'exercise_generator_profiles',
+        profileError.message,
+      ),
     }
-    return { success: false, error: profileError }
   }
 
-  // 手動で複合キーを使ってスキーマを取得
+  // 複合キーを使ってスキーマを取得
   const { data: schemaData, error: schemaError } = await supabase
     .from('exercise_generator_output_configs_schemas')
     .select(
@@ -66,12 +76,16 @@ export async function resolveOutputConfigByProfileId(
     .eq('exercise_type', profileData.output_config.exercise_type)
     .eq('difficulty', profileData.output_config.difficulty)
     .single()
-
   if (schemaError) {
-    if (schemaError.code === 'PGRST116') {
-      return { success: true, data: null }
+    return {
+      success: false,
+      error: new DatabaseQueryError(
+        resolveOutputConfigByProfileId.name,
+        'SELECT',
+        'exercise_generator_output_configs_schemas',
+        schemaError.message,
+      ),
     }
-    return { success: false, error: schemaError }
   }
 
   // 結果を組み立て
@@ -82,7 +96,6 @@ export async function resolveOutputConfigByProfileId(
       schema: schemaData,
     },
   }
-  logger.end(resolveOutputConfigByProfileId.name)
 
   return { success: true, data: result }
 }
@@ -107,7 +120,12 @@ type ResolveSourcesResponse = {
 }
 export const resolveSourcesByProfileId = async (
   params: ResolveSourcesParams,
-): Promise<Result<ResolveSourcesResponse, Error | UnusedSourcePatternNotFoundError>> => {
+): Promise<
+  Result<
+    ResolveSourcesResponse,
+    DatabaseQueryError | DirectlyExecutingQueryError | OperationError
+  >
+> => {
   logger.start(resolveSourcesByProfileId.name)
 
   const { supabase, profileId, sourceCombMin, sourceCombMax, allowRepeatWhenExhausted } =
@@ -122,7 +140,15 @@ export const resolveSourcesByProfileId = async (
     )
     .eq('profile_id', profileId)
   if (sourcesError) {
-    return { success: false, error: sourcesError }
+    return {
+      success: false,
+      error: new DatabaseQueryError(
+        resolveOutputConfigByProfileId.name,
+        'SELECT',
+        'exercise_generator_profile_sources',
+        sourcesError.message,
+      ),
+    }
   }
   if (sourcesData.length > 0) {
     return {
@@ -132,7 +158,7 @@ export const resolveSourcesByProfileId = async (
   }
 
   // ソースが決定しない場合はランダムでソースを取得
-  logger.debug('ソースの指定がないため、ランダムにソースを選択')
+  logger.debug('ソースの指定がないため、ランダムにソースを選択します')
   const {
     success: runSuccess,
     data: runData,
@@ -140,46 +166,65 @@ export const resolveSourcesByProfileId = async (
   } = await run({
     pool: POOL,
     exec: async (client) => {
-      const result = await client.queryObject<{
-        pattern_id: string | null
-        source_ids: string[]
-      }>(SQL_PICK_RANDOM_UNUSED_SOURCE_PATTERN, [
-        profileId,
-        sourceCombMin,
-        sourceCombMax,
-        10,
-        allowRepeatWhenExhausted,
-      ])
+      try {
+        const result = await client.queryObject<{
+          pattern_id: string | null
+          source_ids: string[]
+        }>(SQL_PICK_RANDOM_UNUSED_SOURCE_PATTERN, [
+          profileId,
+          sourceCombMin,
+          sourceCombMax,
+          10,
+          allowRepeatWhenExhausted,
+        ])
 
-      return result.rows
+        return { success: true, data: result.rows }
+      } catch (e) {
+        logger.error('[SQL_PICK_RANDOM_UNUSED_SOURCE_PATTERN]でエラーが発生', e)
+        return {
+          success: false,
+          error: new DirectlyExecutingQueryError(
+            resolveSourcesByProfileId.name,
+            e,
+            SQL_PICK_RANDOM_UNUSED_SOURCE_PATTERN,
+          ),
+        }
+      }
     },
   })
   if (!runSuccess) {
-    console.error('ランダムソース選択に失敗しました')
-    return { success: false, error: Error(runError.message) }
+    return { success: false, error: runError }
   }
   if (runData.length === 0) {
-    console.error('未使用のソースパターンを取得できませんでした')
+    logger.warn('未使用のソースパターンを取得できませんでした')
     return {
       success: false,
-      error: new UnusedSourcePatternNotFoundError(
-        profileId,
-        sourceCombMin,
-        sourceCombMax,
-        allowRepeatWhenExhausted,
+      error: new OperationError(
+        resolveOutputConfigByProfileId.name,
+        ERROR_CODES.UNUSED_SOURCE_PATTERN_NOT_FOUND,
+        '未使用のソースパターンを取得できませんでした',
+        `profileId: ${profileId}, sourceCombMin: ${sourceCombMin}, sourceCombMax: ${sourceCombMax}, allowRepeatWhenExhausted: ${allowRepeatWhenExhausted}`,
       ),
     }
   }
 
   const { pattern_id, source_ids } = runData[0]
-  console.log('sourceIds: ', source_ids)
+  logger.debug('sourceIds: ', source_ids)
 
   const { data: sourceRecords, error: sourceRecordsError } = await supabase
     .from('exercise_generator_sources')
     .select('*')
     .in('id', source_ids)
   if (sourceRecordsError) {
-    return { success: false, error: sourceRecordsError }
+    return {
+      success: false,
+      error: new DatabaseQueryError(
+        resolveOutputConfigByProfileId.name,
+        'SELECT',
+        'exercise_generator_sources',
+        sourceRecordsError.message,
+      ),
+    }
   }
 
   return { success: true, data: { patternId: pattern_id, sources: sourceRecords } }
@@ -204,7 +249,7 @@ type GenerateExerciseByLlmFromSourcesParams = {
 type GenerateExerciseByLlmFromSourcesResponse = LlmExerciseGeneratorResponse
 export const generateExerciseByLlmFromSourcesParams = async (
   params: GenerateExerciseByLlmFromSourcesParams,
-): Promise<Result<GenerateExerciseByLlmFromSourcesResponse>> => {
+): Promise<Result<GenerateExerciseByLlmFromSourcesResponse, BaseError>> => {
   const {
     supabase,
     sources,
@@ -220,13 +265,22 @@ export const generateExerciseByLlmFromSourcesParams = async (
     .select('*')
     .in('source_id', sourceIds)
   if (sourceSeedsError) {
-    return { success: false, error: sourceSeedsError }
+    return {
+      success: false,
+      error: new DatabaseQueryError(
+        generateExerciseByLlmFromSourcesParams.name,
+        'SELECT',
+        'exercise_generator_source_seeds',
+        sourceSeedsError.message,
+      ),
+    }
   }
   if (!sourceSeedsData || sourceSeedsData.length === 0) {
     return {
       success: false,
-      error: new Error(
-        `No seed relationships found for sources: ${sourceIds.join(', ')}`,
+      error: new UnexpectedError(
+        generateExerciseByLlmFromSourcesParams.name,
+        `SOURCEに紐づくSEEDが存在しませんでした: ${sourceIds.join(', ')}`,
       ),
     }
   }
@@ -241,7 +295,15 @@ export const generateExerciseByLlmFromSourcesParams = async (
     .in('id', seedIds)
     .eq('status', 'active')
   if (seedsError) {
-    return { success: false, error: seedsError }
+    return {
+      success: false,
+      error: new DatabaseQueryError(
+        generateExerciseByLlmFromSourcesParams.name,
+        'SELECT',
+        'exercise_generator_seeds',
+        seedsError.message,
+      ),
+    }
   }
 
   // Step 4: LLMから題材データを生成
@@ -253,7 +315,7 @@ export const generateExerciseByLlmFromSourcesParams = async (
         sources: seedsData.map((s) => s.raw_text ?? ''),
       })
       if (!success) {
-        return { success: false, error: Error(error.message) }
+        return { success: false, error }
       }
 
       return { success: true, data: data }
@@ -262,7 +324,10 @@ export const generateExerciseByLlmFromSourcesParams = async (
     default:
       return {
         success: false,
-        error: new Error(`unsupported llm vendor: ${vendor}`),
+        error: new UnexpectedError(
+          generateExerciseByLlmFromSourcesParams.name,
+          `想定外のLLMベンダが指定されました vendor:${vendor}`,
+        ),
       }
   }
 }
@@ -297,7 +362,7 @@ type SaveGeneratedExerciseResponse = {
 }
 export const saveGeneratedExercise = async (
   params: SaveGeneratedExerciseParams,
-): Promise<Result<SaveGeneratedExerciseResponse>> => {
+): Promise<Result<SaveGeneratedExerciseResponse, DatabaseQueryError | StorageError>> => {
   const { supabase, exercise, exerciseType, profileId } = params
 
   // Step 1: ストレージパスの生成
@@ -324,7 +389,12 @@ export const saveGeneratedExercise = async (
   if (dbError) {
     return {
       success: false,
-      error: new Error(`DB保存に失敗しました: ${dbError.message}`),
+      error: new DatabaseQueryError(
+        saveGeneratedExercise.name,
+        'INSERT',
+        'exercises',
+        dbError.message,
+      ),
     }
   }
 
@@ -336,6 +406,7 @@ export const saveGeneratedExercise = async (
       upsert: true,
     })
   if (storageError) {
+    logger.info('ストレージ保存に失敗したので保存済みのレコードを論理削除します')
     // Step 4: ストレージ保存失敗時はDBレコードを論理削除
     const { error: deleteError } = await supabase
       .from('exercises')
@@ -345,10 +416,13 @@ export const saveGeneratedExercise = async (
       })
       .eq('id', exerciseId)
     if (deleteError) {
-      console.error('論理削除にも失敗しました:', deleteError)
+      logger.error('論理削除にも失敗しました:', deleteError)
       return {
         success: false,
-        error: new Error(
+        error: new DatabaseQueryError(
+          saveGeneratedExercise.name,
+          'UPDATE',
+          'exercises',
           `ストレージ保存失敗 & 論理削除失敗: Storage: ${storageError.message}, Delete: ${deleteError.message}`,
         ),
       }
@@ -356,7 +430,10 @@ export const saveGeneratedExercise = async (
 
     return {
       success: false,
-      error: new Error(
+      error: new StorageError(
+        saveGeneratedExercise.name,
+        STORAGE_OPERATION.UPLOAD,
+        'exercises',
         `ストレージ保存に失敗しました（DBレコードは論理削除済み）: ${storageError.message}`,
       ),
     }

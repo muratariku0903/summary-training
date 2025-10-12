@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { z } from 'https://esm.sh/zod@3.23.8'
 import { Json } from './database.ts'
+import { BaseError } from '../error/error.ts'
 // Result型の定義
 export type Result<T, E = Error> =
   | { success: true; data: T; error?: never }
@@ -35,4 +36,4 @@ export type LlmExerciseGeneratorParams = {
 }
 export type LlmExerciseGenerator = (
   params: LlmExerciseGeneratorParams,
-) => Promise<Result<LlmExerciseGeneratorResponse>>
+) => Promise<Result<LlmExerciseGeneratorResponse, BaseError>>

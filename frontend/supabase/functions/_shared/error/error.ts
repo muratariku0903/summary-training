@@ -6,6 +6,7 @@ import {
   ERROR_CODES,
   ErrorCategory,
   ErrorCode,
+  StorageOperation,
 } from './code.ts'
 
 /**
@@ -20,32 +21,6 @@ export abstract class BaseError extends Error {
 
   constructor(message: string) {
     super(message)
-  }
-}
-
-export class UnusedSourcePatternNotFoundError extends BaseError {
-  public readonly code: ErrorCode = ERROR_CODES.SOURCE_PATTERN_NOT_FOUND
-  public readonly category: ErrorCategory = ERROR_CATEGORIES.BUSINESS_LOGIC_ERROR
-  public readonly functionName: string
-  public readonly summary?: string
-  public readonly detail?: string
-  constructor(
-    functionName: string,
-    public readonly profileId: string,
-    public readonly sourceCombMin: number,
-    public readonly sourceCombMax: number,
-    public readonly allowRepeatWhenExhausted: boolean,
-    summary?: string,
-    detail?: string,
-  ) {
-    super(
-      `未使用のソースパターンを取得できませんでした。プロファイルID: ${profileId}, ` +
-        `ソース組み合わせ範囲: ${sourceCombMin}-${sourceCombMax}, ` +
-        `重複許可: ${allowRepeatWhenExhausted ? '有効' : '無効'}`,
-    )
-    this.functionName = functionName
-    this.summary = summary
-    this.detail = detail
   }
 }
 
@@ -164,6 +139,33 @@ export class DirectlyExecutingQueryError extends BaseError {
     this.functionName = functionName
     this.summary = message
     this.detail = `query: ${query}`
+  }
+}
+
+/**
+ * ストレージ周りのエラー
+ */
+export class StorageError extends BaseError {
+  public readonly code: ErrorCode = ERROR_CODES.STORAGE_ERROR
+  public readonly category: ErrorCategory = ERROR_CATEGORIES.SYSTEM_ERROR
+  public readonly functionName: string
+  public readonly summary?: string
+  public readonly detail?: string
+
+  constructor(
+    functionName: string,
+    public readonly operation: StorageOperation,
+    public readonly bucketName: string,
+    message?: string,
+    summary?: string,
+    detail?: string,
+  ) {
+    const defaultMessage = `${operation}操作でエラーが発生しました (バケット名: ${bucketName})`
+
+    super(message || defaultMessage)
+    this.functionName = functionName
+    this.summary = summary || 'ストレージ処理エラー'
+    this.detail = detail || message || defaultMessage
   }
 }
 

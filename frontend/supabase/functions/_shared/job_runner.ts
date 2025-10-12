@@ -40,23 +40,22 @@ type JobProcessResponse = {
   metrics: JobProcessResponseMetrics
 }
 type JobProcessResponseMetrics = {
-  storage: {
-    path: string
-    insert: number
-    update: number
-    delete: number
+  storage?: {
+    insert?: string
+    update?: string
+    delete?: string
   }[]
-  db: {
+  db?: {
     tableName: keyof Database['public']['Tables']
     insert?: string[]
     update?: string[]
     delete?: string[]
   }[]
-  errors: {
+  errors?: {
     functionName: string
     code: ErrorCode
     category: ErrorCategory
-    message: string
+    message?: string
   }[]
   profileId?: string
   extra?: Json
