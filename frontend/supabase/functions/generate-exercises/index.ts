@@ -172,7 +172,17 @@ const jobProcess: RunJobParams<ShapeOfReqSchema>['jobProcess'] = async (params) 
             status: 'success',
             metrics: {
               profileId: profile_id,
-              db: [{ tableName: 'exercises', insert: [saveData.exerciseId] }],
+              db: [
+                ...(resolveSourceData.patternId
+                  ? [
+                      {
+                        tableName: 'exercise_generator_profile_source_patterns' as const,
+                        insert: [resolveSourceData.patternId],
+                      },
+                    ]
+                  : []),
+                { tableName: 'exercises', insert: [saveData.exerciseId] },
+              ],
               storage: [{ insert: saveData.storagePath }],
             },
           },
