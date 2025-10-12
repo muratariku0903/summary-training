@@ -1,3 +1,7 @@
+import { ERROR_CODES } from '../../error/code.ts'
+import { LlmError } from '../../error/error.ts'
+import { logger } from '../../log/log.ts'
+import { Result } from '../../types/common.ts'
 import { openai } from '../openai_client.ts'
 import { z } from 'https://esm.sh/zod@3.23.8'
 
@@ -20,20 +24,10 @@ type GenerateSeedThemeParams = {
     temperature?: number
   }
 }
-type GenerateSeedThemeResponse =
-  | {
-      success: true
-      data: GenerateSeedData
-      error?: never
-    }
-  | {
-      success: false
-      data?: never
-      error: string
-    }
+type GenerateSeedThemeResponse = GenerateSeedData
 export const generateSeedTheme = async (
   params: GenerateSeedThemeParams,
-): Promise<GenerateSeedThemeResponse> => {
+): Promise<Result<GenerateSeedThemeResponse, LlmError>> => {
   const { category, model, additionalPrompt } = params
 
   const system = [
@@ -72,23 +66,53 @@ export const generateSeedTheme = async (
     ],
   })
 
-  console.log('openai.chat.completions.create: ', res)
+  logger.debug('openai.chat.completions.create: ', res)
 
   const content = res.choices?.[0]?.message?.content
-  if (!content) throw new Error('OpenAI returned no content')
+  if (!content) {
+    return {
+      success: false,
+      error: new LlmError(
+        ERROR_CODES.LLM_GENERATE_CONTENT_EMPTY,
+        generateSeedTheme.name,
+        'openai',
+        model,
+        `system:${system.join('\n')}, user:${user.join('\n')}`,
+      ),
+    }
+  }
 
   let json: unknown
   try {
     json = JSON.parse(content)
   } catch {
-    return { success: false, error: 'Invalid JSON from OpenAI' }
+    return {
+      success: false,
+      error: new LlmError(
+        ERROR_CODES.LLM_GENERATE_CONTENT_INVALID_FORMAT,
+        generateSeedTheme.name,
+        'openai',
+        model,
+        `system:${system.join('\n')}, user:${user.join('\n')}`,
+      ),
+    }
   }
 
   const { data, error, success } = generateSeedThemeData.safeParse(json)
   if (!success) {
     const msg = error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')
 
-    return { success: false, error: `schema validation failed: ${msg}` }
+    return {
+      success: false,
+      error: new LlmError(
+        ERROR_CODES.LLM_GENERATE_CONTENT_INVALID_SCHEMA,
+        generateSeedTheme.name,
+        'openai',
+        model,
+        `system:${system.join('\n')}, user:${user.join('\n')}`,
+        `schema validation failed: ${msg}`,
+      ),
+    }
   }
 
   const g: GenerateSeedData = {

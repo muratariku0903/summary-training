@@ -1,9 +1,22 @@
+// deno-lint-ignore-file no-explicit-any
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { z } from 'https://esm.sh/zod@3.23.8'
 import { Json } from './database.ts'
+import { BaseError } from '../error/error.ts'
 // Result型の定義
 export type Result<T, E = Error> =
   | { success: true; data: T; error?: never }
   | { success: false; data?: never; error: E }
+/**
+ * 関数型からResult型の成功時のデータ型を抽出する型関数
+ */
+export type ExtractResultData<T> = T extends (
+  ...args: any[]
+) => Promise<Result<infer D, any>>
+  ? D
+  : T extends (...args: any[]) => Result<infer D, any>
+    ? D
+    : never
 
 export const llmExerciseGeneratorResponseSchema = z
   .object({
@@ -23,4 +36,4 @@ export type LlmExerciseGeneratorParams = {
 }
 export type LlmExerciseGenerator = (
   params: LlmExerciseGeneratorParams,
-) => Promise<Result<LlmExerciseGeneratorResponse>>
+) => Promise<Result<LlmExerciseGeneratorResponse, BaseError>>

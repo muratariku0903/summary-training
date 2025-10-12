@@ -1,3 +1,7 @@
+import { ERROR_CODES } from '../../error/code.ts'
+import { LlmError, OperationError, UnexpectedError } from '../../error/error.ts'
+import { logger } from '../../log/log.ts'
+import { Result } from '../../types/common.ts'
 import { openai } from '../openai_client.ts'
 import { z } from 'https://esm.sh/zod@3.23.8'
 
@@ -21,26 +25,21 @@ type GenerateSeedParams = {
     minChars?: number
     maxChars?: number
     temperature?: number
+    maxTokens?: number
   }
   duplicateChecker?: (
     data: GenerateSeedData,
   ) => Promise<{ duplicate: boolean; duplicateReason: string | null }>
   maxRetries?: number
 }
-type GenerateSeedResponse =
-  | {
-      success: true
-      data: GenerateSeedData & { attempts: number }
-      error?: never
-    }
-  | {
-      success: false
-      data?: never
-      error: string
-    }
+type GenerateSeedResponse = GenerateSeedData & {
+  attempts: number
+  prompt: { system: string; user: string }
+}
+
 export const generateSeed = async (
   params: GenerateSeedParams,
-): Promise<GenerateSeedResponse> => {
+): Promise<Result<GenerateSeedResponse, LlmError | OperationError | UnexpectedError>> => {
   const {
     title,
     description,
@@ -85,20 +84,18 @@ export const generateSeed = async (
       user.push(
         '\n【重要】以下の理由で重複が検出されています。これらを避けて異なる内容を生成してください：',
       )
-      duplicateReasons.forEach((reason, index) => {
-        user.push(`${index + 1}. ${reason}`)
-      })
+      duplicateReasons.forEach((reason, i) => user.push(`${i + 1}. ${reason}`))
       user.push('\n上記と異なる角度・視点・内容で生成してください。')
     }
 
-    console.log('system prompt: ', system.join('\n'))
-    console.log('user prompt: ', user.join('\n'))
+    logger.debug('system prompt: ', system.join('\n'))
+    logger.debug('user prompt: ', user.join('\n'))
 
     const res = await openai.chat.completions.create({
       model: model,
       response_format: { type: 'json_object' },
       temperature: additionalPrompt?.temperature ?? 0.5,
-      max_tokens: 1000,
+      max_tokens: additionalPrompt?.maxTokens ?? 1000,
       messages: [
         // AIに全体的な指示や役割、振る舞いを伝えるため
         { role: 'system', content: system.join('\n') },
@@ -106,19 +103,37 @@ export const generateSeed = async (
         { role: 'user', content: user.join('\n') },
       ],
     })
-
-    console.log('openai.chat.completions.create: ', res)
+    logger.debug('openai.chat.completions.create: ', res)
 
     const content = res.choices?.[0]?.message?.content
     if (!content) {
-      return { success: false, error: 'OpenAI returned no content' }
+      return {
+        success: false,
+        error: new LlmError(
+          ERROR_CODES.LLM_GENERATE_CONTENT_EMPTY,
+          generateSeed.name,
+          'openai',
+          model,
+          `system:${system.join('\n')}, user:${user.join('\n')}`,
+        ),
+      }
     }
 
     let json: unknown
     try {
       json = JSON.parse(content)
-    } catch {
-      return { success: false, error: 'Invalid JSON from OpenAI' }
+    } catch (e) {
+      logger.error('JSON.parse error: ', e)
+      return {
+        success: false,
+        error: new LlmError(
+          ERROR_CODES.LLM_GENERATE_CONTENT_INVALID_FORMAT,
+          generateSeed.name,
+          'openai',
+          model,
+          `system:${system.join('\n')}, user:${user.join('\n')}`,
+        ),
+      }
     }
 
     const { data, error, success } = generateSeedData.safeParse(json)
@@ -127,8 +142,17 @@ export const generateSeed = async (
         const msg = error.issues
           .map((i) => `${i.path.join('.')}: ${i.message}`)
           .join('; ')
-
-        return { success: false, error: `schema validation failed: ${msg}` }
+        return {
+          success: false,
+          error: new LlmError(
+            ERROR_CODES.LLM_GENERATE_CONTENT_INVALID_SCHEMA,
+            generateSeed.name,
+            'openai',
+            model,
+            `system:${system.join('\n')}, user:${user.join('\n')}`,
+            `schema validation failed: ${msg}`,
+          ),
+        }
       }
 
       continue
@@ -140,13 +164,13 @@ export const generateSeed = async (
       description: data.description,
       body: data.body,
     }
-    console.log('generateSeedData: ', g)
+    logger.debug('生成されたSEED: ', g)
 
     // 重複チェック
     if (duplicateChecker) {
       const duplicateResult = await duplicateChecker(g)
       if (duplicateResult.duplicate) {
-        console.log(`Duplicate detected on attempt ${attempt}, retrying...`)
+        logger.debug(`生成SEEDにて重複検知されました 施行回数: ${attempt}, 再施行...`)
         if (duplicateResult.duplicateReason) {
           duplicateReasons.push(duplicateResult.duplicateReason)
         }
@@ -154,18 +178,30 @@ export const generateSeed = async (
         if (attempt === maxRetries) {
           return {
             success: false,
-            error: `All attempts resulted in duplicates: ${attempt}`,
+            error: new OperationError(
+              generateSeed.name,
+              ERROR_CODES.MAX_RETRY_ERROR,
+              'SEED生成の最大施行回数に達しました',
+              `施行回数: ${attempt} system: ${system}, user: ${user}`,
+            ),
           }
         }
         continue // 次の試行へ
       }
 
-      return { success: true, data: { ...g, attempts: attempt } }
+      return {
+        success: true,
+        data: {
+          ...g,
+          attempts: attempt,
+          prompt: { system: system.join('\n'), user: user.join('\n') },
+        },
+      }
     }
   }
 
   return {
     success: false,
-    error: 'Unexpected error: exceeded maximum retries',
+    error: new UnexpectedError(generateSeed.name, ERROR_CODES.UNEXPECTED_ERROR),
   }
 }

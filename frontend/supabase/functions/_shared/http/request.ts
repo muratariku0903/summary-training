@@ -1,5 +1,11 @@
 import { z, ZodRawShape } from 'https://esm.sh/zod@3.23.8'
 import { Result } from '../types/common.ts'
+import { Constants } from '../types/database.ts'
+
+// 基本的な共通スキーマ
+export const baseRequestSchema = z.object({
+  job_run_mode: z.enum(Constants.public.Enums.job_run_mode),
+})
 
 export const requestParse = async <T extends ZodRawShape>(
   req: Request,

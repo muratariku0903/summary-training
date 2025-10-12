@@ -1,3 +1,6 @@
+import { BaseError } from '../error/error.ts'
+import { logger } from '../log/log.ts'
+
 export class HttpError extends Error {
   constructor(
     public status = 400,
@@ -37,14 +40,14 @@ export function jsonErr(err: unknown, initStatus = 500, extraHeaders?: HeadersIn
     code = err.code
     message = err.publicMessage // ← クライアント向けの無害化文言
   }
+  if (err instanceof BaseError) {
+    code = err.code
+    message = `${err.category} ${err.summary} ${err.detail}`
+  }
 
   // ログには詳細（スタック含む）を残すが、レスポンスには出さない
   // requestId を一緒に出すと問い合わせ対応がしやすい
-  console.error('[edge-fn:error]', { requestId, code, err })
-
-  // もし開発環境でだけ詳細を見たい場合は、以下のようにレスポンスではなく
-  // ログにだけ stack を出す運用に留めるのが安全
-  // if (env !== 'prod' && err instanceof Error) console.error(err.stack);
+  logger.error('[edge-fn:error]', err)
 
   const body = {
     ok: false as const,
