@@ -124,14 +124,12 @@ export async function getTheme(
       }
     }
     if (!data) {
-      if (!data) {
-        return {
-          success: false,
-          error: new UnexpectedError(
-            getTheme.name,
-            `テーマが存在しませんでした themeId: ${themeId}`,
-          ),
-        }
+      return {
+        success: false,
+        error: new UnexpectedError(
+          getTheme.name,
+          `テーマが存在しませんでした themeId: ${themeId}`,
+        ),
       }
     }
   }
@@ -145,11 +143,7 @@ export async function getTheme(
   if (countError) {
     return {
       success: false,
-      error: new DatabaseQueryError(
-        getTheme.name,
-        'COUNT',
-        'seed_generator_themes',
-      ),
+      error: new DatabaseQueryError(getTheme.name, 'COUNT', 'seed_generator_themes'),
     }
   }
 

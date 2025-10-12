@@ -237,7 +237,7 @@ export class UnexpectedError extends BaseError {
    * unknown 型のエラーから安全にメッセージを抽出
    */
   private static extractErrorMessage(error: unknown, context?: string): string {
-    let errorMessage = '不明なエラーが発生しました'
+    let errorMessage
 
     if (error instanceof Error) {
       errorMessage = error.message
