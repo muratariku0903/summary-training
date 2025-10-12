@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
       req,
       supabase,
       reqSchema,
-      jobKey: JOB_NAMES.AGGREGATE_EXERCISE_SOURCES,
+      jobKey: JOB_NAMES.GENERATE_EXERCISES,
       jobProcess,
     }
     const { success, data, error } = await runJob(params)
