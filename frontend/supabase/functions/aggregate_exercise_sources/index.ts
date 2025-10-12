@@ -18,6 +18,7 @@ import {
   SQL_SEED_SOURCE_AGGREGATION_STATUS_BY_THEME,
   SQL_UPSERT_SOURCES_BY_THEMES,
 } from '../_shared/usecase/aggregate_exercise_sources/sql.ts'
+import { baseRequestSchema } from '../_shared/http/request.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -25,7 +26,7 @@ const CRON_SECRET = Deno.env.get('CRON_SECRET')
 
 const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
-const reqSchema = z.object({
+const reqSchema = baseRequestSchema.extend({
   aggregate_type: z.nativeEnum(AGGREGATE_TYPES),
 })
 type ShapeOfReqSchema = RawShapeOf<typeof reqSchema>
