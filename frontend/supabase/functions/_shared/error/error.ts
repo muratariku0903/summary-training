@@ -23,34 +23,6 @@ export abstract class BaseError extends Error {
   }
 }
 
-export class RunJobError extends Error {
-  public readonly code: ErrorCode = ERROR_CODES.DATABASE_QUERY_ERROR
-  public readonly category: ErrorCategory = ERROR_CATEGORIES.SYSTEM_ERROR
-  public readonly functionName: string
-  constructor(
-    jobKey: string,
-    public readonly operation: DatabaseQueryOperation,
-    error: Error,
-    functionName: string,
-    public readonly tableName?: keyof Database['public']['Tables'],
-    code?: ErrorCode,
-    category?: ErrorCategory,
-  ) {
-    const defaultMessage = tableName
-      ? `Job記録用バッチ固有のエラーが発生しました。JobKey: ${jobKey}, ${operation}操作でエラーが発生しました (テーブル: ${tableName}), ${error.message}`
-      : `Job記録用バッチ固有のエラーが発生しました。JobKey: ${jobKey}, ${operation}操作でエラーが発生しました, ${error.message}`
-
-    super(defaultMessage)
-    this.functionName = functionName
-    if (code) {
-      this.code = code
-    }
-    if (category) {
-      this.category = category
-    }
-  }
-}
-
 export class UnusedSourcePatternNotFoundError extends BaseError {
   public readonly code: ErrorCode = ERROR_CODES.SOURCE_PATTERN_NOT_FOUND
   public readonly category: ErrorCategory = ERROR_CATEGORIES.BUSINESS_LOGIC_ERROR

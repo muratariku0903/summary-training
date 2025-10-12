@@ -47,7 +47,7 @@ export function jsonErr(err: unknown, initStatus = 500, extraHeaders?: HeadersIn
 
   // ログには詳細（スタック含む）を残すが、レスポンスには出さない
   // requestId を一緒に出すと問い合わせ対応がしやすい
-  logger.error('[edge-fn:error]', { requestId, code, err })
+  logger.error('[edge-fn:error]', err)
 
   const body = {
     ok: false as const,

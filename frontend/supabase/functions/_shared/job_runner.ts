@@ -5,8 +5,8 @@ import type { Database, Json, Tables } from '../_shared/types/database.ts'
 import { Result } from './types/common.ts'
 import {
   BaseError,
+  DatabaseQueryError,
   InvalidRequestError,
-  RunJobError,
   UnexpectedError,
 } from './error/error.ts'
 import { ErrorCategory, ErrorCode } from './error/code.ts'
@@ -65,7 +65,10 @@ type JobProcessError = BaseError
 export const runJob = async <T extends z.ZodRawShape>(
   params: RunJobParams<T>,
 ): Promise<
-  Result<RunJobResponse, InvalidRequestError | RunJobError | UnexpectedError>
+  Result<
+    RunJobResponse,
+    InvalidRequestError | DatabaseQueryError | UnexpectedError | BaseError
+  >
 > => {
   logger.start(runJob.name)
 
@@ -102,7 +105,12 @@ export const runJob = async <T extends z.ZodRawShape>(
       logger.error(runJob.name, insertError)
       return {
         success: false,
-        error: new RunJobError(jobKey, 'INSERT', insertError, runJob.name, 'job_runs'),
+        error: new DatabaseQueryError(
+          runJob.name,
+          'INSERT',
+          'job_runs',
+          insertError.message,
+        ),
       }
     }
     const jobRunId = insertData.id
@@ -127,7 +135,12 @@ export const runJob = async <T extends z.ZodRawShape>(
         logger.error(runJob.name, updateError)
         return {
           success: false,
-          error: new RunJobError(jobKey, 'UPDATE', updateError, runJob.name, 'job_runs'),
+          error: new DatabaseQueryError(
+            runJob.name,
+            'UPDATE',
+            'job_runs',
+            jobProcessError.message,
+          ),
         }
       }
 
@@ -146,7 +159,12 @@ export const runJob = async <T extends z.ZodRawShape>(
       logger.error(runJob.name, updateError)
       return {
         success: false,
-        error: new RunJobError(jobKey, 'UPDATE', updateError, runJob.name, 'job_runs'),
+        error: new DatabaseQueryError(
+          runJob.name,
+          'UPDATE',
+          'job_runs',
+          updateError.message,
+        ),
       }
     }
 
