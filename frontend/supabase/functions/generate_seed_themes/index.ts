@@ -47,6 +47,7 @@ Deno.serve(async (req) => {
       reqSchema,
       jobKey: JOB_NAMES.GENERATE_SEED_THEMES,
       jobProcess,
+      enableMultiJob: false,
     }
     const { success, data, error } = await runJob(params)
     if (!success) {

@@ -7,9 +7,10 @@ import {
   BaseError,
   DatabaseQueryError,
   InvalidRequestError,
+  OperationError,
   UnexpectedError,
 } from './error/error.ts'
-import { ErrorCategory, ErrorCode } from './error/code.ts'
+import { ERROR_CODES, ErrorCategory, ErrorCode } from './error/code.ts'
 import { requestParse } from './http/request.ts'
 
 export type RawShapeOf<T> =
@@ -32,6 +33,7 @@ export type RunJobParams<T extends z.ZodRawShape> = {
     params: z.infer<z.ZodObject<T>>,
   ) => Promise<Result<JobProcessResponse, JobProcessError>>
   requestId?: string
+  enableMultiJob?: boolean
 }
 type RunJobResponse = JobProcessResponse
 
@@ -71,7 +73,42 @@ export const runJob = async <T extends z.ZodRawShape>(
 > => {
   logger.start(runJob.name)
 
-  const { req, reqSchema, supabase, jobKey, jobProcess, requestId } = params
+  const { req, reqSchema, supabase, jobKey, jobProcess, requestId, enableMultiJob } =
+    params
+
+  // 多重実行を禁止してる場合は他に同じジョブが実行中かチェック
+  if (!enableMultiJob) {
+    const { data, error } = await supabase
+      .from('job_runs')
+      .select('*')
+      .eq('job_key', jobKey)
+      .eq('status', 'running')
+      .limit(1)
+    if (error) {
+      return {
+        success: false,
+        error: new DatabaseQueryError(runJob.name, 'SELECT', 'job_runs', error.message),
+      }
+    }
+    if (data && data.length > 0) {
+      const existingJob = data[0]
+      const message = {
+        jobKey,
+        runningJobId: existingJob.id,
+        startedAt: existingJob.started_at,
+      }
+      logger.warn(`${runJob.name}: ジョブが既に実行中です`, message)
+      return {
+        success: false,
+        error: new OperationError(
+          runJob.name,
+          ERROR_CODES.JOB_ALREADY_RUNNING,
+          'ジョブが既に実行中です',
+          `jobKey: ${jobKey}, jobId: ${existingJob.id}, startAt: ${existingJob.started_at}`,
+        ),
+      }
+    }
+  }
 
   // リクエストのバリデーション＆パース
   const {
