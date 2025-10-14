@@ -101,7 +101,7 @@ const jobProcess: RunJobParams<ShapeOfReqSchema>['jobProcess'] = async (params) 
           category: generateThemeError.category,
           message: `${generateThemeError.summary} ${generateThemeError.detail}`,
         }
-        metrics = { ...metrics, errors: [...metrics.errors, error] }
+        metrics = { ...metrics, errors: [...(metrics?.errors ?? []), error] }
         continue
       }
       return { success: false, error: generateThemeError }
@@ -139,7 +139,7 @@ const jobProcess: RunJobParams<ShapeOfReqSchema>['jobProcess'] = async (params) 
       metrics = {
         ...metrics,
         db: [
-          ...metrics.db,
+          ...(metrics?.db ?? []),
           { tableName: 'seed_generator_themes', insert: [insertedTheme.id] },
           {
             tableName: 'seed_generator_theme_categories',
@@ -158,7 +158,7 @@ const jobProcess: RunJobParams<ShapeOfReqSchema>['jobProcess'] = async (params) 
           category: ERROR_CATEGORIES.SYSTEM_ERROR,
           message: `エラー名: ${e.name}, 原因: ${e.cause}, 詳細: ${e.message}`,
         }
-        metrics = { ...metrics, errors: [...metrics.errors, error] }
+        metrics = { ...metrics, errors: [...(metrics.errors ?? []), error] }
         continue
       }
 
@@ -169,7 +169,7 @@ const jobProcess: RunJobParams<ShapeOfReqSchema>['jobProcess'] = async (params) 
   return {
     success: true,
     data: {
-      status: metrics.errors.length > 0 ? 'warn' : 'success',
+      status: metrics?.errors ? 'warn' : 'success',
       metrics,
     },
   }
