@@ -162,7 +162,10 @@ const jobProcess: RunJobParams<ShapeOfReqSchema>['jobProcess'] = async (params) 
         continue
       }
 
-      new UnexpectedError(jobProcess.name, e)
+      return {
+        success: false,
+        error: new UnexpectedError(jobProcess.name, e),
+      }
     }
   }
 
