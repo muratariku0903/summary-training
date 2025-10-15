@@ -173,7 +173,7 @@ const jobProcess: RunJobParams<ShapeOfReqSchema>['jobProcess'] = async (params) 
   return {
     success: true,
     data: {
-      status: metrics?.errors ? 'warn' : 'success',
+      status: (metrics?.errors?.length ?? 0 > 0) ? 'warn' : 'success',
       metrics,
     },
   }
