@@ -1,5 +1,5 @@
 // src/lib/supabase/auth/mfa.ts - 型安全性を向上
-import { AuthMFAListFactorsResponse } from '@supabase/supabase-js'
+import { Factor } from '@supabase/supabase-js'
 import { browserClient } from '../client/browserClient'
 import {
   totpSetupVerificationSchema,
@@ -310,7 +310,21 @@ export async function listMfa(): Promise<ListMfaResponse> {
 /**
  * 　Supabase形式のmfaをアプリで使いやすい形式に変換
  */
-export function convertMfaFactors(factors: AuthMFAListFactorsResponse['data']): MfaFactor[] {
+export function convertMfaFactors(factors: {
+  all: (
+    | Factor<'totp' | 'phone' | 'webauthn', 'verified'>
+    | Factor<'totp' | 'phone' | 'webauthn', 'unverified'>
+  )[]
+  totp: (
+    | Factor<'totp' | 'phone' | 'webauthn', 'verified'>
+    | Factor<'totp' | 'phone' | 'webauthn', 'unverified'>
+  )[]
+  phone: (
+    | Factor<'totp' | 'phone' | 'webauthn', 'verified'>
+    | Factor<'totp' | 'phone' | 'webauthn', 'unverified'>
+  )[]
+}): MfaFactor[] {
+  // export function convertMfaFactors(factors: AuthMFAListFactorsResponse['data']): MfaFactor[] {
   const mfaFactors: MfaFactor[] = []
 
   // TOTP factors
