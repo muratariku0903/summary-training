@@ -8,6 +8,14 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { SeedGeneratorCategoriesRow } from '../../../functions/_shared/types/seed_generator_categories.ts'
 import { GenerateThemeResponse } from '../../../functions/_shared/usecase/generate_themes/generate_themes.ts'
 import { Database } from '../../../functions/_shared/types/database.ts'
+import {
+  DatabaseQueryError,
+  OperationError,
+  UnexpectedError,
+} from '../../../functions/_shared/error/error.ts'
+import { createJobProcess } from '../../../functions/generate_seed_themes/process.ts'
+import { ERROR_CODES } from '../../../functions/_shared/error/code.ts'
+import { DrizzleError } from 'drizzle-orm/errors'
 
 // テスト用のモックデータ
 const mockCategory: SeedGeneratorCategoriesRow = {
@@ -36,10 +44,9 @@ const mockInsertedThemeCategories = {
 
 Deno.test('generate_seed_themes バッチ処理テスト', async (t) => {
   const depsModule = await import('../../../functions/generate_seed_themes/deps.ts')
+  const mockSupabaseClient = {} as SupabaseClient<Database>
 
   await t.step('正常系: テーマが正常に生成・保存される', async () => {
-    // モック設定
-    const mockSupabaseClient = {} as SupabaseClient<Database>
     const pickRandomCategoryStub = stub(depsModule.deps, 'pickRandomCategory', () =>
       Promise.resolve({
         success: true as const,
@@ -67,9 +74,7 @@ Deno.test('generate_seed_themes バッチ処理テスト', async (t) => {
 
     try {
       // stub 後に対象を import（参照がモックに差し替わった状態で取り込まれる）
-      const { jobProcess } = await import(
-        '../../../functions/generate_seed_themes/process.ts'
-      )
+      const jobProcess = createJobProcess()
       const { success, data } = await jobProcess(mockSupabaseClient, {
         job_run_mode: 'test',
       })
@@ -81,265 +86,254 @@ Deno.test('generate_seed_themes バッチ処理テスト', async (t) => {
         assertEquals(data.metrics?.errors?.length, 0)
       }
     } finally {
-      // クリーンアップ
       pickRandomCategoryStub?.restore()
       generateThemeStub?.restore()
       transactionStub?.restore()
     }
   })
 
-  // await t.step('異常系: カテゴリー取得に失敗した場合', async () => {
-  //   // Arrange
-  //   let pickRandomCategoryStub: Stub
+  await t.step(
+    '正常系: 実行回数2が指定され、1回目は正常、2回目にMAX_RETRY_ERRORが発生した場合',
+    async () => {
+      const maxRetryError = new OperationError(
+        'jobProcess',
+        ERROR_CODES.MAX_RETRY_ERROR,
+        'test summary',
+        'test detail',
+      )
+      const pickRandomCategoryStub = stub(depsModule.deps, 'pickRandomCategory', () =>
+        Promise.resolve({
+          success: true as const,
+          data: mockCategory,
+        }),
+      )
+      let genCall = 0
+      const generateThemeStub = stub(depsModule.deps, 'generateTheme', () => {
+        genCall++
+        if (genCall === 1) {
+          return Promise.resolve({
+            success: true as const,
+            data: mockGeneratedTheme,
+          })
+        }
+        return Promise.resolve({
+          success: false as const,
+          error: maxRetryError,
+        })
+      })
+      const transactionStub = stub(
+        depsModule.deps,
+        'getDrizzleDBClient',
+        () =>
+          ({
+            transaction: () =>
+              Promise.resolve({
+                insertedTheme: mockInsertedTheme,
+                insertedThemeCategories: mockInsertedThemeCategories,
+              }),
+          }) as any,
+      )
 
-  //   try {
-  //     pickRandomCategoryStub = stub(
-  //       await import('../_shared/repository/seed_generator_categories.ts'),
-  //       'pickRandomCategory',
-  //       () =>
-  //         Promise.resolve({
-  //           success: false,
-  //           error: new Error('カテゴリー取得エラー'),
-  //         }),
-  //     )
+      try {
+        const jobProcess = createJobProcess()
+        const { success, data } = await jobProcess(mockSupabaseClient, {
+          job_run_mode: 'test',
+          generate_theme_count: 2,
+        })
 
-  //     // Act
-  //     const response = await fetch(
-  //       'http://localhost:54321/functions/v1/generate_seed_themes',
-  //       {
-  //         method: 'POST',
-  //         headers: { 'Content-Type': 'application/json' },
-  //         body: JSON.stringify({
-  //           job_run_mode: 'manual',
-  //           generate_theme_count: 1,
-  //         }),
-  //       },
-  //     )
+        assertEquals(success, true)
+        if (success) {
+          assertEquals(data.status, 'warn')
+          assertEquals(data.metrics?.db?.length, 2)
+          assertEquals(data.metrics?.errors?.length, 1)
+        }
+      } finally {
+        pickRandomCategoryStub?.restore()
+        generateThemeStub?.restore()
+        transactionStub?.restore()
+      }
+    },
+  )
 
-  //     // Assert
-  //     const result = await response.json()
-  //     assertEquals(response.status, 500)
-  //     assertEquals(result.ok, false)
-  //     assertExists(result.error)
-  //   } finally {
-  //     pickRandomCategoryStub?.restore()
-  //   }
-  // })
+  await t.step('異常系: カテゴリー取得に失敗した場合', async () => {
+    const databaseQueryError = new DatabaseQueryError(
+      'jobProcess',
+      'SELECT',
+      'seed_generator_categories',
+    )
+    const pickRandomCategoryStub = stub(depsModule.deps, 'pickRandomCategory', () =>
+      Promise.resolve({
+        success: false as const,
+        error: databaseQueryError,
+      }),
+    )
 
-  // await t.step('異常系: テーマ生成でMAX_RETRY_ERRORが発生した場合', async () => {
-  //   // Arrange
-  //   let pickRandomCategoryStub: Stub
-  //   let generateThemeStub: Stub
+    try {
+      const jobProcess = createJobProcess()
+      const { success, error } = await jobProcess(mockSupabaseClient, {
+        job_run_mode: 'test',
+      })
 
-  //   try {
-  //     pickRandomCategoryStub = stub(
-  //       await import('../_shared/repository/seed_generator_categories.ts'),
-  //       'pickRandomCategory',
-  //       () =>
-  //         Promise.resolve({
-  //           success: true,
-  //           data: mockCategory,
-  //         }),
-  //     )
+      assertEquals(success, false)
+      assertEquals(error, databaseQueryError)
+    } finally {
+      pickRandomCategoryStub?.restore()
+    }
+  })
 
-  //     generateThemeStub = stub(
-  //       await import('../_shared/usecase/generate_themes/generate_themes.ts'),
-  //       'generateTheme',
-  //       () =>
-  //         Promise.resolve({
-  //           success: false,
-  //           error: {
-  //             code: ERROR_CODES.MAX_RETRY_ERROR,
-  //             category: ERROR_CATEGORIES.SYSTEM_ERROR,
-  //             functionName: 'generateTheme',
-  //             summary: 'リトライ上限エラー',
-  //             detail: '3回リトライしましたが失敗しました',
-  //           },
-  //         }),
-  //     )
+  await t.step('異常系: テーマ生成でMAX_RETRY_ERRORが発生した場合', async () => {
+    const maxRetryError = new OperationError(
+      'jobProcess',
+      ERROR_CODES.MAX_RETRY_ERROR,
+      'test summary',
+      'test detail',
+    )
+    const pickRandomCategoryStub = stub(depsModule.deps, 'pickRandomCategory', () =>
+      Promise.resolve({
+        success: true as const,
+        data: mockCategory,
+      }),
+    )
+    const generateThemeStub = stub(depsModule.deps, 'generateTheme', () =>
+      Promise.resolve({
+        success: false as const,
+        error: maxRetryError,
+      }),
+    )
 
-  //     // Act
-  //     const response = await fetch(
-  //       'http://localhost:54321/functions/v1/generate_seed_themes',
-  //       {
-  //         method: 'POST',
-  //         headers: { 'Content-Type': 'application/json' },
-  //         body: JSON.stringify({
-  //           job_run_mode: 'manual',
-  //           generate_theme_count: 1,
-  //         }),
-  //       },
-  //     )
+    try {
+      const jobProcess = createJobProcess()
+      const { success, data } = await jobProcess(mockSupabaseClient, {
+        job_run_mode: 'test',
+      })
 
-  //     // Assert
-  //     const result = await response.json()
-  //     assertEquals(response.status, 200)
-  //     assertEquals(result.data.status, 'warn')
-  //     assertEquals(result.data.metrics.errors.length, 1)
-  //     assertEquals(result.data.metrics.errors[0].code, ERROR_CODES.MAX_RETRY_ERROR)
-  //   } finally {
-  //     pickRandomCategoryStub?.restore()
-  //     generateThemeStub?.restore()
-  //   }
-  // })
+      assertEquals(success, true)
+      if (success) {
+        assertEquals(data.status, 'warn')
+        assertEquals(data.metrics?.errors?.length, 1)
+      }
+    } finally {
+      pickRandomCategoryStub?.restore()
+      generateThemeStub?.restore()
+    }
+  })
 
-  // await t.step('異常系: DrizzleErrorが発生した場合', async () => {
-  //   // Arrange
-  //   let pickRandomCategoryStub: Stub
-  //   let generateThemeStub: Stub
-  //   let transactionStub: Stub
+  await t.step(
+    '異常系: テーマ生成でMAX_RETRY_ERROR以外のエラーが発生した場合',
+    async () => {
+      const databaseQueryError = new DatabaseQueryError(
+        'jobProcess',
+        'SELECT',
+        'seed_generator_categories',
+      )
+      const pickRandomCategoryStub = stub(depsModule.deps, 'pickRandomCategory', () =>
+        Promise.resolve({
+          success: true as const,
+          data: mockCategory,
+        }),
+      )
+      const generateThemeStub = stub(depsModule.deps, 'generateTheme', () =>
+        Promise.resolve({
+          success: false as const,
+          error: databaseQueryError,
+        }),
+      )
 
-  //   try {
-  //     pickRandomCategoryStub = stub(
-  //       await import('../_shared/repository/seed_generator_categories.ts'),
-  //       'pickRandomCategory',
-  //       () =>
-  //         Promise.resolve({
-  //           success: true,
-  //           data: mockCategory,
-  //         }),
-  //     )
+      try {
+        const jobProcess = createJobProcess()
+        const { success, error } = await jobProcess(mockSupabaseClient, {
+          job_run_mode: 'test',
+        })
 
-  //     generateThemeStub = stub(
-  //       await import('../_shared/usecase/generate_themes/generate_themes.ts'),
-  //       'generateTheme',
-  //       () =>
-  //         Promise.resolve({
-  //           success: true,
-  //           data: mockGeneratedTheme,
-  //         }),
-  //     )
+        assertEquals(success, false)
+        assertEquals(error, databaseQueryError)
+      } finally {
+        pickRandomCategoryStub?.restore()
+        generateThemeStub?.restore()
+      }
+    },
+  )
 
-  //     transactionStub = stub(drizzleDB, 'transaction', () => {
-  //       const error = new Error('DB制約違反')
-  //       error.name = 'DrizzleError'
-  //       throw error
-  //     })
+  await t.step('異常系: DB保存でDrizzleErrorが発生した場合', async () => {
+    const drizzleError = new DrizzleError({ message: 'drizzleError' })
+    const pickRandomCategoryStub = stub(depsModule.deps, 'pickRandomCategory', () =>
+      Promise.resolve({
+        success: true as const,
+        data: mockCategory,
+      }),
+    )
+    const generateThemeStub = stub(depsModule.deps, 'generateTheme', () =>
+      Promise.resolve({
+        success: true as const,
+        data: mockGeneratedTheme,
+      }),
+    )
+    const transactionStub = stub(
+      depsModule.deps,
+      'getDrizzleDBClient',
+      () =>
+        ({
+          transaction: () => {
+            throw drizzleError
+          },
+        }) as any,
+    )
 
-  //     // Act
-  //     const response = await fetch(
-  //       'http://localhost:54321/functions/v1/generate_seed_themes',
-  //       {
-  //         method: 'POST',
-  //         headers: { 'Content-Type': 'application/json' },
-  //         body: JSON.stringify({
-  //           job_run_mode: 'manual',
-  //           generate_theme_count: 1,
-  //         }),
-  //       },
-  //     )
+    try {
+      const jobProcess = createJobProcess()
+      const { success, data } = await jobProcess(mockSupabaseClient, {
+        job_run_mode: 'test',
+      })
 
-  //     // Assert
-  //     const result = await response.json()
-  //     assertEquals(response.status, 200)
-  //     assertEquals(result.data.status, 'warn')
-  //     assertEquals(result.data.metrics.errors.length, 1)
-  //     assertEquals(result.data.metrics.errors[0].code, ERROR_CODES.DATABASE_QUERY_ERROR)
-  //   } finally {
-  //     pickRandomCategoryStub?.restore()
-  //     generateThemeStub?.restore()
-  //     transactionStub?.restore()
-  //   }
-  // })
+      assertEquals(success, true)
+      if (success) {
+        assertEquals(data.status, 'warn')
+        assertEquals(data.metrics?.errors?.length, 1)
+      }
+    } finally {
+      pickRandomCategoryStub?.restore()
+      generateThemeStub?.restore()
+      transactionStub?.restore()
+    }
+  })
 
-  // await t.step('認証: CRON_SECRETが不正な場合', async () => {
-  //   // Act
-  //   const response = await fetch(
-  //     'http://localhost:54321/functions/v1/generate_seed_themes',
-  //     {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'x-cron-secret': 'invalid-secret',
-  //       },
-  //       body: JSON.stringify({
-  //         job_run_mode: 'manual',
-  //         generate_theme_count: 1,
-  //       }),
-  //     },
-  //   )
+  await t.step('異常系: DB保存でDrizzleError以外のエラーが発生した場合', async () => {
+    const otherError = new Error('otherError')
+    const pickRandomCategoryStub = stub(depsModule.deps, 'pickRandomCategory', () =>
+      Promise.resolve({
+        success: true as const,
+        data: mockCategory,
+      }),
+    )
+    const generateThemeStub = stub(depsModule.deps, 'generateTheme', () =>
+      Promise.resolve({
+        success: true as const,
+        data: mockGeneratedTheme,
+      }),
+    )
+    const transactionStub = stub(
+      depsModule.deps,
+      'getDrizzleDBClient',
+      () =>
+        ({
+          transaction: () => {
+            throw otherError
+          },
+        }) as any,
+    )
 
-  //   // Assert
-  //   assertEquals(response.status, 401)
-  //   const result = await response.json()
-  //   assertEquals(result.ok, false)
-  // })
+    try {
+      const jobProcess = createJobProcess()
+      const { success, error } = await jobProcess(mockSupabaseClient, {
+        job_run_mode: 'test',
+      })
 
-  // await t.step('バリデーション: 不正なリクエストボディの場合', async () => {
-  //   // Act
-  //   const response = await fetch(
-  //     'http://localhost:54321/functions/v1/generate_seed_themes',
-  //     {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({
-  //         invalid_field: 'invalid_value',
-  //       }),
-  //     },
-  //   )
-
-  //   // Assert
-  //   assertEquals(response.status, 400)
-  //   const result = await response.json()
-  //   assertEquals(result.ok, false)
-  // })
-
-  // await t.step('複数テーマ生成: generate_theme_countが複数の場合', async () => {
-  //   // Arrange
-  //   let pickRandomCategoryStub: Stub
-  //   let generateThemeStub: Stub
-  //   let transactionStub: Stub
-
-  //   try {
-  //     pickRandomCategoryStub = stub(
-  //       await import('../_shared/repository/seed_generator_categories.ts'),
-  //       'pickRandomCategory',
-  //       () =>
-  //         Promise.resolve({
-  //           success: true,
-  //           data: mockCategory,
-  //         }),
-  //     )
-
-  //     generateThemeStub = stub(
-  //       await import('../_shared/usecase/generate_themes/generate_themes.ts'),
-  //       'generateTheme',
-  //       () =>
-  //         Promise.resolve({
-  //           success: true,
-  //           data: mockGeneratedTheme,
-  //         }),
-  //     )
-
-  //     transactionStub = stub(drizzleDB, 'transaction', () =>
-  //       Promise.resolve({
-  //         insertedTheme: mockInsertedTheme,
-  //         insertedThemeCategories: mockInsertedThemeCategories,
-  //       }),
-  //     )
-
-  //     // Act
-  //     const response = await fetch(
-  //       'http://localhost:54321/functions/v1/generate_seed_themes',
-  //       {
-  //         method: 'POST',
-  //         headers: { 'Content-Type': 'application/json' },
-  //         body: JSON.stringify({
-  //           job_run_mode: 'manual',
-  //           generate_theme_count: 3,
-  //         }),
-  //       },
-  //     )
-
-  //     // Assert
-  //     const result = await response.json()
-  //     assertEquals(response.status, 200)
-  //     assertEquals(result.data.metrics.db.length, 6) // 3テーマ × 2テーブル
-  //     assertEquals(generateThemeStub.calls.length, 3)
-  //   } finally {
-  //     pickRandomCategoryStub?.restore()
-  //     generateThemeStub?.restore()
-  //     transactionStub?.restore()
-  //   }
-  // })
+      assertEquals(success, false)
+      assertEquals(error, new UnexpectedError(jobProcess.name, otherError))
+    } finally {
+      pickRandomCategoryStub?.restore()
+      generateThemeStub?.restore()
+      transactionStub?.restore()
+    }
+  })
 })
