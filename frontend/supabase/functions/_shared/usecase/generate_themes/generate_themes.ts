@@ -21,7 +21,7 @@ type GenerateThemeParams = {
   category: SeedGeneratorCategoriesRow
   maxRetryCount: number
 }
-type GenerateThemeResponse = {
+export type GenerateThemeResponse = {
   themeTitle: string
   themeDescription: string
   canonicalKey: string

@@ -1,6 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
 import { z } from 'https://esm.sh/zod@3.23.8'
-import type { Database } from '../_shared/types/database.ts'
 import { jsonErr, jsonOk } from '../_shared/http/http.ts'
 import { baseRequestSchema } from '../_shared/http/request.ts'
 import { RawShapeOf, runJob, RunJobParams } from '../_shared/job_runner.ts'
@@ -18,12 +16,9 @@ import {
 } from '../_shared/usecase/generate_seeds/generate_seeds.ts'
 import { saveSeed } from '../_shared/repository/exercise_generator_seeds.ts'
 import { JOB_NAMES } from '../_shared/const.ts'
+import { getSupabaseClient } from '../_shared/db/client.ts'
 
-// ---- env
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const CRON_SECRET = Deno.env.get('CRON_SECRET')
-const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 const reqSchema = baseRequestSchema.extend({
   profile_id: z.string().uuid(),
@@ -37,6 +32,8 @@ Deno.serve(async (req) => {
     const given = req.headers.get('x-cron-secret')
     if (given !== CRON_SECRET) return jsonErr({ ok: false, error: 'unauthorized' }, 401)
   }
+
+  const supabase = getSupabaseClient()
 
   try {
     const params: RunJobParams<ShapeOfReqSchema> = {
@@ -58,7 +55,10 @@ Deno.serve(async (req) => {
   }
 })
 
-const jobProcess: RunJobParams<ShapeOfReqSchema>['jobProcess'] = async (params) => {
+const jobProcess: RunJobParams<ShapeOfReqSchema>['jobProcess'] = async (
+  supabase,
+  params,
+) => {
   const { profile_id } = params
 
   // プロファイル取得

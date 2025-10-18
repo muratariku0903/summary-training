@@ -1,6 +1,3 @@
-// Deno runtime (Supabase Edge Functions)
-import { createClient } from '@supabase/supabase-js'
-import type { Database } from '../_shared/types/database.ts'
 import { jsonOk, jsonErr } from '../_shared/http/http.ts'
 import { z } from 'https://esm.sh/zod@3.23.8'
 import { baseRequestSchema } from '../_shared/http/request.ts'
@@ -20,12 +17,9 @@ import {
 import { RawShapeOf, runJob, RunJobParams } from '../_shared/job_runner.ts'
 import { JOB_NAMES } from '../_shared/const.ts'
 import { ERROR_CATEGORIES, ERROR_CODES } from '../_shared/error/code.ts'
+import { getSupabaseClient } from '../_shared/db/client.ts'
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const CRON_SECRET = Deno.env.get('CRON_SECRET')
-
-const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 const reqSchema = baseRequestSchema.extend({
   profile_id: z.string().uuid(),
@@ -39,6 +33,8 @@ Deno.serve(async (req) => {
     const given = req.headers.get('x-cron-secret')
     if (given !== CRON_SECRET) return jsonErr({ ok: false, error: 'unauthorized' }, 401)
   }
+
+  const supabase = getSupabaseClient()
 
   try {
     const params: RunJobParams<ShapeOfReqSchema> = {
@@ -60,7 +56,10 @@ Deno.serve(async (req) => {
   }
 })
 
-const jobProcess: RunJobParams<ShapeOfReqSchema>['jobProcess'] = async (params) => {
+const jobProcess: RunJobParams<ShapeOfReqSchema>['jobProcess'] = async (
+  supabase,
+  params,
+) => {
   const { profile_id } = params
   logger.debug('profile_id: ', profile_id)
 

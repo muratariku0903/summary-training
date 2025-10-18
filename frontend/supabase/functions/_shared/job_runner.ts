@@ -30,6 +30,7 @@ export type RunJobParams<T extends z.ZodRawShape> = {
   supabase: SupabaseClient<Database>
   jobKey: string
   jobProcess: (
+    supabase: SupabaseClient<Database>,
     params: z.infer<z.ZodObject<T>>,
   ) => Promise<Result<JobProcessResponse, JobProcessError>>
   requestId?: string
@@ -155,7 +156,7 @@ export const runJob = async <T extends z.ZodRawShape>(
       success: jobProcessSuccess,
       data: jobProcessData,
       error: jobProcessError,
-    } = await jobProcess(parseData)
+    } = await jobProcess(supabase, parseData)
     if (!jobProcessSuccess) {
       const { error: updateError } = await supabase
         .from('job_runs')

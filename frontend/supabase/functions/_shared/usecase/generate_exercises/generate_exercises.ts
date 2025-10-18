@@ -3,7 +3,6 @@ import type { Database, Tables } from '../../../_shared/types/database.ts'
 import { LlmExerciseGeneratorResponse, Result } from '../../types/common.ts'
 import { ExerciseGeneratorProfile } from '../../repository/exercise_generator_profiles.ts'
 import { run } from '../../db/process.ts'
-import { POOL } from '../../db/client.ts'
 import { SQL_PICK_RANDOM_UNUSED_SOURCE_PATTERN } from './sql.ts'
 import { generateExercise as generateExerciseByOpenAI } from '../../openai/functions/generate_exercise.ts'
 import { ymdJST } from '../../utils/utils.ts'
@@ -18,6 +17,7 @@ import {
   UnexpectedError,
 } from '../../error/error.ts'
 import { ERROR_CODES, STORAGE_OPERATION } from '../../error/code.ts'
+import { getPoolClient } from '../../db/client.ts'
 
 /**
  * プロファイルIDから設定情報を完全取得するレスポンス型
@@ -164,7 +164,7 @@ export const resolveSourcesByProfileId = async (
     data: runData,
     error: runError,
   } = await run({
-    pool: POOL,
+    pool: getPoolClient(),
     exec: async (client) => {
       try {
         const result = await client.queryObject<{
