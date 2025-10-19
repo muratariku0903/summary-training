@@ -135,14 +135,12 @@ const jobProcess: RunJobParams<ShapeOfReqSchema>['jobProcess'] = async (
           status: 'success',
           metrics: {
             profileId: profile_id,
-            storage: [],
             db: [
               {
                 tableName: 'exercise_generator_seeds',
                 insert: [saveData.seed_id],
               },
             ],
-            errors: [],
           },
         },
       }
