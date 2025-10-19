@@ -10,7 +10,7 @@ import { UpdateProfileSchema } from './schema'
 
 // プロフィール更新のサーバーアクション
 export const updateProfileAction = async (
-  input: UpdateProfileSchema
+  input: UpdateProfileSchema,
 ): Promise<ActionResult<UserProfile>> => {
   try {
     const serverComponentClient = await createClient()
