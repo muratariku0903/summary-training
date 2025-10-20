@@ -12,6 +12,7 @@ import {
 } from './error/error.ts'
 import { ERROR_CODES, ErrorCategory, ErrorCode } from './error/code.ts'
 import { requestParse } from './http/request.ts'
+import { JobName } from './const.ts'
 
 export type RawShapeOf<T> =
   T extends z.ZodObject<
@@ -28,13 +29,14 @@ export type RunJobParams<T extends z.ZodRawShape> = {
   req: Request
   reqSchema: z.ZodObject<T>
   supabase: SupabaseClient<Database>
-  jobKey: string
+  jobKey: JobName
   jobProcess: (
     supabase: SupabaseClient<Database>,
     params: z.infer<z.ZodObject<T>>,
   ) => Promise<Result<JobProcessResponse, JobProcessError>>
   requestId?: string
   enableMultiJob?: boolean
+  disableConcurrentlyRunJobs?: JobName[]
 }
 type RunJobResponse = JobProcessResponse
 
@@ -74,8 +76,16 @@ export const runJob = async <T extends z.ZodRawShape>(
 > => {
   logger.start(runJob.name)
 
-  const { req, reqSchema, supabase, jobKey, jobProcess, requestId, enableMultiJob } =
-    params
+  const {
+    req,
+    reqSchema,
+    supabase,
+    jobKey,
+    jobProcess,
+    requestId,
+    enableMultiJob,
+    disableConcurrentlyRunJobs,
+  } = params
 
   // 多重実行を禁止してる場合は他に同じジョブが実行中かチェック
   if (!enableMultiJob) {
@@ -106,6 +116,37 @@ export const runJob = async <T extends z.ZodRawShape>(
           ERROR_CODES.JOB_ALREADY_RUNNING,
           'ジョブが既に実行中です',
           `jobKey: ${jobKey}, jobId: ${existingJob.id}, startAt: ${existingJob.started_at}`,
+        ),
+      }
+    }
+  }
+
+  // 平行処理してほくしないバッチが指定されてる場合はそれも実行中かチェック
+  if (disableConcurrentlyRunJobs) {
+    const { data, error } = await supabase
+      .from('job_runs')
+      .select('*')
+      .in('job_key', disableConcurrentlyRunJobs)
+      .eq('status', 'running')
+    if (error) {
+      return {
+        success: false,
+        error: new DatabaseQueryError(runJob.name, 'SELECT', 'job_runs', error.message),
+      }
+    }
+    if (data && data.length > 0) {
+      const message = {
+        jobKey,
+        runningJobIds: data.map((d) => d.job_key).join(','),
+      }
+      logger.warn(`${runJob.name}: 禁止された同時実行ジョブが稼働中のため停止`, message)
+      return {
+        success: false,
+        error: new OperationError(
+          runJob.name,
+          ERROR_CODES.JOB_BLOCKED_BY_OTHER_RUNNING_JOBS,
+          '禁止された同時実行ジョブが稼働中です',
+          `blockingJobs: ${disableConcurrentlyRunJobs.join(', ')}`,
         ),
       }
     }

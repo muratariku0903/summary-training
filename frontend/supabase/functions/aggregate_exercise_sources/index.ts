@@ -42,6 +42,12 @@ Deno.serve(async (req) => {
       reqSchema,
       jobKey: JOB_NAMES.AGGREGATE_EXERCISE_SOURCES,
       jobProcess,
+      enableMultiJob: false,
+      disableConcurrentlyRunJobs: [
+        JOB_NAMES.GENERATE_SEED_THEMES,
+        JOB_NAMES.GENERATE_EXERCISE_SEEDS,
+        JOB_NAMES.GENERATE_EXERCISES,
+      ],
     }
     const { success, data, error } = await runJob(params)
     if (!success) {
