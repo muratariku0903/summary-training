@@ -310,7 +310,9 @@ export async function listMfa(): Promise<ListMfaResponse> {
 /**
  * 　Supabase形式のmfaをアプリで使いやすい形式に変換
  */
-export function convertMfaFactors(factors: AuthMFAListFactorsResponse['data']): MfaFactor[] {
+export function convertMfaFactors(
+  factors: AuthMFAListFactorsResponse['data'],
+): MfaFactor[] {
   const mfaFactors: MfaFactor[] = []
 
   // TOTP factors

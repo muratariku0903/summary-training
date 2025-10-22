@@ -9,6 +9,7 @@ export default defineConfig({
       '**/node_modules/**',
       '**/dist/**',
       '**/test/e2e/**', // test/e2eディレクトリ配下を除外
+      '**/supabase/**',
     ],
   },
 })

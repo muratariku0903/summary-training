@@ -12,6 +12,6 @@
   "github.copilot.chat.agent.runTasks": false,
   "deno.enable": true,
   // Edge Functions 配下だけで有効化（Next.js 側には影響させない）
-  "deno.enablePaths": ["frontend/supabase/functions"],
+  "deno.enablePaths": ["frontend/supabase/functions", "frontend/supabase/tests/functions"],
   "deno.config": "frontend/supabase/functions/deno.json"
 }

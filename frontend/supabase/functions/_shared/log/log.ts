@@ -1,9 +1,4 @@
-import {
-  createLogger,
-  format,
-  transports,
-  Logger as WinstonLogger,
-} from 'npm:winston@3.11.0'
+import { createLogger, format, transports, Logger as WinstonLogger } from 'winston'
 
 const logLevel = Deno.env.get('LOG_LEVEL') || 'debug'
 
