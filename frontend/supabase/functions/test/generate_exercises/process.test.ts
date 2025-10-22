@@ -7,11 +7,7 @@ import {
   assertEquals,
   assertInstanceOf,
 } from 'https://deno.land/std@0.208.0/assert/mod.ts'
-import {
-  spy,
-  assertSpyCall,
-  assertSpyCalls,
-} from 'https://deno.land/std@0.208.0/testing/mock.ts'
+import { spy, assertSpyCalls } from 'https://deno.land/std@0.208.0/testing/mock.ts'
 import { createJobProcess } from '../../../functions/generate-exercises/process.ts'
 import {
   OperationError,
