@@ -26,7 +26,7 @@ import { getPoolClient } from '../../db/client.ts'
  * - スキーマ定義（schema）
  * - LLM情報（llm）
  */
-type GenerateExerciseOutputConfigByProfileIdResponse =
+export type GenerateExerciseOutputConfigByProfileIdResponse =
   | (ExerciseGeneratorProfile & {
       output_config: Tables<'exercise_generator_output_configs'> & {
         schema: Tables<'exercise_generator_output_configs_schemas'> & {
@@ -114,7 +114,7 @@ type ResolveSourcesParams = {
   sourceCombMax: number
   allowRepeatWhenExhausted: boolean
 }
-type ResolveSourcesResponse = {
+export type ResolveSourcesResponse = {
   patternId: Tables<'exercise_generator_profile_source_patterns'>['id'] | null
   sources: Tables<'exercise_generator_sources'>[]
 }
@@ -246,7 +246,7 @@ type GenerateExerciseByLlmFromSourcesParams = {
   llm: Tables<'llms'>
   schema: Tables<'exercise_generator_output_configs_schemas'>
 }
-type GenerateExerciseByLlmFromSourcesResponse = LlmExerciseGeneratorResponse
+export type GenerateExerciseByLlmFromSourcesResponse = LlmExerciseGeneratorResponse
 export const generateExerciseByLlmFromSourcesParams = async (
   params: GenerateExerciseByLlmFromSourcesParams,
 ): Promise<Result<GenerateExerciseByLlmFromSourcesResponse, BaseError>> => {
@@ -355,7 +355,7 @@ type SaveGeneratedExerciseParams = {
   profileId: string
 }
 
-type SaveGeneratedExerciseResponse = {
+export type SaveGeneratedExerciseResponse = {
   exerciseId: string
   storagePath: string
   exercise: Tables<'exercises'>
