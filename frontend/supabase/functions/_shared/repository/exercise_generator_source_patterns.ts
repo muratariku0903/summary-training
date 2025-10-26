@@ -19,10 +19,7 @@ export async function deletePattern(
   try {
     const { data, error } = await supabase
       .from('exercise_generator_profile_source_patterns')
-      .update({
-        delete_flg: true,
-        updated_at: new Date().toISOString(),
-      })
+      .update({ delete_flg: true })
       .eq('id', patternId)
       .eq('delete_flg', false) // 既に削除されていないもののみ対象
       .select('id')
