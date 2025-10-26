@@ -17,7 +17,6 @@ if (!projectId) {
 try {
   console.log(`Generating database types for project: ${projectId}`)
 
-  // const command = `supabase gen types typescript --project-id "${projectId}" --schema public,private,auth`
   const args = [
     'gen',
     'types',
@@ -25,7 +24,7 @@ try {
     '--project-id',
     projectId,
     '--schema',
-    'public,private,auth',
+    'public,storage,functions',
   ]
   const output = execFileSync('supabase', args, { encoding: 'utf-8' })
 
@@ -35,6 +34,16 @@ try {
 
   console.log('Database types generated successfully!')
   console.log(`Output file: ${outputPath}`)
+
+  // Supabase Functionsの方にも出力
+  const outputPathForSupabaseFunctions = path.resolve(
+    process.cwd(),
+    'supabase/functions/_shared/types/database.ts',
+  )
+  fs.writeFileSync(outputPathForSupabaseFunctions, output)
+
+  console.log('Database types generated successfully!')
+  console.log(`Output file: ${outputPathForSupabaseFunctions}`)
 } catch (error) {
   console.error('Error generating types:', error)
   process.exit(1)

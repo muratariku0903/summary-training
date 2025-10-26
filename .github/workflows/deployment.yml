@@ -141,6 +141,7 @@ jobs:
         working-directory: ${{env.APP_DIR}}/supabase
 
       - name: Run migrations + seed # Supabaseにマイグレーション実行 DB接続はマイグレーション用にSessionPooler（port 5432）を使用
+        # SUPABASE_SESSION_POOLER_URLはDBの設定を変更する（パスワードを変更等）と書き変わるので注意
         run: |
           supabase db push --include-seed --db-url "${{env.SUPABASE_SESSION_POOLER_URL}}"
         working-directory: ${{env.APP_DIR}}/supabase

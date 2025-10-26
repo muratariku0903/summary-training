@@ -1,0 +1,2 @@
+ALTER TABLE public.exercise_generator_output_configs 
+DROP CONSTRAINT IF EXISTS fk_ex_out_cfg_quad_to_schemas;
