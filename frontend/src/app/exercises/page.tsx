@@ -1,27 +1,31 @@
 import Header from '@/components/layouts/header/Header'
 import Main from '@/components/layouts/main/Main'
 import Footer from '@/components/layouts/footer/Footer'
-import { searchExercises } from '@/lib/features/exercise'
+import { searchExercises, searchExercisesSchema } from '@/lib/features/exercise'
 import { ExercisesTable } from './components/ExercisesTable'
-import { Pagination } from '@/components/elements/pagination/Pagination'
+import { Pagination } from '@/app/exercises/components/Pagination'
+import { ExercisesSearchForm } from './components/ExercisesSearchForm'
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
 
 export default async function ExercisesPage({
-  searchParams,
+  searchParams, // <- Next.jsが自動的に注入
 }: {
   searchParams: SearchParams
 }) {
   const params = await searchParams
-  const page = Number(params.page) || 1
-  const { exercises, currentPage, totalPages } = await searchExercises({ page })
+  const { success, data } = searchExercisesSchema.safeParse(params)
+
+  const { exercises, currentPage, totalPages } = await searchExercises(
+    success ? data : { page: 1 },
+  )
 
   return (
     <>
       <Header menuType='member' />
       <Main>
-        <div style={{ maxWidth: 1200, margin: '2rem auto', padding: '1rem' }}>
-          <h1 className='text-2xl font-bold mb-6'>課題一覧</h1>
+        <div className='w-full'>
+          <ExercisesSearchForm />
           <div className='space-y-4'>
             <ExercisesTable data={exercises} />
             <Pagination currentPage={currentPage} totalPages={totalPages} />

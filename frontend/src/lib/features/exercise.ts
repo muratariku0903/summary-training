@@ -1,11 +1,34 @@
+import z from 'zod'
 import { createClient } from '@/lib/supabase/client/serverComponentClient'
 import { Exercise } from '../supabase/schema/utils'
 
-const ITEMS_PER_PAGE = 20
+const ITEMS_PER_PAGE = 10
 
-type SearchExercisesParams = {
-  page: number
-}
+export const searchExercisesSchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  title: z.string().optional(),
+  description: z.string().optional(),
+  difficulty: z
+    .union([
+      z.enum(['easy', 'medium', 'hard']),
+      z.array(z.enum(['easy', 'medium', 'hard'])),
+    ])
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined
+      return Array.isArray(val) ? val : [val]
+    }),
+  createdAtFrom: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  createdAtTo: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+})
+export type SearchExercisesParams = z.infer<typeof searchExercisesSchema>
+
 type SearchExercisesResponse = {
   exercises: Exercise[]
   totalCount: number
@@ -15,7 +38,7 @@ type SearchExercisesResponse = {
 export async function searchExercises(
   params: SearchExercisesParams,
 ): Promise<SearchExercisesResponse> {
-  const { page } = params
+  const { page, title, description, difficulty, createdAtFrom, createdAtTo } = params
 
   const serverComponentClient = await createClient()
 
@@ -23,15 +46,41 @@ export async function searchExercises(
   const from = (page - 1) * ITEMS_PER_PAGE
   const to = from + ITEMS_PER_PAGE - 1
 
-  // 総件数を取得
-  const { count } = await serverComponentClient
-    .from('exercises')
-    .select('*', { count: 'exact', head: true })
+  // クエリの構築
+  let query = serverComponentClient.from('exercises').select('*', { count: 'exact' })
 
-  // データを取得
-  const { data: exercises, error } = await serverComponentClient
-    .from('exercises')
-    .select('*')
+  // タイトルで部分一致検索
+  if (title) {
+    query = query.ilike('title', `%${title}%`)
+  }
+
+  // 説明で部分一致検索
+  if (description) {
+    query = query.ilike('description', `%${description}%`)
+  }
+
+  // 難易度で検索（複数選択対応）
+  if (difficulty && difficulty.length > 0) {
+    query = query.in('difficulty', difficulty)
+  }
+
+  // 作成日で範囲検索
+  if (createdAtFrom) {
+    const startDate = new Date(createdAtFrom)
+    startDate.setHours(0, 0, 0, 0)
+    query = query.gte('created_at', startDate.toISOString())
+  }
+
+  if (createdAtTo) {
+    const endDate = new Date(createdAtTo)
+    endDate.setHours(23, 59, 59, 999)
+    query = query.lte('created_at', endDate.toISOString())
+  }
+
+  // 総件数を取得
+  const { count } = await query
+  // データを取得（ソートとページネーション）
+  const { data: exercises, error } = await query
     .order('created_at', { ascending: false })
     .range(from, to)
 
