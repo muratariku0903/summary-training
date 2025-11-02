@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
-import { PROTECTED_PATHS } from '@/lib/constants/routes'
 import { ExerciseDifficulty } from '@/lib/supabase/schema/utils'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
@@ -17,6 +16,7 @@ const DIFFICULTY_OPTIONS: { value: ExerciseDifficulty; label: string }[] = [
 export function ExercisesSearchForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+
   const [title, setTitle] = useState(searchParams.get('title'))
   const [description, setDescription] = useState(searchParams.get('description'))
   const [difficulties, setDifficulties] = useState<ExerciseDifficulty[]>(
@@ -97,7 +97,6 @@ export function ExercisesSearchForm() {
             setDifficulties([])
             setCreatedAtFrom('')
             setCreatedAtTo('')
-            router.push(PROTECTED_PATHS.EXERCISES)
           }}
         >
           クリア
