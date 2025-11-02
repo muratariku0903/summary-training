@@ -43,7 +43,7 @@ async function ExercisesContent({ params }: { params: SearchParams }) {
   return (
     <div className='space-y-4'>
       <ExercisesTable data={exercises} />
-      <Pagination currentPage={currentPage} totalPages={totalPages} />
+      {totalPages > 0 && <Pagination currentPage={currentPage} totalPages={totalPages} />}
     </div>
   )
 }
