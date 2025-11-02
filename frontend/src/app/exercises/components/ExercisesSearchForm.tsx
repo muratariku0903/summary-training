@@ -4,12 +4,11 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { PROTECTED_PATHS } from '@/lib/constants/routes'
+import { ExerciseDifficulty } from '@/lib/supabase/schema/utils'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 
-type Difficulty = 'easy' | 'medium' | 'hard'
-
-const DIFFICULTY_OPTIONS: { value: Difficulty; label: string }[] = [
+const DIFFICULTY_OPTIONS: { value: ExerciseDifficulty; label: string }[] = [
   { value: 'easy', label: '初級' },
   { value: 'medium', label: '中級' },
   { value: 'hard', label: '上級' },
@@ -20,15 +19,14 @@ export function ExercisesSearchForm() {
   const searchParams = useSearchParams()
   const [title, setTitle] = useState(searchParams.get('title'))
   const [description, setDescription] = useState(searchParams.get('description'))
-  const [difficulties, setDifficulties] = useState<Difficulty[]>(
-    (searchParams.getAll('difficulty') as Difficulty[]) ?? [],
+  const [difficulties, setDifficulties] = useState<ExerciseDifficulty[]>(
+    (searchParams.getAll('difficulty') as ExerciseDifficulty[]) ?? [],
   )
   const [createdAtFrom, setCreatedAtFrom] = useState(searchParams.get('createdAtFrom'))
   const [createdAtTo, setCreatedAtTo] = useState(searchParams.get('createdAtTo'))
 
   return (
     <div className='rounded-lg border p-4 mb-6 space-y-4'>
-      <h2 className='text-lg font-semibold'>検索条件</h2>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <div className='space-y-2'>
           <label className='text-sm font-medium'>タイトル</label>
@@ -47,7 +45,7 @@ export function ExercisesSearchForm() {
           />
         </div>
         <div className='space-y-2'>
-          <label className='text-sm font-medium'>難易度（複数選択可）</label>
+          <label className='text-sm font-medium'>難易度</label>
           <div className='flex gap-4 pt-2'>
             {DIFFICULTY_OPTIONS.map((option) => (
               <div key={option.value} className='flex items-center space-x-2'>
