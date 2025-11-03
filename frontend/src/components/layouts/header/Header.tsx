@@ -71,11 +71,8 @@ const Header: React.FC<HeaderProps> = ({ menuType }) => {
   // 会員用メニュー
   const renderMemberMenu = () => (
     <div className='flex items-center relative'>
-      <UnderlineLink label='使い方' href='#' />
+      <UnderlineLink label='演習一覧' href={PROTECTED_PATHS.EXERCISES} />
       <Spacer size={8} horizontal />
-      <UnderlineLink label='メリット' href='#' />
-      <Spacer size={40} horizontal />
-
       <IconButton
         label='ユーザー'
         size='md'
