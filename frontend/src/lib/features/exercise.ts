@@ -1,6 +1,6 @@
 import z from 'zod'
 import { createClient } from '@/lib/supabase/client/serverComponentClient'
-import { Exercise } from '../supabase/schema/utils'
+import { Exercise, EXERCISE_DIFFICULTY } from '../supabase/schema/utils'
 
 const ITEMS_PER_PAGE = 10
 
@@ -9,10 +9,7 @@ export const searchExercisesSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
   difficulty: z
-    .union([
-      z.enum(['easy', 'medium', 'hard']),
-      z.array(z.enum(['easy', 'medium', 'hard'])),
-    ])
+    .union([z.enum(EXERCISE_DIFFICULTY), z.array(z.enum(EXERCISE_DIFFICULTY))])
     .optional()
     .transform((val) => {
       if (!val) return undefined
