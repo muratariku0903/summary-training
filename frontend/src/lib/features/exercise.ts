@@ -96,3 +96,23 @@ export async function searchExercises(
     totalPages,
   }
 }
+
+type GetExerciseResponse = {
+  exercise: Exercise
+}
+export async function getExercise(id: string): Promise<GetExerciseResponse> {
+  const serverComponentClient = await createClient()
+
+  // DBから演習データを取得
+  const { data: exercise, error: dbError } = await serverComponentClient
+    .from('exercises')
+    .select('*')
+    .eq('id', id)
+    .single()
+  if (dbError || !exercise) {
+    console.error('演習取得エラー:', dbError)
+    throw new Error('演習の取得に失敗しました')
+  }
+
+  return { exercise }
+}

@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { PROTECTED_PATHS } from '@/lib/constants/routes'
 import { Exercise } from '@/lib/supabase/schema/utils'
 import {
   ColumnDef,
@@ -71,7 +72,19 @@ export function ExercisesTable({ data }: ExercisesTableProps) {
         <TableBody>
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && 'selected'}
+                className='cursor-pointer hover:bg-muted/50'
+                role='button'
+                onClick={() => {
+                  window.open(
+                    `${PROTECTED_PATHS.EXERCISES}/${row.original.id}`,
+                    '_blank',
+                    'noopener,noreferrer',
+                  )
+                }}
+              >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
