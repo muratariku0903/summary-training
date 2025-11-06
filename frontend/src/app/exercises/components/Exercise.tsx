@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Exercise as ExerciseType } from '@/lib/supabase/schema/utils'
 import { ArrowLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { EXERCISE_DIFFICULTIES } from '@/lib/constants/ui'
+import { EXERCISE_DIFFICULTIES, EXERCISE_TYPES } from '@/lib/constants/ui'
 
 interface ExerciseProps {
   exercise: ExerciseType
@@ -15,6 +15,7 @@ interface ExerciseProps {
 export function Exercise({ exercise }: ExerciseProps) {
   const router = useRouter()
   const difficulty = EXERCISE_DIFFICULTIES.find((d) => d.value === exercise.difficulty)
+  const type = EXERCISE_TYPES.find((t) => t.value === exercise.exercise_type)
 
   return (
     <div className='w-full max-w-4xl mx-auto space-y-6'>
@@ -42,7 +43,7 @@ export function Exercise({ exercise }: ExerciseProps) {
             <span>
               作成日: {new Date(exercise.created_at).toLocaleDateString('ja-JP')}
             </span>
-            <span>種別: {exercise.exercise_type}</span>
+            <span>種別: {type?.label}</span>
           </div>
         </CardHeader>
         {/* <CardContent>
