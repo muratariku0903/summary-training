@@ -1,3 +1,5 @@
+import { ExerciseDifficulty } from '../supabase/schema/utils'
+
 /**
  * ユーザー向けの通知メッセージ定数
  */
@@ -82,3 +84,13 @@ export const FORM_LABELS = {
   BIO: '自己紹介',
   AVATAR: 'アバター',
 } as const
+
+export const EXERCISE_DIFFICULTIES: {
+  value: ExerciseDifficulty
+  label: string
+  color: string
+}[] = [
+  { value: 'easy', label: '初級', color: 'bg-green-100 text-green-800' },
+  { value: 'medium', label: '中級', color: 'bg-yellow-100 text-yellow-800' },
+  { value: 'hard', label: '上級', color: 'bg-red-100 text-red-800' },
+]

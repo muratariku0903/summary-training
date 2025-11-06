@@ -6,25 +6,15 @@ import { Badge } from '@/components/ui/badge'
 import { Exercise as ExerciseType } from '@/lib/supabase/schema/utils'
 import { ArrowLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { EXERCISE_DIFFICULTIES } from '@/lib/constants/ui'
 
 interface ExerciseProps {
   exercise: ExerciseType
 }
 
-const DIFFICULTY_LABELS: Record<string, string> = {
-  easy: '初級',
-  medium: '中級',
-  hard: '上級',
-}
-
-const DIFFICULTY_COLORS: Record<string, string> = {
-  easy: 'bg-green-100 text-green-800',
-  medium: 'bg-yellow-100 text-yellow-800',
-  hard: 'bg-red-100 text-red-800',
-}
-
 export function Exercise({ exercise }: ExerciseProps) {
   const router = useRouter()
+  const difficulty = EXERCISE_DIFFICULTIES.find((d) => d.value === exercise.difficulty)
 
   return (
     <div className='w-full max-w-4xl mx-auto space-y-6'>
@@ -46,9 +36,7 @@ export function Exercise({ exercise }: ExerciseProps) {
                 </CardDescription>
               )}
             </div>
-            <Badge className={DIFFICULTY_COLORS[exercise.difficulty]}>
-              {DIFFICULTY_LABELS[exercise.difficulty]}
-            </Badge>
+            <Badge className={difficulty?.color}>{difficulty?.label}</Badge>
           </div>
           <div className='flex gap-4 text-sm text-muted-foreground pt-2'>
             <span>
