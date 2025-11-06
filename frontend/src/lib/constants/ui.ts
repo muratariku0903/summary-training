@@ -1,4 +1,3 @@
-// src/lib/constants/ui.ts
 /**
  * ユーザー向けの通知メッセージ定数
  */
@@ -82,27 +81,4 @@ export const FORM_LABELS = {
   DISPLAY_NAME: '表示名',
   BIO: '自己紹介',
   AVATAR: 'アバター',
-} as const
-
-/**
- * ページタイトル定数
- */
-export const PAGE_TITLES = {
-  SIGNUP: '新規登録',
-  SIGNIN: 'ログイン',
-  DASHBOARD: 'ダッシュボード',
-  PROFILE: 'プロフィール',
-  SETTINGS: '設定',
-  TOTP_SETUP: 'TOTP設定',
-} as const
-
-/**
- * プレースホルダー定数
- */
-export const PLACEHOLDERS = {
-  EMAIL: 'example@email.com',
-  USERNAME: 'ユーザー名を入力',
-  PASSWORD: '8文字以上で入力',
-  TOTP_CODE: '123456',
-  SEARCH: '検索...',
 } as const
