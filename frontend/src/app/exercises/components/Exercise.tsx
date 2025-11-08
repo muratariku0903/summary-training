@@ -49,7 +49,7 @@ export function Exercise({ exercise, contentUrl }: ExerciseProps) {
                 </CardDescription>
               )}
             </div>
-            <Badge className={difficulty?.color}>{difficulty?.label}</Badge>
+            <Badge className={`${difficulty?.bgColor}`}>{difficulty?.label}</Badge>
           </div>
           <div className='flex gap-4 text-sm text-muted-foreground pt-2'>
             <span>

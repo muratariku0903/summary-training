@@ -88,11 +88,11 @@ export const FORM_LABELS = {
 export const EXERCISE_DIFFICULTIES: {
   value: ExerciseDifficulty
   label: string
-  color: string
+  bgColor: string
 }[] = [
-  { value: 'easy', label: '初級', color: 'bg-green-100 text-green-800' },
-  { value: 'medium', label: '中級', color: 'bg-yellow-100 text-yellow-800' },
-  { value: 'hard', label: '上級', color: 'bg-red-100 text-red-800' },
+  { value: 'easy', label: '初級', bgColor: 'bg-green-100 ' },
+  { value: 'medium', label: '中級', bgColor: 'bg-yellow-100 ' },
+  { value: 'hard', label: '上級', bgColor: 'bg-red-100' },
 ] as const
 
 export const EXERCISE_TYPES: {
