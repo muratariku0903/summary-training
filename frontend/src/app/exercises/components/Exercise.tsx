@@ -19,6 +19,7 @@ import { ExerciseContent } from './ExerciseContent'
 import { ErrorBoundary } from 'react-error-boundary'
 import { useExerciseContentPromise } from '@/hooks/exercise'
 import ErrorState from '@/components/elements/error-state/ErrorState'
+import { useState } from 'react'
 
 interface ExerciseProps {
   exercise: ExerciseType
@@ -27,6 +28,8 @@ interface ExerciseProps {
 
 export function Exercise({ exercise, contentUrl }: ExerciseProps) {
   const router = useRouter()
+  const [started, setStarted] = useState(false)
+
   const difficulty = EXERCISE_DIFFICULTIES.find((d) => d.value === exercise.difficulty)
   const type = EXERCISE_TYPES.find((t) => t.value === exercise.exercise_type)
 
@@ -63,10 +66,15 @@ export function Exercise({ exercise, contentUrl }: ExerciseProps) {
         <CardContent>
           <ErrorBoundary fallback={<ErrorState />}>
             <Suspense fallback={<Loading />}>
-              <ExerciseContent contentPromise={useExerciseContentPromise(contentUrl)} />
+              <ExerciseContent
+                contentPromise={useExerciseContentPromise(contentUrl)}
+                reveal={started}
+              />
             </Suspense>
             <div className='flex justify-end gap-2 pt-4'>
-              <Button>演習を開始</Button>
+              <Button onClick={() => setStarted(true)} disabled={started}>
+                {started ? '開始済み' : '演習を開始'}
+              </Button>
             </div>
           </ErrorBoundary>
         </CardContent>
