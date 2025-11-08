@@ -16,6 +16,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+import { useRouter } from 'next/navigation'
 
 interface ExercisesTableProps {
   data: Exercise[]
@@ -45,6 +46,7 @@ const columns: ColumnDef<Exercise>[] = [
 ]
 
 export function ExercisesTable({ data }: ExercisesTableProps) {
+  const router = useRouter()
   const table = useReactTable({
     data,
     columns,
@@ -77,13 +79,9 @@ export function ExercisesTable({ data }: ExercisesTableProps) {
                 data-state={row.getIsSelected() && 'selected'}
                 className='cursor-pointer hover:bg-muted/50'
                 role='button'
-                onClick={() => {
-                  window.open(
-                    `${PROTECTED_PATHS.EXERCISES}/${row.original.id}`,
-                    '_blank',
-                    'noopener,noreferrer',
-                  )
-                }}
+                onClick={() =>
+                  router.push(`${PROTECTED_PATHS.EXERCISES}/${row.original.id}`)
+                }
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>

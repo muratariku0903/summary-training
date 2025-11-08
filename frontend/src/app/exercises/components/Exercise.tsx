@@ -29,9 +29,6 @@ export function Exercise({ exercise, contentUrl }: ExerciseProps) {
   const difficulty = EXERCISE_DIFFICULTIES.find((d) => d.value === exercise.difficulty)
   const type = EXERCISE_TYPES.find((t) => t.value === exercise.exercise_type)
 
-  // Promiseは親で一度だけ生成し、子へ渡す
-  const contentPromise = useMemo(() => fetchExerciseContent(contentUrl), [contentUrl])
-
   return (
     <div className='w-full max-w-4xl mx-auto space-y-6'>
       <div className='flex items-center gap-4'>
@@ -65,7 +62,12 @@ export function Exercise({ exercise, contentUrl }: ExerciseProps) {
         <CardContent>
           <ErrorBoundary fallback={<p>表示中に問題が発生しました。</p>}>
             <Suspense fallback={<Loading />}>
-              <ExerciseContent contentPromise={contentPromise} />
+              <ExerciseContent
+                contentPromise={useMemo(
+                  () => fetchExerciseContent(contentUrl),
+                  [contentUrl],
+                )}
+              />
             </Suspense>
           </ErrorBoundary>
         </CardContent>
