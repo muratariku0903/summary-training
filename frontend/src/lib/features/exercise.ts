@@ -99,6 +99,7 @@ export async function searchExercises(
 
 type GetExerciseResponse = {
   exercise: Exercise
+  contentUrl: string
 }
 export async function getExercise(id: string): Promise<GetExerciseResponse> {
   const serverComponentClient = await createClient()
@@ -114,5 +115,15 @@ export async function getExercise(id: string): Promise<GetExerciseResponse> {
     throw new Error('演習の取得に失敗しました')
   }
 
-  return { exercise }
+  // 署名付きURLを生成（1時間有効）
+  const { data: signedUrlData, error: signedUrlError } =
+    await serverComponentClient.storage
+      .from('exercises')
+      .createSignedUrl(exercise.storage_path, 60 * 5)
+  if (signedUrlError || !signedUrlData) {
+    console.error('署名付きURL生成エラー:', signedUrlError)
+    throw new Error('コンテンツURLの生成に失敗しました')
+  }
+
+  return { exercise, contentUrl: signedUrlData.signedUrl }
 }

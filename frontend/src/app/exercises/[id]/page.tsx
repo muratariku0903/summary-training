@@ -11,13 +11,13 @@ type PageProps = {
 export default async function ExerciseDetailPage({ params }: PageProps) {
   const { id } = await params
 
-  const { exercise } = await getExercise(id)
+  const { exercise, contentUrl } = await getExercise(id)
 
   return (
     <>
       <Header menuType='member' />
       <Main>
-        <Exercise exercise={exercise} />
+        <Exercise exercise={exercise} contentUrl={contentUrl} />
       </Main>
       <Footer />
     </>
