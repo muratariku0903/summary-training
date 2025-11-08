@@ -20,7 +20,6 @@ const fetchExerciseContent = async (url: string): Promise<ExerciseContent> => {
   const res = await fetch(url, { cache: 'no-store' })
   if (!res.ok) throw new Error('コンテンツの取得に失敗しました')
   const json = (await res.json()) as ExerciseContent
-  console.log('json: ', json)
 
   return json
 }
