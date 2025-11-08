@@ -17,7 +17,7 @@ import { Suspense } from 'react'
 import Loading from '@/components/elements/loading/Loading'
 import { ExerciseContent } from './ExerciseContent'
 import { ErrorBoundary } from 'react-error-boundary'
-import { useMemo } from 'react'
+import { useExerciseContentPromise } from '@/hooks/exercise'
 
 interface ExerciseProps {
   exercise: ExerciseType
@@ -62,12 +62,7 @@ export function Exercise({ exercise, contentUrl }: ExerciseProps) {
         <CardContent>
           <ErrorBoundary fallback={<p>表示中に問題が発生しました。</p>}>
             <Suspense fallback={<Loading />}>
-              <ExerciseContent
-                contentPromise={useMemo(
-                  () => fetchExerciseContent(contentUrl),
-                  [contentUrl],
-                )}
-              />
+              <ExerciseContent contentPromise={useExerciseContentPromise(contentUrl)} />
             </Suspense>
           </ErrorBoundary>
         </CardContent>
@@ -78,11 +73,4 @@ export function Exercise({ exercise, contentUrl }: ExerciseProps) {
       </div>
     </div>
   )
-}
-
-// 外部に純粋なフェッチ関数（キャッシュしない）
-async function fetchExerciseContent(url: string): Promise<string> {
-  const res = await fetch(url, { cache: 'no-store' })
-  if (!res.ok) throw new Error('コンテンツの取得に失敗しました')
-  return res.text()
 }
