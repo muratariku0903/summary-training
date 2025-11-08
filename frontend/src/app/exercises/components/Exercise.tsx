@@ -18,6 +18,7 @@ import Loading from '@/components/elements/loading/Loading'
 import { ExerciseContent } from './ExerciseContent'
 import { ErrorBoundary } from 'react-error-boundary'
 import { useExerciseContentPromise } from '@/hooks/exercise'
+import ErrorState from '@/components/elements/error-state/ErrorState'
 
 interface ExerciseProps {
   exercise: ExerciseType
@@ -60,17 +61,16 @@ export function Exercise({ exercise, contentUrl }: ExerciseProps) {
         </CardHeader>
 
         <CardContent>
-          <ErrorBoundary fallback={<p>表示中に問題が発生しました。</p>}>
+          <ErrorBoundary fallback={<ErrorState />}>
             <Suspense fallback={<Loading />}>
               <ExerciseContent contentPromise={useExerciseContentPromise(contentUrl)} />
             </Suspense>
+            <div className='flex justify-end gap-2 pt-4'>
+              <Button>演習を開始</Button>
+            </div>
           </ErrorBoundary>
         </CardContent>
       </Card>
-
-      <div className='flex justify-end gap-2'>
-        <Button>演習を開始</Button>
-      </div>
     </div>
   )
 }
