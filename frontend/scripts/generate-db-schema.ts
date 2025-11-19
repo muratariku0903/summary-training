@@ -31,8 +31,7 @@ try {
   // ファイルに出力
   const outputPath = path.resolve(process.cwd(), 'src/lib/supabase/schema/schema.ts')
   fs.writeFileSync(outputPath, output)
-
-  console.log('Database types generated successfully!')
+  console.log('Database schema file generated successfully!')
   console.log(`Output file: ${outputPath}`)
 
   // Supabase Functionsの方にも出力
@@ -41,9 +40,13 @@ try {
     'supabase/functions/_shared/types/database.ts',
   )
   fs.writeFileSync(outputPathForSupabaseFunctions, output)
-
-  console.log('Database types generated successfully!')
+  console.log('Database schema file generated successfully!')
   console.log(`Output file: ${outputPathForSupabaseFunctions}`)
+
+  // Drizzle ORM スキーマ生成 (イントロスペクション)
+  const drizzleArgs = ['introspect', '--config', 'drizzle.config.ts']
+  execFileSync('drizzle-kit', drizzleArgs, { encoding: 'utf-8' })
+  console.log('Drizzle schema file generated successfully!')
 } catch (error) {
   console.error('Error generating types:', error)
   process.exit(1)
