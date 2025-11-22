@@ -62,3 +62,5 @@ playwright/.auth/        # 保存したログインstate（機密の可能性）
 
 .lighthouseci/
 lhci-report
+
+frontend/src/lib/drizzle/schema/meta

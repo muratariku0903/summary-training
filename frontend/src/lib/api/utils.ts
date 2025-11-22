@@ -5,6 +5,8 @@ import PasswordChangeNotification from '@/components/emails/PasswordChangeNotifi
 import { render } from '@react-email/render'
 import AccountDeletionNotification from '@/components/emails/styles/AccountDeleteNotification'
 import { cookies } from 'next/headers'
+import z, { ZodRawShape } from 'zod'
+import { Result } from '@/types/common'
 
 export const getAccessTokenFromHeader = (req: NextRequest): string | null => {
   const authHeader = req.headers.get('Authorization')
@@ -14,6 +16,29 @@ export const getAccessTokenFromHeader = (req: NextRequest): string | null => {
   }
 
   return authHeader.replace('Bearer ', '')
+}
+
+export const requestParse = async <T extends ZodRawShape>(
+  req: Request,
+  schema: z.ZodObject<T>,
+): Promise<Result<z.infer<z.ZodObject<T>>>> => {
+  try {
+    const body = await req.json()
+
+    const {
+      success: parseSuccess,
+      data: parseData,
+      error: parseError,
+    } = schema.safeParse(body)
+    if (!parseSuccess) {
+      return { success: false, error: Error(String(parseError)) }
+    }
+
+    return { success: true, data: parseData }
+  } catch (e) {
+    console.error('requestParse Error', e)
+    return { success: false, error: Error(String(e)) }
+  }
 }
 
 type CreateMailComponentParams = {

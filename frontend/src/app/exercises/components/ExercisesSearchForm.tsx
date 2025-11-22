@@ -8,16 +8,11 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { Input } from '@/components/ui/input'
+import { EXERCISE_DIFFICULTIES } from '@/lib/constants/ui'
 import { ExerciseDifficulty } from '@/lib/supabase/schema/utils'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
-
-const DIFFICULTY_OPTIONS: { value: ExerciseDifficulty; label: string }[] = [
-  { value: 'easy', label: '初級' },
-  { value: 'medium', label: '中級' },
-  { value: 'hard', label: '上級' },
-]
 
 export function ExercisesSearchForm() {
   const router = useRouter()
@@ -71,7 +66,7 @@ export function ExercisesSearchForm() {
             <div className='space-y-2'>
               <label className='text-sm font-medium'>難易度</label>
               <div className='flex gap-4 pt-2'>
-                {DIFFICULTY_OPTIONS.map((option) => (
+                {EXERCISE_DIFFICULTIES.map((option) => (
                   <div key={option.value} className='flex items-center space-x-2'>
                     <Checkbox
                       id={option.value}

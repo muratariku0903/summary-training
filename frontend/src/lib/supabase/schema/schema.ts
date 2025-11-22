@@ -14,6 +14,136 @@ export type Database = {
   }
   public: {
     Tables: {
+      exercise_evaluation_details: {
+        Row: {
+          created_at: string
+          evaluation_id: string
+          id: string
+          perspective: string | null
+          perspective_name: string | null
+          perspective_satisfy_rate: number | null
+          reason: string | null
+          rubric: Json | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          evaluation_id: string
+          id?: string
+          perspective?: string | null
+          perspective_name?: string | null
+          perspective_satisfy_rate?: number | null
+          reason?: string | null
+          rubric?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          evaluation_id?: string
+          id?: string
+          perspective?: string | null
+          perspective_name?: string | null
+          perspective_satisfy_rate?: number | null
+          reason?: string | null
+          rubric?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_evaluation_details_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_evaluations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercise_evaluation_rubrics: {
+        Row: {
+          created_at: string
+          detail: string | null
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
+          exercise_type: Database["public"]["Enums"]["exercise_type"]
+          is_active: boolean
+          perspective: string
+          perspective_name: string | null
+          updated_at: string
+          version: number
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
+          exercise_type: Database["public"]["Enums"]["exercise_type"]
+          is_active?: boolean
+          perspective: string
+          perspective_name?: string | null
+          updated_at?: string
+          version: number
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          difficulty?: Database["public"]["Enums"]["difficulty_level"]
+          exercise_type?: Database["public"]["Enums"]["exercise_type"]
+          is_active?: boolean
+          perspective?: string
+          perspective_name?: string | null
+          updated_at?: string
+          version?: number
+          weight?: number
+        }
+        Relationships: []
+      }
+      exercise_evaluations: {
+        Row: {
+          created_at: string
+          evaluated_model: string | null
+          evaluated_vendor: Database["public"]["Enums"]["llm_vendor"] | null
+          feedback: Json | null
+          id: string
+          rubrics_version: number | null
+          score: number | null
+          status: Database["public"]["Enums"]["exercise_evaluation_status"]
+          submission_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          evaluated_model?: string | null
+          evaluated_vendor?: Database["public"]["Enums"]["llm_vendor"] | null
+          feedback?: Json | null
+          id?: string
+          rubrics_version?: number | null
+          score?: number | null
+          status?: Database["public"]["Enums"]["exercise_evaluation_status"]
+          submission_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          evaluated_model?: string | null
+          evaluated_vendor?: Database["public"]["Enums"]["llm_vendor"] | null
+          feedback?: Json | null
+          id?: string
+          rubrics_version?: number | null
+          score?: number | null
+          status?: Database["public"]["Enums"]["exercise_evaluation_status"]
+          submission_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_evaluations_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_generator_output_configs: {
         Row: {
           created_at: string
@@ -360,6 +490,41 @@ export type Database = {
             columns: ["theme_id"]
             isOneToOne: false
             referencedRelation: "seed_generator_themes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercise_submissions: {
+        Row: {
+          created_at: string
+          exercise_id: string
+          id: string
+          payload: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          exercise_id: string
+          id?: string
+          payload: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          payload?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_submissions_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
             referencedColumns: ["id"]
           },
         ]
@@ -715,34 +880,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      _trgm_normalize: {
-        Args: { s: string }
-        Returns: string
-      }
-      citext: {
-        Args: { "": boolean } | { "": string } | { "": unknown }
-        Returns: string
-      }
-      citext_hash: {
-        Args: { "": string }
-        Returns: number
-      }
-      citextin: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      citextout: {
-        Args: { "": string }
-        Returns: unknown
-      }
-      citextrecv: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      citextsend: {
-        Args: { "": string }
-        Returns: string
-      }
+      _trgm_normalize: { Args: { s: string }; Returns: string }
       find_similar_seeds_by_raw_text: {
         Args: { lim?: number; min_sim?: number; q: string }
         Returns: {
@@ -769,66 +907,46 @@ export type Database = {
           title: string
         }[]
       }
-      gtrgm_compress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_decompress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_in: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_options: {
-        Args: { "": unknown }
-        Returns: undefined
-      }
-      gtrgm_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      pick_random_unused_source_pattern: {
-        Args:
-          | {
+      pick_random_unused_source_pattern:
+        | {
+            Args: {
               p_allow_duplicates?: boolean
               p_kmax?: number
               p_kmin?: number
               p_max_attempts?: number
               p_profile_id: string
             }
-          | {
+            Returns: {
+              pattern_id: string
+              source_ids: string[]
+            }[]
+          }
+        | {
+            Args: {
               p_kmax?: number
               p_kmin?: number
               p_max_attempts?: number
               p_profile_id: string
             }
-        Returns: {
-          pattern_id: string
-          source_ids: string[]
-        }[]
-      }
-      set_limit: {
-        Args: { "": number }
-        Returns: number
-      }
-      show_limit: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      show_trgm: {
-        Args: { "": string }
-        Returns: string[]
-      }
-      uuid_array_sorted_key: {
-        Args: { arr: string[] }
-        Returns: string
-      }
+            Returns: {
+              pattern_id: string
+              pattern_size: number
+              source_ids: string[]
+              source_set_key: string
+            }[]
+          }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
+      uuid_array_sorted_key: { Args: { arr: string[] }; Returns: string }
     }
     Enums: {
       create_type: "system" | "user" | "admin" | "import"
       difficulty_level: "easy" | "medium" | "hard"
+      exercise_evaluation_status:
+        | "queued"
+        | "processing"
+        | "succeeded"
+        | "failed"
       exercise_output_data_type: "text" | "audio" | "text/audio"
       exercise_output_difficulty: "easy" | "medium" | "hard"
       exercise_output_exercise_type: "summary" | "rewrite"
@@ -893,21 +1011,48 @@ export type Database = {
       buckets_analytics: {
         Row: {
           created_at: string
+          deleted_at: string | null
           format: string
+          id: string
+          name: string
+          type: Database["storage"]["Enums"]["buckettype"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          format?: string
+          id?: string
+          name: string
+          type?: Database["storage"]["Enums"]["buckettype"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          format?: string
+          id?: string
+          name?: string
+          type?: Database["storage"]["Enums"]["buckettype"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      buckets_vectors: {
+        Row: {
+          created_at: string
           id: string
           type: Database["storage"]["Enums"]["buckettype"]
           updated_at: string
         }
         Insert: {
           created_at?: string
-          format?: string
           id: string
           type?: Database["storage"]["Enums"]["buckettype"]
           updated_at?: string
         }
         Update: {
           created_at?: string
-          format?: string
           id?: string
           type?: Database["storage"]["Enums"]["buckettype"]
           updated_at?: string
@@ -1121,6 +1266,50 @@ export type Database = {
           },
         ]
       }
+      vector_indexes: {
+        Row: {
+          bucket_id: string
+          created_at: string
+          data_type: string
+          dimension: number
+          distance_metric: string
+          id: string
+          metadata_configuration: Json | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          bucket_id: string
+          created_at?: string
+          data_type: string
+          dimension: number
+          distance_metric: string
+          id?: string
+          metadata_configuration?: Json | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          bucket_id?: string
+          created_at?: string
+          data_type?: string
+          dimension?: number
+          distance_metric?: string
+          id?: string
+          metadata_configuration?: Json | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vector_indexes_bucket_id_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets_vectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1142,32 +1331,14 @@ export type Database = {
         Args: { _bucket_id: string; _name: string }
         Returns: boolean
       }
-      extension: {
-        Args: { name: string }
-        Returns: string
-      }
-      filename: {
-        Args: { name: string }
-        Returns: string
-      }
-      foldername: {
-        Args: { name: string }
-        Returns: string[]
-      }
-      get_level: {
-        Args: { name: string }
-        Returns: number
-      }
-      get_prefix: {
-        Args: { name: string }
-        Returns: string
-      }
-      get_prefixes: {
-        Args: { name: string }
-        Returns: string[]
-      }
+      extension: { Args: { name: string }; Returns: string }
+      filename: { Args: { name: string }; Returns: string }
+      foldername: { Args: { name: string }; Returns: string[] }
+      get_level: { Args: { name: string }; Returns: number }
+      get_prefix: { Args: { name: string }; Returns: string }
+      get_prefixes: { Args: { name: string }; Returns: string[] }
       get_size_by_bucket: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           bucket_id: string
           size: number
@@ -1208,10 +1379,7 @@ export type Database = {
         Args: { bucket_ids: string[]; names: string[] }
         Returns: undefined
       }
-      operation: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      operation: { Args: never; Returns: string }
       search: {
         Args: {
           bucketname: string
@@ -1295,7 +1463,7 @@ export type Database = {
       }
     }
     Enums: {
-      buckettype: "STANDARD" | "ANALYTICS"
+      buckettype: "STANDARD" | "ANALYTICS" | "VECTOR"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1425,6 +1593,12 @@ export const Constants = {
     Enums: {
       create_type: ["system", "user", "admin", "import"],
       difficulty_level: ["easy", "medium", "hard"],
+      exercise_evaluation_status: [
+        "queued",
+        "processing",
+        "succeeded",
+        "failed",
+      ],
       exercise_output_data_type: ["text", "audio", "text/audio"],
       exercise_output_difficulty: ["easy", "medium", "hard"],
       exercise_output_exercise_type: ["summary", "rewrite"],
@@ -1441,7 +1615,7 @@ export const Constants = {
   },
   storage: {
     Enums: {
-      buckettype: ["STANDARD", "ANALYTICS"],
+      buckettype: ["STANDARD", "ANALYTICS", "VECTOR"],
     },
   },
 } as const

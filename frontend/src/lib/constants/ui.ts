@@ -1,4 +1,5 @@
-// src/lib/constants/ui.ts
+import { ExerciseDifficulty, ExerciseType } from '../supabase/schema/utils'
+
 /**
  * ユーザー向けの通知メッセージ定数
  */
@@ -84,25 +85,17 @@ export const FORM_LABELS = {
   AVATAR: 'アバター',
 } as const
 
-/**
- * ページタイトル定数
- */
-export const PAGE_TITLES = {
-  SIGNUP: '新規登録',
-  SIGNIN: 'ログイン',
-  DASHBOARD: 'ダッシュボード',
-  PROFILE: 'プロフィール',
-  SETTINGS: '設定',
-  TOTP_SETUP: 'TOTP設定',
-} as const
+export const EXERCISE_DIFFICULTIES: {
+  value: ExerciseDifficulty
+  label: string
+  bgColor: string
+}[] = [
+  { value: 'easy', label: '初級', bgColor: 'bg-green-100 ' },
+  { value: 'medium', label: '中級', bgColor: 'bg-yellow-100 ' },
+  { value: 'hard', label: '上級', bgColor: 'bg-red-100' },
+] as const
 
-/**
- * プレースホルダー定数
- */
-export const PLACEHOLDERS = {
-  EMAIL: 'example@email.com',
-  USERNAME: 'ユーザー名を入力',
-  PASSWORD: '8文字以上で入力',
-  TOTP_CODE: '123456',
-  SEARCH: '検索...',
-} as const
+export const EXERCISE_TYPES: {
+  value: ExerciseType
+  label: string
+}[] = [{ value: 'summary', label: '要約' }] as const
