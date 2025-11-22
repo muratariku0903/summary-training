@@ -1,7 +1,7 @@
 'use client'
 
 import { use } from 'react'
-import type { ExerciseContent } from '@/hooks/exercise'
+import type { ExerciseContent } from '@/types/exercise'
 
 interface ExerciseContentProps {
   contentPromise: Promise<ExerciseContent>

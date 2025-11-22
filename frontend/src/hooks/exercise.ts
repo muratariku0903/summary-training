@@ -1,15 +1,10 @@
+import { ExerciseContent } from '@/types/exercise'
 import { useMemo } from 'react'
 
 /**
  * Suspense 用: コンテンツ取得の Promise を返すフック
  * 同一 URL はメモリキャッシュで再利用
  */
-export interface ExerciseContent {
-  title: string
-  description: string
-  difficulty: string
-  body: string
-}
 export const useExerciseContentPromise = (
   contentUrl: string,
 ): Promise<ExerciseContent> => {
