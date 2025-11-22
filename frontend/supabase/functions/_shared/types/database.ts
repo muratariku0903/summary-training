@@ -65,7 +65,7 @@ export type Database = {
           difficulty: Database["public"]["Enums"]["difficulty_level"]
           exercise_type: Database["public"]["Enums"]["exercise_type"]
           is_active: boolean
-          perspective: string | null
+          perspective: string
           perspective_name: string | null
           updated_at: string
           version: number
@@ -77,7 +77,7 @@ export type Database = {
           difficulty: Database["public"]["Enums"]["difficulty_level"]
           exercise_type: Database["public"]["Enums"]["exercise_type"]
           is_active?: boolean
-          perspective?: string | null
+          perspective: string
           perspective_name?: string | null
           updated_at?: string
           version: number
@@ -89,7 +89,7 @@ export type Database = {
           difficulty?: Database["public"]["Enums"]["difficulty_level"]
           exercise_type?: Database["public"]["Enums"]["exercise_type"]
           is_active?: boolean
-          perspective?: string | null
+          perspective?: string
           perspective_name?: string | null
           updated_at?: string
           version?: number

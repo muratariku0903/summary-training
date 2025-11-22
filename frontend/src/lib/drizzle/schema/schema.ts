@@ -16,6 +16,7 @@ import {
   check,
   numeric,
   primaryKey,
+  doublePrecision,
   pgEnum,
 } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
@@ -221,7 +222,7 @@ export const idpLinks = pgTable(
     provider: text().notNull(),
     externalUserId: text('external_user_id').notNull(),
     authUserId: uuid('auth_user_id').notNull(),
-    // TODO: failed to parse database type 'citext'
+    emailAtLinkTime: text('email_at_link_time'),
     metadata: jsonb().default({}).notNull(),
     lastSeenAt: timestamp('last_seen_at', { withTimezone: true, mode: 'string' }),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
@@ -739,10 +740,10 @@ export const exerciseEvaluationRubrics = pgTable(
     version: integer().notNull(),
     exerciseType: exerciseType('exercise_type').notNull(),
     difficulty: difficultyLevel().notNull(),
-    perspective: text(),
+    perspective: text().notNull(),
     perspectiveName: text('perspective_name'),
     detail: text(),
-    weight: numeric().default('1.0').notNull(),
+    weight: doublePrecision().default(1).notNull(),
     isActive: boolean('is_active').default(true).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
       .defaultNow()
@@ -753,7 +754,7 @@ export const exerciseEvaluationRubrics = pgTable(
   },
   (table) => [
     primaryKey({
-      columns: [table.version, table.exerciseType, table.difficulty],
+      columns: [table.version, table.exerciseType, table.difficulty, table.perspective],
       name: 'exercise_evaluation_rubrics_pkey',
     }),
   ],
