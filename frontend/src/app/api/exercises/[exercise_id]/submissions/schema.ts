@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const requestSchema = z.object({
-  input: z.string(),
+  input: z.string().max(1000, 'inputは1000文字以内である必要があります'),
 })
 
 export const responseSchema = z.object({
