@@ -9,6 +9,7 @@ type ExerciseTextareaProps = {
   label?: string
   placeholder?: string
   className?: string
+  maxLength?: number
 }
 
 export default function ExerciseTextarea({
@@ -18,7 +19,10 @@ export default function ExerciseTextarea({
   label,
   placeholder = '本文を要約してください',
   className = '',
+  maxLength = 1000,
 }: ExerciseTextareaProps) {
+  const remaining = maxLength - value.length
+
   return (
     <div className={`w-full space-y-2 ${className}`}>
       {label && (
@@ -29,10 +33,17 @@ export default function ExerciseTextarea({
       <textarea
         id={id}
         value={value}
-        onChange={(e) => onChangeAction(e.target.value)}
+        onChange={(e) => {
+          const v = e.target.value
+          onChangeAction(v.length > maxLength ? v.slice(0, maxLength) : v)
+        }}
         placeholder={placeholder}
+        maxLength={maxLength}
         className='w-full min-h-[160px] rounded-md border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-ring'
       />
+      <div className='text-right text-xs text-muted-foreground'>
+        {remaining >= 0 ? `残り${remaining}文字` : '制限を超えています'}
+      </div>
     </div>
   )
 }
