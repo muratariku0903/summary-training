@@ -53,6 +53,11 @@ env:
   OPENAI_API_KEY: ${{ github.ref == 'refs/heads/prod' && secrets.OPENAI_API_KEY_PROD || github.ref == 'refs/heads/stage' && secrets.OPENAI_API_KEY_STG || secrets.OPENAI_API_KEY_DEV }}
   # ↑ OpenAI
 
+  # ↓ Sentry
+  SENTRY_DSN: ${{ github.ref == 'refs/heads/prod' && secrets.SENTRY_DSN_PROD || github.ref == 'refs/heads/stage' && secrets.SENTRY_DSN_STG || secrets.SENTRY_DSN_DEV }}
+  SENTRY_PROJECT_NAME: ${{ github.ref == 'refs/heads/prod' && vars.SENTRY_PROJECT_NAME_PROD || github.ref == 'refs/heads/stage' && vars.SENTRY_PROJECT_NAME_STG || vars.SENTRY_PROJECT_NAME_DEV }}
+  # ↑ Sentry
+
   # ↓ E2E
   E2E_ENABLED: ${{ (github.ref != 'refs/heads/prod' || github.ref != 'refs/heads/main') && true || false}}
   E2E_SECRET: ${{secrets.E2E_SECRET}}
