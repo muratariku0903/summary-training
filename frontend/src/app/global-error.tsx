@@ -1,13 +1,18 @@
-"use client";
+'use client'
 
-import * as Sentry from "@sentry/nextjs";
-import NextError from "next/error";
-import { useEffect } from "react";
+import * as Sentry from '@sentry/nextjs'
+import NextError from 'next/error'
+import { useEffect } from 'react'
 
+/**
+ * @file グローバルエラー境界コンポーネント
+ * Next.js App Routerのエラー境界で捕捉されたエラーを処理し、Sentryに報告します。
+ * クライアント側でエラーをキャッチし、フォールバックUIを表示します。
+ */
 export default function GlobalError({ error }: { error: Error & { digest?: string } }) {
   useEffect(() => {
-    Sentry.captureException(error);
-  }, [error]);
+    Sentry.captureException(error)
+  }, [error])
 
   return (
     <html>
@@ -19,5 +24,5 @@ export default function GlobalError({ error }: { error: Error & { digest?: strin
         <NextError statusCode={0} />
       </body>
     </html>
-  );
+  )
 }
