@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { BadRequest, InternalError, Success, Unauthorized } from '@/lib/api/response'
-import { getAccessTokenFromHeader, requestParse } from '@/lib/api/utils'
+import { NextResponse } from 'next/server'
+import { BadRequest, InternalError, Success } from '@/lib/api/response'
+import { requestParse, withAuth } from '@/lib/api/utils'
 import { adminClient } from '@/lib/supabase/client/adminClient'
 import { requestSchema } from './schema'
 import {
@@ -15,29 +15,10 @@ interface PathParams {
   exercise_id: string
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<PathParams> },
-) {
+export const POST = withAuth<PathParams>(async (req, user, { params }) => {
   const { exercise_id: exerciseId } = await params
 
   try {
-    // 認証ヘッダーからアクセストークンを取得
-    const accessToken = getAccessTokenFromHeader(req)
-    if (!accessToken) {
-      console.error('❌ No valid authorization header')
-      return Unauthorized({ msg: 'Authorization header required' }).toResponse()
-    }
-
-    // アクセストークンからユーザー情報を取得
-    const {
-      data: { user },
-      error: userError,
-    } = await adminClient.auth.getUser(accessToken)
-    if (userError || !user) {
-      return Unauthorized({ msg: 'Invalid access token' }).toResponse()
-    }
-
     // リクエストのバリデーション＆パース
     const { success: parseSuccess, data: parseData } = await requestParse(
       req,
@@ -114,4 +95,4 @@ export async function POST(
     console.error('Error processing submission:', error)
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 })
   }
-}
+})

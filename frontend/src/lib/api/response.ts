@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server'
 import { ERROR_CODES, ERROR_MESSAGES, ErrorCode } from './errorCodes'
 import { z } from 'zod'
-import { notifySentry } from '../sentry/utilts'
+import { notifySentry } from '../sentry/utils'
 
 /** 共通API正常系オブジェクトの型 */
 export const apiSuccessObjectSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
