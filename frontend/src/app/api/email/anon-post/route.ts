@@ -33,6 +33,8 @@ export async function POST(request: NextRequest) {
     return Success({ message: true }).toResponse()
   } catch (err) {
     console.error('mail sending error:', err)
-    return InternalError('Internal server error during sending mail').toResponse()
+    return InternalError({
+      msg: 'Internal server error during sending mail',
+    }).toResponse()
   }
 }

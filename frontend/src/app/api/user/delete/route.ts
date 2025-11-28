@@ -12,7 +12,7 @@ export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
     const accessToken = getAccessTokenFromHeader(req)
     if (!accessToken) {
       console.error('❌ [DELETE-USER] No valid authorization header')
-      return Unauthorized('Authorization header required').toResponse()
+      return Unauthorized({ msg: 'Authorization header required' }).toResponse()
     }
 
     // アクセストークンからユーザー情報を取得
@@ -23,13 +23,13 @@ export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
 
     if (userError || !user) {
       console.error('❌ [DELETE-USER] Invalid access token:', userError?.message)
-      return Unauthorized('Invalid access token').toResponse()
+      return Unauthorized({ msg: 'Invalid access token' }).toResponse()
     }
 
     // セッションレベルチェック
     const { valid } = await checkValidSessionLevel(user)
     if (!valid) {
-      return Unauthorized('Invalid session level').toResponse()
+      return Unauthorized({ msg: 'Invalid session level' }).toResponse()
     }
 
     // Descopeプロバイダでログイン（Passkey登録）してるユーザーであれば、そちらも削除
@@ -65,10 +65,10 @@ export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
     const { error: deleteError } = await adminClient.auth.admin.deleteUser(user.id)
     if (deleteError) {
       console.error('❌ [DELETE-USER] User deletion failed:', deleteError.message)
-      return InternalError(
-        'Failed to delete user account',
-        deleteError.message,
-      ).toResponse()
+      return InternalError({
+        msg: 'Failed to delete user account',
+        details: deleteError.message,
+      }).toResponse()
     }
 
     const res = Success({
@@ -82,6 +82,8 @@ export const DELETE = async (req: NextRequest): Promise<NextResponse> => {
     return deletedRes
   } catch (error) {
     console.error('❌ [DELETE-USER] Unexpected error:', error)
-    return InternalError('Internal server error during user deletion').toResponse()
+    return InternalError({
+      msg: 'Internal server error during user deletion',
+    }).toResponse()
   }
 }

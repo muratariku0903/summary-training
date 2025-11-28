@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     // 認証ヘッダーからアクセストークンを取得
     const accessToken = getAccessTokenFromHeader(request)
     if (!accessToken) {
-      return Unauthorized('Authorization header required').toResponse()
+      return Unauthorized({ msg: 'Authorization header required' }).toResponse()
     }
 
     // アクセストークンからユーザー情報を取得
@@ -21,10 +21,10 @@ export async function POST(request: NextRequest) {
     } = await adminClient.auth.getUser(accessToken)
 
     if (userError || !user) {
-      return Unauthorized('Invalid access token').toResponse()
+      return Unauthorized({ msg: 'Invalid access token' }).toResponse()
     }
     if (!user.email) {
-      return Unauthorized('invalid user email').toResponse()
+      return Unauthorized({ msg: 'invalid user email' }).toResponse()
     }
 
     const { password } = await request.json()
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     // セッションレベルチェック
     const { valid } = await checkValidSessionLevel(user)
     if (!valid) {
-      return Unauthorized('Invalid session level').toResponse()
+      return Unauthorized({ msg: 'Invalid session level' }).toResponse()
     }
 
     const { error: signInError } = await verificationClient.auth.signInWithPassword({
@@ -52,6 +52,8 @@ export async function POST(request: NextRequest) {
     return Success({ valid: true }).toResponse()
   } catch (err) {
     console.error('mail sending error:', err)
-    return InternalError('Internal server error during sending mail').toResponse()
+    return InternalError({
+      msg: 'Internal server error during sending mail',
+    }).toResponse()
   }
 }

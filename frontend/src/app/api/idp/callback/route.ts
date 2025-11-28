@@ -34,16 +34,16 @@ export async function POST(req: Request): Promise<NextResponse> {
     message: verifyErrorMessage,
   } = await verifyDescopeToken(idpToken)
   if (!verifySuccess) {
-    return Unauthorized(
-      'Internal server error during verify descope token',
-      verifyErrorMessage,
-    ).toResponse()
+    return Unauthorized({
+      msg: 'Internal server error during verify descope token',
+      details: verifyErrorMessage,
+    }).toResponse()
   }
 
   // 3) メール条件：verifiedのみOK（未検証は409でオンボーディングへ）
   const email = typeof claims.email === 'string' ? claims.email : undefined
   if (!email || !claims.email_verified) {
-    return Conflict('email_onboarding_required').toResponse()
+    return Conflict({ msg: 'email_onboarding_required' }).toResponse()
   }
 
   // 4) シャドーユーザー確保（リンク表 → 既存探索 → 作成 → リンク作成）
@@ -60,10 +60,10 @@ export async function POST(req: Request): Promise<NextResponse> {
   })
   if (!ensureSuccess) {
     console.log(code)
-    return InternalError(
-      'Internal server error during ensure shadow user',
-      ensureErrorMessage,
-    ).toResponse()
+    return InternalError({
+      msg: 'Internal server error during ensure shadow user',
+      details: ensureErrorMessage,
+    }).toResponse()
   }
 
   // --- 5) Passkey認証の判別をするためにメタデータにプロバイダ情報として「descope_login_id」をセット ---
@@ -79,10 +79,10 @@ export async function POST(req: Request): Promise<NextResponse> {
     app_metadata: newMetadata,
   })
   if (upErr) {
-    return Forbidden(
-      'Forbidden error during update user metadata',
-      upErr.message,
-    ).toResponse()
+    return Forbidden({
+      msg: 'Forbidden error during update user metadata',
+      details: upErr.message,
+    }).toResponse()
   }
 
   // --- 6) Magic Link 発行（Admin） ---
@@ -91,11 +91,11 @@ export async function POST(req: Request): Promise<NextResponse> {
     email,
   })
   if (genErr) {
-    return InternalError('gen_link_failed', genErr.message).toResponse()
+    return InternalError({ msg: 'gen_link_failed', details: genErr.message }).toResponse()
   }
   const tokenHash = gen?.properties?.hashed_token
   if (!tokenHash) {
-    return InternalError('no_token_hash').toResponse()
+    return InternalError({ msg: 'no_token_hash' }).toResponse()
   }
 
   // --- 6) verifyOtp(token_hash) を「サーバーで」実行 → GoTrue セッション確立（Set-Cookie） ---
@@ -121,5 +121,5 @@ export async function POST(req: Request): Promise<NextResponse> {
     await new Promise((r) => setTimeout(r, 150))
   }
 
-  return Unauthorized('verify_failed', lastErr?.message).toResponse()
+  return Unauthorized({ msg: 'verify_failed', details: lastErr?.message }).toResponse()
 }

@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const accessToken = getAccessTokenFromHeader(request)
     if (!accessToken) {
       console.error('❌ [DELETE-USER] No valid authorization header')
-      return Unauthorized('Authorization header required').toResponse()
+      return Unauthorized({ msg: 'Authorization header required' }).toResponse()
     }
 
     // supabaseクライアント生成
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     } = await client.auth.getUser(accessToken)
     if (userError || !user) {
       console.error('❌ [DELETE-USER] Invalid access token:', userError?.message)
-      return Unauthorized('Invalid access token').toResponse()
+      return Unauthorized({ msg: 'Invalid access token' }).toResponse()
     }
     const { email } = user
     if (!email) {
@@ -40,7 +40,9 @@ export async function POST(request: NextRequest) {
     const { data: userData, error } = await client.from('user_profiles').select().single()
     if (error) {
       console.error('Profile fetch error:', error)
-      return InternalError('Internal server error during fetching user data').toResponse()
+      return InternalError({
+        msg: 'Internal server error during fetching user data',
+      }).toResponse()
     }
     const { user_name, display_name } = userData
 
@@ -65,6 +67,8 @@ export async function POST(request: NextRequest) {
     return Success({ message: true }).toResponse()
   } catch (err) {
     console.error('mail sending error:', err)
-    return InternalError('Internal server error during sending mail').toResponse()
+    return InternalError({
+      msg: 'Internal server error during sending mail',
+    }).toResponse()
   }
 }

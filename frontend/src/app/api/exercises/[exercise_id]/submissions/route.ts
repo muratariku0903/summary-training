@@ -26,7 +26,7 @@ export async function POST(
     const accessToken = getAccessTokenFromHeader(req)
     if (!accessToken) {
       console.error('❌ No valid authorization header')
-      return Unauthorized('Authorization header required').toResponse()
+      return Unauthorized({ msg: 'Authorization header required' }).toResponse()
     }
 
     // アクセストークンからユーザー情報を取得
@@ -35,7 +35,7 @@ export async function POST(
       error: userError,
     } = await adminClient.auth.getUser(accessToken)
     if (userError || !user) {
-      return Unauthorized('Invalid access token').toResponse()
+      return Unauthorized({ msg: 'Invalid access token' }).toResponse()
     }
 
     // リクエストのバリデーション＆パース
