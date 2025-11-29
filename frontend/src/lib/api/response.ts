@@ -51,6 +51,9 @@ export class ApiError extends Error {
     this.status = status
     this.body = { code, message, details }
 
+    // ログに出力
+    console.error(message, details)
+
     // Sentryへ通知
     notifySentry(this, {
       status,
