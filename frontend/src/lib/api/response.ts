@@ -2,7 +2,6 @@
 import { NextResponse } from 'next/server'
 import { ERROR_CODES, ERROR_MESSAGES, ErrorCode } from './errorCodes'
 import { z } from 'zod'
-import { notifySentry } from '../sentry/utils'
 
 /** 共通API正常系オブジェクトの型 */
 export const apiSuccessObjectSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
@@ -50,17 +49,6 @@ export class ApiError extends Error {
     super(message)
     this.status = status
     this.body = { code, message, details }
-
-    // ログに出力
-    console.error(message, details)
-
-    // Sentryへ通知
-    notifySentry(this, {
-      status,
-      errorCode: code,
-      errorMessage: message,
-      errorDetails: details,
-    })
   }
 
   /** NextResponse に変換 */

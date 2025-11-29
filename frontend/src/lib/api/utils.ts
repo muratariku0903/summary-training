@@ -7,51 +7,6 @@ import AccountDeletionNotification from '@/components/emails/styles/AccountDelet
 import { cookies } from 'next/headers'
 import z, { ZodRawShape } from 'zod'
 import { Result } from '@/types/common'
-import { User } from '@supabase/supabase-js'
-import { DETAILED_ERROR_MESSAGES } from './errorCodes'
-import { Unauthorized } from './response'
-import { adminClient } from '../supabase/client/adminClient'
-
-type BasePathParams = Record<keyof object, string | string[]>
-
-type HandlerContext<P extends BasePathParams> = { params: Promise<P> }
-
-// 認証済みハンドラーの新しいシグネチャ: user情報とparamsを受け取る
-type ProtectedHandler<P extends BasePathParams> = (
-  request: NextRequest,
-  user: User, // 認証済みユーザー情報
-  context: HandlerContext<P>, // パスパラメータなどのコンテキスト
-) => Promise<NextResponse>
-
-// 認証チェックとユーザーデータ抽出を行うラッパー
-export function withAuth<P extends BasePathParams = BasePathParams>(
-  handler: ProtectedHandler<P>,
-) {
-  return async (request: NextRequest, context: HandlerContext<P>) => {
-    // 1. 認証トークンの検証
-    const accessToken = getAccessTokenFromHeader(request)
-    if (!accessToken) {
-      console.error(DETAILED_ERROR_MESSAGES.AUTH.NO_TOKEN)
-      return Unauthorized({ msg: DETAILED_ERROR_MESSAGES.AUTH.NO_TOKEN }).toResponse()
-    }
-
-    // アクセストークンからユーザー情報を取得
-    const {
-      data: { user },
-      error: userError,
-    } = await adminClient.auth.getUser(accessToken)
-    if (userError || !user) {
-      console.error(DETAILED_ERROR_MESSAGES.AUTH.INVALID_TOKEN)
-      return Unauthorized({
-        msg: DETAILED_ERROR_MESSAGES.AUTH.INVALID_TOKEN,
-        details: userError,
-      }).toResponse()
-    }
-
-    // 3. 認証が成功したら、ユーザー情報を渡し、元のハンドラーを実行
-    return handler(request, user, context)
-  }
-}
 
 export const getAccessTokenFromHeader = (req: NextRequest): string | null => {
   const authHeader = req.headers.get('Authorization')

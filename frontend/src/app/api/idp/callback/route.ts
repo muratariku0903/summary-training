@@ -100,9 +100,8 @@ export async function POST(req: Request): Promise<NextResponse> {
 
   // --- 6) verifyOtp(token_hash) を「サーバーで」実行 → GoTrue セッション確立（Set-Cookie） ---
   // @supabase/ssr を使って、Route のレスポンスへ Set-Cookie を書き込みます
-  const res = Success({
-    message: 'Supabase互換JWTをHttpOnlyクッキーにセット完了',
-  }).toResponse()
+  // Supabase互換JWTをHttpOnlyクッキーにセット完了
+  const res = Success({ message: 'トークンをクッキーにセット完了' }).toResponse()
   const serverClient = await createClient()
 
   // 初回直後の競合に備え簡単なリトライ

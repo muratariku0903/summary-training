@@ -19,6 +19,7 @@ import {
   exerciseEvaluations,
   exerciseSubmissions,
 } from '../drizzle/schema/schema'
+import { getRequestLogger } from '../log/storage'
 
 const ITEMS_PER_PAGE = 10
 
@@ -54,6 +55,7 @@ export async function searchExercises(
   params: SearchExercisesParams,
 ): Promise<SearchExercisesResponse> {
   const { page, title, description, difficulty, createdAtFrom, createdAtTo } = params
+  const logger = getRequestLogger()
 
   const serverComponentClient = await createClient()
 
@@ -98,14 +100,20 @@ export async function searchExercises(
   const { data: exercises, error } = await query
     .order('created_at', { ascending: false })
     .range(from, to)
-
   if (error) {
-    console.error('課題取得エラー:', error)
+    logger.error('Failed to search exercises', error)
     throw new Error('課題の取得に失敗しました')
   }
 
   const totalCount = count || 0
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE)
+
+  logger.debug('Exercises search completed', {
+    totalCount,
+    currentPage: page,
+    totalPages,
+    resultCount: exercises?.length || 0,
+  })
 
   return {
     exercises: exercises || [],
@@ -122,6 +130,9 @@ type GetExerciseWithSingedUrlResponse = {
 export async function getExerciseWithSingedUrl(
   id: string,
 ): Promise<GetExerciseWithSingedUrlResponse> {
+  const logger = getRequestLogger()
+  logger.debug('Fetching exercise with signed URL', { exerciseId: id })
+
   const serverComponentClient = await createClient()
 
   // DBから演習データを取得
@@ -131,9 +142,12 @@ export async function getExerciseWithSingedUrl(
     .eq('id', id)
     .single()
   if (dbError || !exercise) {
-    console.error('演習取得エラー:', dbError)
+    logger.error('Failed to fetch exercise', dbError)
     throw new Error('演習の取得に失敗しました')
   }
+  logger.debug('Exercise fetched, generating signed URL', {
+    storagePath: exercise.storage_path,
+  })
 
   // 署名付きURLを生成（1時間有効）
   const { data: signedUrlData, error: signedUrlError } =
@@ -141,9 +155,10 @@ export async function getExerciseWithSingedUrl(
       .from('exercises')
       .createSignedUrl(exercise.storage_path, 60 * 5)
   if (signedUrlError || !signedUrlData) {
-    console.error('署名付きURL生成エラー:', signedUrlError)
+    logger.error('Failed to generate signed URL', signedUrlError)
     throw new Error('コンテンツURLの生成に失敗しました')
   }
+  logger.debug('Signed URL generated successfully')
 
   return { exercise, contentUrl: signedUrlData.signedUrl }
 }
@@ -161,6 +176,7 @@ export async function getExercise(
   params: GetExerciseParams,
 ): Promise<Result<GetExerciseResponse>> {
   const { id, opt } = params
+  const logger = getRequestLogger()
 
   try {
     const client = opt?.client ?? (await createClient())
@@ -170,14 +186,20 @@ export async function getExercise(
       .select('*')
       .eq('id', id)
       .single()
-
     if (error || !exercise) {
+      logger.error('Failed to fetch exercise', error, { exerciseId: id })
       return { success: false, error: error ?? new Error('exercise_not_found') }
     }
 
+    logger.debug('Exercise fetched successfully', {
+      exerciseId: id,
+      exerciseType: exercise.exercise_type,
+      difficulty: exercise.difficulty,
+    })
+
     return { success: true, data: { exercise } }
   } catch (e) {
-    console.error(`fail fetch exercise, id: ${id}`, e)
+    logger.error('Unexpected error in getExercise', e, { exerciseId: id })
     return { success: false, error: new Error(`fail fetch exercise, id: ${id}`) }
   }
 }
@@ -201,6 +223,7 @@ export async function getLatestRubricsPerPerspective(
   params: GetLatestRubricsPerPerspectiveParams,
 ): Promise<Result<GetLatestRubricsPerPerspectiveResponse>> {
   const { exerciseType, difficulty, opt } = params
+  const logger = getRequestLogger()
 
   const client = opt?.db ?? getDrizzleDBClient()
 
@@ -214,12 +237,22 @@ export async function getLatestRubricsPerPerspective(
       order by perspective, perspective_name, version desc
     `)
     if (!res.length) {
+      logger.warn('No rubrics found', { exerciseType, difficulty })
       return { success: false, error: new Error('rubrics_not_found') }
     }
 
+    logger.debug('Rubrics fetched successfully', {
+      exerciseType,
+      difficulty,
+      rubricsCount: res.length,
+    })
+
     return { success: true, data: { rubrics: res } }
   } catch (e) {
-    console.error('fail fetch rubrics per perspective', e)
+    logger.error('Failed to fetch rubrics per perspective', e, {
+      exerciseType,
+      difficulty,
+    })
     return { success: false, error: new Error('fail_fetch_rubrics') }
   }
 }
@@ -240,23 +273,39 @@ export async function evaluateSubmissionByLlm(
   params: EvaluateByLlmParams,
 ): Promise<Result<EvaluateByLlmResponse>> {
   const { input, exercise, exerciseBody, rubrics, vendor = 'openai' } = params
+  const logger = getRequestLogger()
+
+  logger.info('Starting LLM evaluation', {
+    vendor,
+    exerciseId: exercise.id,
+    rubricsCount: rubrics.length,
+  })
 
   switch (vendor) {
     case 'openai': {
+      logger.debug('Calling OpenAI evaluation API')
       const { data: evaluatedData, error: evaluatedError } =
         await evaluateAccordingToRubrics({ input, exercise, exerciseBody, rubrics })
       if (evaluatedError) {
-        console.error('evaluate error', evaluatedError)
+        logger.error('OpenAI evaluation failed', evaluatedError)
         throw Error('evaluate error', evaluatedError)
       }
+
+      const score = calculateScoreByEvaluationPerspectiveWeight(
+        rubrics,
+        evaluatedData.details,
+      )
+
+      logger.info('LLM evaluation completed successfully', {
+        vendor,
+        model: evaluatedData.evaluatedBy.model,
+        score,
+      })
 
       return {
         success: true,
         data: {
-          score: calculateScoreByEvaluationPerspectiveWeight(
-            rubrics,
-            evaluatedData.details,
-          ),
+          score,
           evaluatedDetails: evaluatedData.details,
           evaluatedBy: evaluatedData.evaluatedBy,
         },
@@ -264,6 +313,9 @@ export async function evaluateSubmissionByLlm(
     }
 
     default:
+      logger.error('Unsupported LLM vendor', new Error('unsupported vendor'), {
+        vendor,
+      })
       return {
         success: false,
         error: new Error('unsupported exercise evaluate vendor'),
@@ -274,18 +326,27 @@ function calculateScoreByEvaluationPerspectiveWeight(
   rubrics: ExerciseEvaluationRubrics[],
   details: ExerciseEvaluationDetails['details'],
 ) {
+  const logger = getRequestLogger()
+
   let totalSatisfyRubrics = 0
   rubrics.map((r) => {
     const satisfyRate = details.find((d) => d.perspective === r.perspective)?.rate
     if (!satisfyRate) {
-      console.warn('miss match between rubrics and evaluate perspective')
+      logger.warn('Mismatch between rubrics and evaluate perspective', {
+        rubricPerspective: r.perspective,
+      })
       return
     }
     totalSatisfyRubrics += r.weight * satisfyRate
   })
   const totalWeight = rubrics.reduce((sum, r) => sum + (r.weight ?? 0), 0)
-
   const score = Math.round((totalSatisfyRubrics / totalWeight) * 100)
+
+  logger.debug('Score calculated', {
+    totalSatisfyRubrics,
+    totalWeight,
+    score,
+  })
 
   return score
 }
@@ -307,6 +368,7 @@ export async function getExerciseContent(
   params: GetExerciseContentParams,
 ): Promise<Result<GetExerciseContentResponse>> {
   const { storagePath, opt } = params
+  const logger = getRequestLogger()
 
   try {
     const client = opt?.client ?? (await createClient())
@@ -315,19 +377,26 @@ export async function getExerciseContent(
       .from('exercises')
       .download(storagePath)
     if (storageError || !storageData) {
+      logger.error('Failed to download exercise content', storageError, {
+        storagePath,
+      })
       return {
         success: false,
         error: storageError ?? new Error('exercise_body_not_found'),
       }
     }
 
+    logger.debug('Exercise content downloaded, parsing JSON')
+
     // Blobをテキストに変換
     const text = await storageData.text()
     const content: ExerciseContent = JSON.parse(text)
 
+    logger.debug('Exercise content parsed successfully')
+
     return { success: true, data: { content } }
   } catch (e) {
-    console.error(`fail fetch exercise body, path: ${storagePath}`, e)
+    logger.error('Unexpected error in getExerciseContent', e, { storagePath })
     return {
       success: false,
       error: new Error(`fail fetch exercise body, path: ${storagePath}`),
@@ -370,12 +439,14 @@ export async function saveEvaluationResult(
     rubrics,
     opt,
   } = params
+  const logger = getRequestLogger()
 
   const client = opt?.db ?? getDrizzleDBClient()
 
   try {
     const { submissionId, evaluationId } = await client.transaction(async (tx) => {
       // 1) submission作成
+      logger.debug('Inserting submission record')
       const [subRes] = await tx
         .insert(exerciseSubmissions)
         .values({
@@ -385,9 +456,18 @@ export async function saveEvaluationResult(
         })
         .returning({ id: exerciseSubmissions.id })
       const submissionId = subRes?.id
-      if (!submissionId) throw new Error('failed to insert submission')
+      if (!submissionId) {
+        logger.error(
+          'Failed to insert submission',
+          new Error('no submission id returned'),
+        )
+        throw new Error('failed to insert submission')
+      }
+
+      logger.debug('Submission created', { submissionId })
 
       // 2) evaluation作成（rubricsの最大versionを格納）
+      logger.debug('Inserting evaluation record')
       const [evalRes] = await tx
         .insert(exerciseEvaluations)
         .values({
@@ -400,9 +480,20 @@ export async function saveEvaluationResult(
         })
         .returning({ id: exerciseEvaluations.id })
       const evaluationId = evalRes?.id
-      if (!evaluationId) throw new Error('failed to insert evaluation')
+      if (!evaluationId) {
+        logger.error(
+          'Failed to insert evaluation',
+          new Error('no evaluation id returned'),
+        )
+        throw new Error('failed to insert evaluation')
+      }
+
+      logger.debug('Evaluation created', { evaluationId })
 
       // 3) evaluation_details一括作成
+      logger.debug('Inserting evaluation details', {
+        detailsCount: evaluatedDetails.length,
+      })
       const insertDetails = evaluatedDetails.map((detail) => {
         const rubric = rubrics.find(
           (r) =>
@@ -430,12 +521,23 @@ export async function saveEvaluationResult(
 
       await tx.insert(exerciseEvaluationDetails).values(insertDetails)
 
+      logger.debug('Evaluation details inserted successfully')
+
       return { submissionId, evaluationId }
+    })
+
+    logger.info('Evaluation result saved successfully', {
+      submissionId,
+      evaluationId,
+      score,
     })
 
     return { success: true, data: { submissionId, evaluationId } }
   } catch (e) {
-    console.error('transaction insert error', e)
+    logger.error('Transaction failed while saving evaluation results', e, {
+      exerciseId,
+      userId,
+    })
     return {
       success: false,
       error: new Error('failed to save evaluation results'),

@@ -21,27 +21,38 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
 export type ErrorMessage = (typeof ERROR_MESSAGES)[keyof typeof ERROR_MESSAGES]
 
 // 詳細なエラーメッセージの定義を追加
-export const DETAILED_ERROR_MESSAGES = {
+export const LOG_MESSAGES = {
   // 認証関連
   AUTH: {
     NO_TOKEN: 'Authorization header required',
     INVALID_TOKEN: 'Invalid access token',
     TOKEN_EXPIRED: 'Access token has expired',
+    INVALID_SESSION_LEVEL: 'Invalid session level',
   },
   // バリデーション関連
   VALIDATION: {
     INVALID_REQUEST: 'Invalid request body',
+    REQUEST_VALIDATED: 'Request validated successfully',
     MISSING_REQUIRED_FIELD: 'Required field is missing',
   },
   // リソース取得関連
   RESOURCE: {
     EXERCISE_FETCH_FAILED: 'Failed to fetch exercise data',
+    EXERCISE_FETCHED: 'Exercise data fetched successfully',
     EXERCISE_CONTENT_FETCH_FAILED: 'Failed to fetch exercise content',
+    EXERCISE_CONTENT_FETCHED: 'Exercise content fetched successfully',
     RUBRICS_FETCH_FAILED: 'Failed to fetch rubrics',
+    RUBRICS_FETCHED: 'Rubrics fetched successfully',
   },
   // 処理関連
   PROCESSING: {
+    STARTED: 'Processing started',
+    COMPLETED: 'Processing completed successfully',
+    LLM_EVALUATION_STARTED: 'LLM evaluation started',
+    LLM_EVALUATION_COMPLETED: 'LLM evaluation completed successfully',
     LLM_EVALUATION_FAILED: 'LLM evaluation failed',
+    SAVE_RESULT_STARTED: 'Saving evaluation result',
+    SAVE_RESULT_COMPLETED: 'Evaluation result saved successfully',
     SAVE_RESULT_FAILED: 'Failed to save evaluation result',
     UNEXPECTED_ERROR: 'Unexpected error occurred',
   },
