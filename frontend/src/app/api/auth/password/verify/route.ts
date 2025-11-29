@@ -1,8 +1,8 @@
 import { BadRequest, InternalError, Success, Unauthorized } from '@/lib/api/response'
 import { createClient } from '@supabase/supabase-js'
-import { withAuth } from '@/lib/api/utils'
 import { checkValidSessionLevel } from '@/lib/supabase/auth/server'
-import { DETAILED_ERROR_MESSAGES } from '@/lib/api/errorCodes'
+import { withAuth } from '@/lib/api/wrapper'
+import { LOG_MESSAGES } from '@/lib/api/errorCodes'
 
 export const POST = withAuth(async (request, user) => {
   try {
@@ -18,7 +18,7 @@ export const POST = withAuth(async (request, user) => {
     const { valid } = await checkValidSessionLevel(user)
     if (!valid) {
       return Unauthorized({
-        msg: DETAILED_ERROR_MESSAGES.AUTH.INVALID_SESSION_LEVEL,
+        msg: LOG_MESSAGES.AUTH.INVALID_SESSION_LEVEL,
       }).toResponse()
     }
 
@@ -32,9 +32,9 @@ export const POST = withAuth(async (request, user) => {
 
     return Success({ valid: true }).toResponse()
   } catch (err) {
-    console.error(DETAILED_ERROR_MESSAGES.PROCESSING.UNEXPECTED_ERROR, err)
+    console.error(LOG_MESSAGES.PROCESSING.UNEXPECTED_ERROR, err)
     return InternalError({
-      msg: DETAILED_ERROR_MESSAGES.PROCESSING.UNEXPECTED_ERROR,
+      msg: LOG_MESSAGES.PROCESSING.UNEXPECTED_ERROR,
       details: err,
     }).toResponse()
   }
