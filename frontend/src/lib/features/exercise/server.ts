@@ -12,7 +12,7 @@ import { Result } from '@/types/common'
 import { SupabaseClient } from '@supabase/supabase-js'
 import { DrizzleDB, getDrizzleDBClient } from '../../drizzle/client'
 import { ExerciseContent, ExerciseEvaluationDetails } from '@/types/exercise'
-import { evaluateAccordingToRubrics } from '../../llm/openai'
+import { evaluateAccordingToRubrics } from '../../llm/openai/server'
 import {
   exerciseEvaluationDetails,
   exerciseEvaluations,

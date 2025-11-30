@@ -1,5 +1,9 @@
 import OpenAI from 'openai'
-import { Exercise, ExerciseEvaluationRubrics, LlmVendor } from '../supabase/schema/utils'
+import {
+  Exercise,
+  ExerciseEvaluationRubrics,
+  LlmVendor,
+} from '../../supabase/schema/utils'
 import { Result } from '@/types/common'
 import {
   ExerciseEvaluationDetails,
