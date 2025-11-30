@@ -1,8 +1,12 @@
-import { NextResponse } from 'next/server'
+import { InternalError } from '@/lib/api/response'
+import { withLogger } from '@/lib/api/wrapper'
 
 export const dynamic = 'force-dynamic'
 
-// A faulty API route to test Sentry's error monitoring
-export function GET() {
-  return NextResponse.json({ data: 'Testing Sentry Error...' })
-}
+export const GET = withLogger(async (request, { logger }) => {
+  logger.info(request.url)
+  logger.info('test')
+  logger.error('test error', Error('test error'))
+
+  return InternalError().toResponse()
+})
