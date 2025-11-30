@@ -7,7 +7,7 @@ import {
   getExerciseContent,
   getLatestRubricsPerPerspective,
   saveEvaluationResult,
-} from '@/lib/features/exercise'
+} from '@/lib/features/exercise/server'
 import { withAuth, withLogger } from '@/lib/api/wrapper'
 import { LOG_MESSAGES } from '@/lib/api/errorCodes'
 import { requestSchema } from './schema'

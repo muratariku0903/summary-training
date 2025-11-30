@@ -1,7 +1,7 @@
 import Header from '@/components/layouts/header/Header'
 import Main from '@/components/layouts/main/Main'
 import Footer from '@/components/layouts/footer/Footer'
-import { searchExercises, searchExercisesSchema } from '@/lib/features/exercise'
+import { searchExercises, searchExercisesSchema } from '@/lib/features/exercise/server'
 import { ExercisesTable } from './components/ExercisesTable'
 import { Pagination } from '@/app/exercises/components/Pagination'
 import { ExercisesSearchForm } from './components/ExercisesSearchForm'

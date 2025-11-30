@@ -8,18 +8,18 @@ import {
   ExerciseEvaluationRubrics,
   ExerciseType,
   LlmVendor,
-} from '../supabase/schema/utils'
+} from '../../supabase/schema/utils'
 import { Result } from '@/types/common'
 import { SupabaseClient } from '@supabase/supabase-js'
-import { DrizzleDB, getDrizzleDBClient } from '../drizzle/client'
+import { DrizzleDB, getDrizzleDBClient } from '../../drizzle/client'
 import { ExerciseContent, ExerciseEvaluationDetails } from '@/types/exercise'
-import { evaluateAccordingToRubrics } from '../llm/openai'
+import { evaluateAccordingToRubrics } from '../../llm/openai'
 import {
   exerciseEvaluationDetails,
   exerciseEvaluations,
   exerciseSubmissions,
-} from '../drizzle/schema/schema'
-import { getRequestLogger } from '../log/storage'
+} from '../../drizzle/schema/schema'
+import { getRequestLogger } from '../../log/storage'
 
 const ITEMS_PER_PAGE = 10
 
