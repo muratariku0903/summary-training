@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { UserProfile, UserProfileUpdate } from '../../../../supabase/schema/utils'
 import { PROTECTED_PATHS, PUBLIC_PATHS } from '../../../../constants/routes'
-import { createClient } from '../../../../supabase/client/serverComponentClient'
+import { createServerComponentClient } from '../../../../supabase/client/serverComponentClient'
 import { ActionResult } from '../../../types'
 import { UpdateProfileSchema } from './schema'
 
@@ -13,7 +13,7 @@ export const updateProfileAction = async (
   input: UpdateProfileSchema,
 ): Promise<ActionResult<UserProfile>> => {
   try {
-    const serverComponentClient = await createClient()
+    const serverComponentClient = await createServerComponentClient()
 
     // 認証チェック(JWTの改ざんチェック)
     const {

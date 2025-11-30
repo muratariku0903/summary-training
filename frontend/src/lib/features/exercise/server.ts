@@ -1,6 +1,5 @@
 import z from 'zod'
 import { sql as dsql } from 'drizzle-orm'
-import { createClient } from '@/lib/supabase/client/serverComponentClient'
 import {
   Exercise,
   EXERCISE_DIFFICULTY,
@@ -20,6 +19,7 @@ import {
   exerciseSubmissions,
 } from '../../drizzle/schema/schema'
 import { getRequestLogger } from '../../log/storage'
+import { createServerComponentClient } from '@/lib/supabase/client/serverComponentClient'
 
 const ITEMS_PER_PAGE = 10
 
@@ -57,7 +57,7 @@ export async function searchExercises(
   const { page, title, description, difficulty, createdAtFrom, createdAtTo } = params
   const logger = getRequestLogger()
 
-  const serverComponentClient = await createClient()
+  const serverComponentClient = await createServerComponentClient()
 
   // ページネーションの計算
   const from = (page - 1) * ITEMS_PER_PAGE
@@ -133,7 +133,7 @@ export async function getExerciseWithSingedUrl(
   const logger = getRequestLogger()
   logger.debug('Fetching exercise with signed URL', { exerciseId: id })
 
-  const serverComponentClient = await createClient()
+  const serverComponentClient = await createServerComponentClient()
 
   // DBから演習データを取得
   const { data: exercise, error: dbError } = await serverComponentClient
@@ -179,7 +179,7 @@ export async function getExercise(
   const logger = getRequestLogger()
 
   try {
-    const client = opt?.client ?? (await createClient())
+    const client = opt?.client ?? (await createServerComponentClient())
 
     const { data: exercise, error } = await client
       .from('exercises')
@@ -371,7 +371,7 @@ export async function getExerciseContent(
   const logger = getRequestLogger()
 
   try {
-    const client = opt?.client ?? (await createClient())
+    const client = opt?.client ?? (await createServerComponentClient())
 
     const { data: storageData, error: storageError } = await client.storage
       .from('exercises')

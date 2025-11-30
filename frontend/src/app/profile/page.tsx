@@ -1,5 +1,5 @@
 import ProfileClient from './components/ProfileClient'
-import { getUserProfile } from '../../lib/features/user'
+import { getUserProfile } from '../../lib/features/user/server'
 
 export default async function ProfilePage() {
   // SSRでユーザー情報を取得

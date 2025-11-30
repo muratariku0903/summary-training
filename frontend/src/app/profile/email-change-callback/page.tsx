@@ -1,7 +1,7 @@
 import Header from '@/components/layouts/header/Header'
 import Main from '@/components/layouts/main/Main'
 import Footer from '@/components/layouts/footer/Footer'
-import { getUserProfile } from '@/lib/features/user'
+import { getUserProfile } from '@/lib/features/user/server'
 import { adminClient } from '@/lib/supabase/client/adminClient'
 import { updateDescopeUserEmail } from '@/lib/descope/utils'
 import { convertMfaFactors } from '@/lib/supabase/auth/mfa'

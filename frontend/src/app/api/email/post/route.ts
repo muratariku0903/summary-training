@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 import { Resend } from 'resend'
 import { InternalError, Success } from '@/lib/api/response'
 import { createMailHTML } from '@/lib/api/utils'
-import { createClient } from '@/lib/supabase/client/serverComponentClient'
+import { createServerComponentClient } from '@/lib/supabase/client/serverComponentClient'
 import { withAuth, withLogger } from '@/lib/api/wrapper'
 import { LOG_MESSAGES } from '@/lib/api/errorCodes'
 
@@ -37,7 +37,7 @@ export const POST = withLogger(
 
       // ユーザープロフィール取得
       logger.info(LOG_MESSAGES.RESOURCE.USER_PROFILE_FETCH_STARTED)
-      const client = await createClient()
+      const client = await createServerComponentClient()
       const { data: userData, error: profileError } = await client
         .from('user_profiles')
         .select()

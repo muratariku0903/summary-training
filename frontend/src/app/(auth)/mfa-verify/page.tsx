@@ -1,5 +1,5 @@
 import Header from '@/components/layouts/header/Header'
-import { getUserProfile } from '../../../lib/features/user'
+import { getUserProfile } from '../../../lib/features/user/server'
 import Main from '@/components/layouts/main/Main'
 import Footer from '@/components/layouts/footer/Footer'
 import MfaSwitcher from '@/components/features/auth/MfaSwitcher'

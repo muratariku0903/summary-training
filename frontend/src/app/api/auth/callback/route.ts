@@ -1,6 +1,6 @@
 // app/api/auth/callback/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/client/serverComponentClient'
+import { createServerComponentClient } from '@/lib/supabase/client/serverComponentClient'
 import { PROTECTED_PATHS, PUBLIC_PATHS } from '@/lib/constants/routes'
 import { withLogger } from '@/lib/api/wrapper'
 import { LOG_MESSAGES } from '@/lib/api/errorCodes'
@@ -19,7 +19,7 @@ export const GET = withLogger(async (req: NextRequest, { logger }) => {
   if (code) {
     logger.info(LOG_MESSAGES.AUTH.CODE_EXCHANGE_STARTED)
 
-    const supabase = await createClient()
+    const supabase = await createServerComponentClient()
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (error) {

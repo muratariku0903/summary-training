@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { PUBLIC_PATHS } from '../../../../constants/routes'
-import { createClient } from '../../../../supabase/client/serverComponentClient'
+import { createServerComponentClient } from '../../../../supabase/client/serverComponentClient'
 import { ActionResult } from '../../../types'
 import { DeleteOAuthSchema } from './schema'
 
@@ -11,7 +11,7 @@ export const deleteOAuthAction = async (
   request: DeleteOAuthSchema,
 ): Promise<ActionResult> => {
   try {
-    const serverComponentClient = await createClient()
+    const serverComponentClient = await createServerComponentClient()
 
     // 認証チェック(JWTの改ざんチェック)
     const {

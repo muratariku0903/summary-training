@@ -1,11 +1,11 @@
 import { PUBLIC_PATHS } from '@/lib/constants/routes'
-import { createClient } from '@/lib/supabase/client/serverComponentClient'
+import { createServerComponentClient } from '@/lib/supabase/client/serverComponentClient'
 import { UserProfile } from '@/lib/supabase/schema/utils'
 import { User } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 
 export async function getUserProfile(): Promise<{ user: User; profile: UserProfile }> {
-  const serverComponentClient = await createClient()
+  const serverComponentClient = await createServerComponentClient()
 
   // 認証状態をチェック
   const {

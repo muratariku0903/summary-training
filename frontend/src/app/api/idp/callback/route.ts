@@ -7,7 +7,7 @@ import {
 } from '@/lib/api/response'
 import { verifyDescopeToken } from '@/lib/descope/verifyDescopeToken'
 import { adminClient } from '@/lib/supabase/client/adminClient'
-import { createClient } from '@/lib/supabase/client/serverComponentClient'
+import { createServerComponentClient } from '@/lib/supabase/client/serverComponentClient'
 import { ensureShadowUser } from '@/lib/supabase/idp/ensureShadowUser'
 import { AuthError } from '@supabase/supabase-js'
 import { NextRequest } from 'next/server'
@@ -138,7 +138,7 @@ export const POST = withLogger(async (req: NextRequest, { logger }) => {
     // verifyOtp(token_hash) を「サーバーで」実行 → GoTrue セッション確立（Set-Cookie）
     logger.info(LOG_MESSAGES.AUTH.OTP_VERIFY_STARTED)
     const res = Success({ message: 'トークンをクッキーにセット完了' }).toResponse()
-    const serverClient = await createClient()
+    const serverClient = await createServerComponentClient()
 
     // 初回直後の競合に備え簡単なリトライ
     let lastErr: AuthError | null = null

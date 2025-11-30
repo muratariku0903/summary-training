@@ -1,5 +1,5 @@
 import { SupabaseClient, User } from '@supabase/supabase-js'
-import { createClient } from '../client/serverComponentClient'
+import { createServerComponentClient } from '../client/serverComponentClient'
 
 /**
  * ユーザー情報が適切なセッション情報を保持してるかチェック
@@ -16,7 +16,7 @@ export async function checkValidSessionLevel(
 > {
   try {
     if (!client) {
-      client = await createClient()
+      client = await createServerComponentClient()
     }
 
     const verifiedFactors = user?.factors?.filter((f) => f.status === 'verified')
