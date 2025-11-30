@@ -269,7 +269,7 @@ export class Logger {
  */
 function isError(err: unknown): err is Error {
   return err instanceof Error
-}
+} 
 
 /**
  * オブジェクトを安全にJSON文字列化する

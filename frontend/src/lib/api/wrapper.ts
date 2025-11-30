@@ -4,8 +4,8 @@ import { adminClient } from '../supabase/client/adminClient'
 import { Unauthorized } from './response'
 import { getAccessTokenFromHeader } from './utils'
 import { Logger } from '../log/serverLog'
-import { LOG_MESSAGES } from './errorCodes'
 import { setRequestLogger } from '../log/storage'
+import { LOG_MESSAGES } from '../log/message'
 
 type BasePathParams = Record<keyof object, string | string[]>
 

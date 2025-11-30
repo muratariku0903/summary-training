@@ -75,4 +75,9 @@ export const LOG_MESSAGES = {
     USER_EMAIL_MISSING: 'User email is missing',
     CODE_MISSING: 'Authorization code is missing',
   },
+  SERVER_COMPONENT: {
+    EXECUTION_STARTED: 'Server Component execution started',
+    EXECUTION_COMPLETED: 'Server Component execution completed successfully',
+    EXECUTION_FAILED: 'Unexpected error in Server Component',
+  },
 } as const
