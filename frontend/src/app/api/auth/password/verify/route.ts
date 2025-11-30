@@ -2,7 +2,7 @@ import { BadRequest, InternalError, Success, Unauthorized } from '@/lib/api/resp
 import { createClient } from '@supabase/supabase-js'
 import { checkValidSessionLevel } from '@/lib/supabase/auth/server'
 import { withAuth, withLogger } from '@/lib/api/wrapper'
-import { LOG_MESSAGES } from '@/lib/api/errorCodes'
+import { LOG_MESSAGES } from '@/lib/log/message'
 
 export const POST = withLogger(
   withAuth(async (request, user, { logger }) => {

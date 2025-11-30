@@ -12,7 +12,7 @@ import { ensureShadowUser } from '@/lib/supabase/idp/ensureShadowUser'
 import { AuthError } from '@supabase/supabase-js'
 import { NextRequest } from 'next/server'
 import { withLogger } from '@/lib/api/wrapper'
-import { LOG_MESSAGES } from '@/lib/api/errorCodes'
+import { LOG_MESSAGES } from '@/lib/log/message'
 
 export const POST = withLogger(async (req: NextRequest, { logger }) => {
   logger.info(LOG_MESSAGES.PROCESSING.STARTED)

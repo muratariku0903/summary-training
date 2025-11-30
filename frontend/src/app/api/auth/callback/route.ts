@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerComponentClient } from '@/lib/supabase/client/serverComponentClient'
 import { PROTECTED_PATHS, PUBLIC_PATHS } from '@/lib/constants/routes'
 import { withLogger } from '@/lib/api/wrapper'
-import { LOG_MESSAGES } from '@/lib/api/errorCodes'
+import { LOG_MESSAGES } from '@/lib/log/message'
 
 // 認可コードとセッション情報を交換する中間エンドポイント
 // OAuth認証後にリダイレクトされる想定

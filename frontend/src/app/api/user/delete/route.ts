@@ -6,10 +6,10 @@ import { getDescopeUserIdByAuthUserId } from '@/lib/supabase/auth/admin'
 import { deleteDescopeUser } from '@/lib/descope/utils'
 import { checkValidSessionLevel } from '@/lib/supabase/auth/server'
 import { withAuth, withLogger } from '@/lib/api/wrapper'
-import { LOG_MESSAGES } from '@/lib/api/errorCodes'
+import { LOG_MESSAGES } from '@/lib/log/message'
 
 export const DELETE = withLogger(
-  withAuth(async (req: NextRequest, user, { logger }) => {
+  withAuth(async (_: NextRequest, user, { logger }) => {
     logger.info(LOG_MESSAGES.PROCESSING.USER_DELETE_STARTED)
 
     try {

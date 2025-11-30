@@ -4,7 +4,7 @@ import { InternalError, Success } from '@/lib/api/response'
 import { createMailHTML } from '@/lib/api/utils'
 import { createServerComponentClient } from '@/lib/supabase/client/serverComponentClient'
 import { withAuth, withLogger } from '@/lib/api/wrapper'
-import { LOG_MESSAGES } from '@/lib/api/errorCodes'
+import { LOG_MESSAGES } from '@/lib/log/message'
 
 const { RESEND_API_KEY, FROM_EMAIL, SUPPORT_EMAIL } = process.env
 

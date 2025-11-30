@@ -9,8 +9,8 @@ import {
   saveEvaluationResult,
 } from '@/lib/features/exercise/server'
 import { withAuth, withLogger } from '@/lib/api/wrapper'
-import { LOG_MESSAGES } from '@/lib/api/errorCodes'
 import { requestSchema } from './schema'
+import { LOG_MESSAGES } from '@/lib/log/message'
 
 interface PathParams {
   exercise_id: string
