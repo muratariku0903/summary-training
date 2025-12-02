@@ -1,62 +1,57 @@
 'use server'
 
-import { redirect } from 'next/navigation'
-import { PUBLIC_PATHS } from '../../../../constants/routes'
 import { createServerComponentClient } from '../../../../supabase/client/serverComponentClient'
-import { ActionResult } from '../../../types'
 import { DeleteOAuthSchema } from './schema'
+import { withServerAction } from '@/lib/server-actions/wrapper'
 
-// OAuth接続解除のサーバーアクション
-export const deleteOAuthAction = async (
-  request: DeleteOAuthSchema,
-): Promise<ActionResult> => {
-  try {
+// OAuth接続解除のサーバーアクション（認証必須）
+export const deleteOAuthAction = withServerAction<DeleteOAuthSchema, undefined>(
+  async (input, _, logger) => {
     const serverComponentClient = await createServerComponentClient()
 
-    // 認証チェック(JWTの改ざんチェック)
-    const {
-      data: { user },
-      error: authError,
-    } = await serverComponentClient.auth.getUser()
-    if (authError || !user) {
-      console.error(authError)
-      redirect(PUBLIC_PATHS.SIGNIN)
-    }
+    logger.info('Deleting OAuth connection', {
+      provider: input.provider,
+    })
 
+    // ユーザーの連携情報を取得
     const { data: identities, error: idError } =
       await serverComponentClient.auth.getUserIdentities()
     if (idError) {
+      logger.error('Failed to get user identities', idError)
       return {
         success: false,
-        error: idError.message,
+        error: '連携情報の取得に失敗しました',
       }
     }
 
-    const { provider } = request
+    // 指定されたプロバイダーの連携を検索
+    const { provider } = input
     const targetId = identities.identities.find((i) => i.provider === provider)
     if (!targetId) {
+      logger.warn('OAuth provider not found', { provider })
       return {
         success: false,
-        error: `${provider} is not found`,
+        error: `${provider}との連携が見つかりませんでした`,
       }
     }
 
+    // OAuth連携を解除
     const { error: unlinkError } =
       await serverComponentClient.auth.unlinkIdentity(targetId)
     if (unlinkError) {
+      logger.error('Failed to unlink OAuth identity', unlinkError, { provider })
       return {
         success: false,
         error: unlinkError.message,
       }
     }
 
-    return { success: true, data: undefined }
-  } catch (error) {
-    console.error('Server action error:', error)
+    logger.info('OAuth connection deleted successfully', {
+      provider,
+      identityId: targetId.id,
+    })
 
-    return {
-      success: false,
-      error: 'サーバーエラーが発生しました',
-    }
-  }
-}
+    return { success: true, data: undefined }
+  },
+  { actionName: 'deleteOAuth', requireAuth: true },
+)

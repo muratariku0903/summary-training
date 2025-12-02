@@ -1,31 +1,22 @@
 'use server'
 
-import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { UserProfile, UserProfileUpdate } from '../../../../supabase/schema/utils'
-import { PROTECTED_PATHS, PUBLIC_PATHS } from '../../../../constants/routes'
+import { PROTECTED_PATHS } from '../../../../constants/routes'
 import { createServerComponentClient } from '../../../../supabase/client/serverComponentClient'
-import { ActionResult } from '../../../types'
 import { UpdateProfileSchema } from './schema'
+import { withServerAction } from '@/lib/server-actions/wrapper'
 
 // プロフィール更新のサーバーアクション
-export const updateProfileAction = async (
-  input: UpdateProfileSchema,
-): Promise<ActionResult<UserProfile>> => {
-  try {
+export const updateProfileAction = withServerAction<UpdateProfileSchema, UserProfile>(
+  async (input, user, logger) => {
     const serverComponentClient = await createServerComponentClient()
 
-    // 認証チェック(JWTの改ざんチェック)
-    const {
-      data: { user },
-      error: authError,
-    } = await serverComponentClient.auth.getUser()
-    if (authError || !user) {
-      console.error(authError)
-      redirect(PUBLIC_PATHS.SIGNIN)
-    }
-
     // データベースを更新
+    logger.info('Updating profile', {
+      userName: input.user_name,
+      displayName: input.display_name,
+    })
     const updateData: UserProfileUpdate = {
       user_name: input.user_name,
       display_name: input.display_name,
@@ -38,7 +29,7 @@ export const updateProfileAction = async (
       .select()
       .single()
     if (error) {
-      console.error('Profile update error:', error)
+      logger.error('Profile update error', error)
       return {
         success: false,
         error: 'プロフィールの更新に失敗しました',
@@ -47,14 +38,9 @@ export const updateProfileAction = async (
 
     // キャッシュを更新
     revalidatePath(PROTECTED_PATHS.PROFILE)
+    logger.info('Profile updated successfully', { profileId: data.id })
 
     return { success: true, data }
-  } catch (error) {
-    console.error('Server action error:', error)
-
-    return {
-      success: false,
-      error: 'サーバーエラーが発生しました',
-    }
-  }
-}
+  },
+  { actionName: 'updateProfile', requireAuth: true },
+)

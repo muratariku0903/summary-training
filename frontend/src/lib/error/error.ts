@@ -13,3 +13,15 @@ export class ServerComponentExecutionError extends Error {
     Object.setPrototypeOf(this, ServerComponentExecutionError.prototype)
   }
 }
+
+export class ServerActionExecutionError extends Error {
+  constructor(
+    message: string,
+    public readonly cause?: unknown,
+    public readonly context?: Record<string, unknown>,
+  ) {
+    super(message)
+    this.name = 'ServerActionExecutionError'
+    Object.setPrototypeOf(this, ServerActionExecutionError.prototype)
+  }
+}

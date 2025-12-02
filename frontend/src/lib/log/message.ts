@@ -2,6 +2,9 @@
 export const LOG_MESSAGES = {
   // 認証関連
   AUTH: {
+    CHECKING: 'Checking authentication',
+    SUCCESS: 'Authentication successful',
+    FAILED: 'Authentication failed',
     NO_TOKEN: 'Authorization header required',
     INVALID_TOKEN: 'Invalid access token',
     TOKEN_EXPIRED: 'Access token has expired',
@@ -79,5 +82,10 @@ export const LOG_MESSAGES = {
     EXECUTION_STARTED: 'Server Component execution started',
     EXECUTION_COMPLETED: 'Server Component execution completed successfully',
     EXECUTION_FAILED: 'Unexpected error in Server Component',
+  },
+  SERVER_ACTION: {
+    EXECUTION_STARTED: 'Server Action execution started',
+    EXECUTION_COMPLETED: 'Server Action execution completed successfully',
+    EXECUTION_FAILED: 'Server Action execution failed',
   },
 } as const
