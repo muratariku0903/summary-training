@@ -9,6 +9,7 @@ import {
   ExerciseEvaluationDetails,
   exerciseEvaluationDetailsSchema,
 } from '@/types/exercise'
+import { getRequestLogger } from '../../log/storage'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY ?? 'dummy' })
 
@@ -36,7 +37,21 @@ export async function evaluateAccordingToRubrics(
     model = 'gpt-4o',
     maxInputLength = 1000,
   } = params
+  const logger = getRequestLogger()
+
+  logger.debug('Starting OpenAI evaluation', {
+    exerciseId: exercise.id,
+    model,
+    inputLength: input.length,
+    maxInputLength,
+    rubricsCount: rubrics.length,
+  })
+
   if (input.length > maxInputLength) {
+    logger.warn('Input exceeds max length', {
+      inputLength: input.length,
+      maxInputLength,
+    })
     return {
       success: false,
       error: new Error(`inputが長すぎます: 最大文字数は${maxInputLength}文字`),
@@ -79,6 +94,8 @@ export async function evaluateAccordingToRubrics(
   }
 
   try {
+    logger.debug('Calling OpenAI API', { model, temperature: 0 })
+
     const completion = await openai.chat.completions.create({
       model,
       temperature: 0,
@@ -89,17 +106,32 @@ export async function evaluateAccordingToRubrics(
       ],
     })
 
+    logger.debug('OpenAI API response received', {
+      finishReason: completion.choices[0]?.finish_reason,
+      usage: completion.usage,
+    })
+
     const content = completion.choices[0]?.message?.content ?? ''
     const parsed = JSON.parse(content)
+
+    logger.debug('Validating response schema')
 
     const { data, error, success } = exerciseEvaluationDetailsSchema.safeParse(parsed)
     if (!success) {
       const msg = error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')
+      logger.error('Schema validation failed', new Error(msg), {
+        issues: error.issues,
+      })
       return {
         success: false,
         error: new Error(`llm evaluation schema validation failed: ${msg}`),
       }
     }
+
+    logger.info('OpenAI evaluation completed successfully', {
+      model,
+      detailsCount: data.details.length,
+    })
 
     return {
       success: true,
@@ -113,7 +145,7 @@ export async function evaluateAccordingToRubrics(
       },
     }
   } catch (e) {
-    console.error('fail llm evaluated', e)
+    logger.error('OpenAI API call failed', e, { model })
     return { success: false, error: new Error('fail llm evaluated') }
   }
 }
