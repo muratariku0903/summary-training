@@ -1,5 +1,5 @@
 import { PUBLIC_PATHS } from '@/lib/constants/routes'
-import { logger } from '@/lib/log/serverLog'
+import { getRequestLogger } from '@/lib/log/storage'
 import { createServerComponentClient } from '@/lib/supabase/client/serverComponentClient'
 import { UserProfile } from '@/lib/supabase/schema/utils'
 import { User } from '@supabase/supabase-js'
@@ -7,6 +7,8 @@ import { redirect } from 'next/navigation'
 
 export async function getUserProfile(): Promise<{ user: User; profile: UserProfile }> {
   const serverComponentClient = await createServerComponentClient()
+
+  const logger = getRequestLogger()
 
   // 認証状態をチェック
   const {
