@@ -1,4 +1,5 @@
 import { PUBLIC_PATHS } from '@/lib/constants/routes'
+import { logger } from '@/lib/log/serverLog'
 import { createServerComponentClient } from '@/lib/supabase/client/serverComponentClient'
 import { UserProfile } from '@/lib/supabase/schema/utils'
 import { User } from '@supabase/supabase-js'
@@ -14,7 +15,7 @@ export async function getUserProfile(): Promise<{ user: User; profile: UserProfi
   } = await serverComponentClient.auth.getUser()
 
   if (authError || !user) {
-    console.error('認証エラー:', authError)
+    logger.error('認証エラー:', authError)
     redirect(PUBLIC_PATHS.SIGNIN)
   }
 
@@ -25,7 +26,7 @@ export async function getUserProfile(): Promise<{ user: User; profile: UserProfi
     .eq('id', user.id)
     .single()
   if (profileError) {
-    console.error('プロフィール作成エラー:', profileError)
+    logger.error('プロフィール作成エラー:', profileError)
     redirect(PUBLIC_PATHS.SIGNIN)
   }
 
