@@ -18,7 +18,7 @@ import { useSnackbarStore } from '@/stores/useSnackbarStore'
 import { UI_MESSAGES } from '@/lib/constants/ui'
 import { SENDING_PATTERN } from '@/lib/constants/email'
 import { AuthProviders } from '@/lib/supabase/auth/types'
-import { deleteOAuthAction } from '@/lib/actions/auth/oauth/delete/action'
+import { deleteOAuthAction } from '@/lib/server-actions/auth/oauth/delete/action'
 
 type ProfileClientProps = {
   user: User
