@@ -2,6 +2,9 @@ import ProfileClient from './components/ProfileClient'
 import { getUserProfile } from '../../lib/features/user/server'
 import { withServerLogger } from '@/lib/log/serverComponentWrapper'
 
+// 動的レンダリングを強制
+export const dynamic = 'force-dynamic'
+
 export default async function ProfilePage() {
   return withServerLogger(
     async (logger) => {

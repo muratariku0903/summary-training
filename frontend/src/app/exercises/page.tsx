@@ -9,6 +9,9 @@ import { Suspense } from 'react'
 import Loading from '@/components/elements/loading/Loading'
 import { withServerLogger } from '@/lib/log/serverComponentWrapper'
 
+// 動的レンダリングを強制
+export const dynamic = 'force-dynamic'
+
 type SearchParams = { [key: string]: string | string[] | undefined }
 
 export default async function ExercisesPage({
