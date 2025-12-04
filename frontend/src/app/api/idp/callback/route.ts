@@ -5,7 +5,7 @@ import {
   Success,
   Unauthorized,
 } from '@/lib/api/response'
-import { verifyDescopeToken } from '@/lib/descope/verifyDescopeToken'
+import { verifyDescopeToken } from '@/lib/descope/server/verifyDescopeToken'
 import { adminClient } from '@/lib/supabase/client/adminClient'
 import { createServerComponentClient } from '@/lib/supabase/client/serverComponentClient'
 import { ensureShadowUser } from '@/lib/supabase/idp/ensureShadowUser'

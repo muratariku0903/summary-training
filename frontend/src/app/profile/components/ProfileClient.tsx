@@ -19,6 +19,7 @@ import { UI_MESSAGES } from '@/lib/constants/ui'
 import { SENDING_PATTERN } from '@/lib/constants/email'
 import { AuthProviders } from '@/lib/supabase/auth/types'
 import { deleteOAuthAction } from '@/lib/server-actions/auth/oauth/delete/action'
+import { clientLogger } from '@/stores/useClientLoggerStore'
 
 type ProfileClientProps = {
   user: User
@@ -90,7 +91,9 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
           )
           // TODO: エラーの見せ方は要検討
           if (!delSuccess) {
-            console.error(error.code)
+            clientLogger.error('Account deletion failed', new Error(error.code), {
+              errorCode: error.code,
+            })
             return
           }
 
@@ -105,7 +108,9 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
               sendingParams,
             )
             if (sendingError) {
-              console.warn('Fail sending email', sendingError)
+              clientLogger.warn('Fail sending email', {
+                error: sendingError,
+              })
             }
           }
 
@@ -134,7 +139,10 @@ export default function ProfileClient({ user, profile }: ProfileClientProps) {
               const provider = showOAuthUnlinkDialog.provider
               const { success, error } = await deleteOAuthAction({ provider })
               if (!success) {
-                console.warn('error unlinking OAuth', error)
+                clientLogger.warn('error unlinking OAuth', {
+                  error,
+                  provider,
+                })
 
                 return
               }

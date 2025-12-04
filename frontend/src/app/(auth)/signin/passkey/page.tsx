@@ -7,6 +7,7 @@ import { request } from '@/lib/api/client'
 import { PROTECTED_PATHS } from '@/lib/constants/routes'
 import { UI_MESSAGES } from '@/lib/constants/ui'
 import DescopeAuthProviders from '@/providers/descope/auth'
+import { clientLogger } from '@/stores/useClientLoggerStore'
 import { useSnackbarStore } from '@/stores/useSnackbarStore'
 import { getSessionToken } from '@descope/react-sdk'
 import dynamic from 'next/dynamic'
@@ -29,7 +30,7 @@ export default function PasskeyPage() {
     if (!success) {
       // TODO: 409の対応
 
-      console.error(error)
+      clientLogger.error('Passkey signin failed', error)
       return
     }
 

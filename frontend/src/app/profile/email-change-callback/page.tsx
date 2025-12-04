@@ -3,12 +3,15 @@ import Main from '@/components/layouts/main/Main'
 import Footer from '@/components/layouts/footer/Footer'
 import { getUserProfile } from '@/lib/features/user/server'
 import { adminClient } from '@/lib/supabase/client/adminClient'
-import { updateDescopeUserEmail } from '@/lib/descope/utils'
+import { updateDescopeUserEmail } from '@/lib/descope/server/utils'
 import { convertMfaFactors } from '@/lib/supabase/auth/mfa'
 import MfaSwitcher from '@/components/features/auth/MfaSwitcher'
+import { Logger } from '@/lib/log/serverLog'
 
 // この画面はSupabaseからの確認メールのリンクを押下した際に遷移
 export default async function EmailChangeCallbackPage() {
+  const logger = Logger.getInstance()
+
   // SSRでユーザー情報を取得
   const { user } = await getUserProfile()
   const newEmail = user.email
@@ -34,12 +37,12 @@ export default async function EmailChangeCallbackPage() {
       },
     })
     if (upErr) {
-      console.warn('ユーザーのメタデータの更新に失敗しました', upErr)
+      logger.warn('ユーザーのメタデータの更新に失敗しました', { error: upErr })
     }
 
     const { success, error } = await updateDescopeUserEmail(descopeLoginId, newEmail)
     if (!success) {
-      console.warn('Descopeユーザーのメールアドレス変更に失敗しました', error)
+      logger.warn('Descopeユーザーのメールアドレス変更に失敗しました', { error })
     }
   }
 

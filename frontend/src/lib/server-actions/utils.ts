@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { getRequestLogger } from '../log/storage'
 
 export type ValidationResult<T> =
   | {
@@ -21,8 +22,10 @@ export type ValidationResult<T> =
  */
 export function validateFormData<T extends z.ZodRawShape>(
   formData: FormData,
-  schema: z.ZodObject<T>
+  schema: z.ZodObject<T>,
 ): ValidationResult<z.infer<z.ZodObject<T>>> {
+  const logger = getRequestLogger()
+
   try {
     // FormDataから値を抽出
     const rawData: Record<string, unknown> = {}
@@ -51,7 +54,7 @@ export function validateFormData<T extends z.ZodRawShape>(
       data: result.data,
     }
   } catch (e) {
-    console.error(e)
+    logger.error('validation error', e)
     return {
       success: false,
       error: 'バリデーション処理中にエラーが発生しました',

@@ -9,6 +9,7 @@ import ReversalButton from '@/components/elements/reversal-button/ReversalButton
 import { MfaFactor } from '@/lib/supabase/auth/types'
 import { verifyTotp } from '@/lib/supabase/auth/mfa'
 import { MFA_TYPES } from '@/lib/supabase/auth/types'
+import { clientLogger } from '@/stores/useClientLoggerStore'
 
 interface MfaVerificationInputProps {
   selectedMFA: Omit<MfaFactor, 'status' | 'createdAt'>
@@ -85,7 +86,7 @@ export default function MfaVerificationInput({
 
       onVerifyComplete()
     } catch (e) {
-      console.error(e)
+      clientLogger.error('TOTP verification failed', e)
       setMfaError('認証処理中にエラーが発生しました')
     }
   }
