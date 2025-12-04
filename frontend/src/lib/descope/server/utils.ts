@@ -1,3 +1,5 @@
+import { getRequestLogger } from '../../log/storage'
+
 const DESCOPE_PROJECT_ID = process.env.NEXT_PUBLIC_DESCOPE_PROJECT_ID
 const DESCOPE_MGMT_KEY = process.env.DESCOPE_MGMT_KEY
 
@@ -62,6 +64,8 @@ const post = async <T = unknown>(
   | { success: true; data: T; error?: never }
   | { success: false; data?: never; error: string }
 > => {
+  const logger = getRequestLogger()
+
   try {
     const res = await fetch(path, {
       method: 'POST',
@@ -71,7 +75,7 @@ const post = async <T = unknown>(
 
     return { success: true, data: await res.json() }
   } catch (e: unknown) {
-    console.error(e)
+    logger.error('Failed descope request', e, { method: 'POST', path })
     return { success: false, error: `fail ${path}` }
   }
 }

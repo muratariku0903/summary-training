@@ -25,6 +25,7 @@ import { UI_MESSAGES } from '@/lib/constants/ui'
 import { request } from '@/lib/api/client'
 import { SENDING_PATTERN } from '@/lib/constants/email'
 import { S } from '../../../../test/e2e/const/selector'
+import { clientLogger } from '@/stores/useClientLoggerStore'
 
 export default function PasswordChangePage() {
   const router = useRouter()
@@ -53,7 +54,9 @@ export default function PasswordChangePage() {
       { requireAuth: true },
     )
     if (!verifySuccess) {
-      console.error(error)
+      clientLogger.error('Password verification failed', new Error(error.code), {
+        errorCode: error.code,
+      })
       setSubmitError(UI_MESSAGES.CHANGE_PASSWORD_FAILED_MESSAGE)
       return
     }
@@ -61,7 +64,7 @@ export default function PasswordChangePage() {
     // パスワード変更処理
     const { success, message } = await changePassword(input)
     if (!success) {
-      console.error(message)
+      clientLogger.error('Password change failed', new Error(message), { message })
       setSubmitError(UI_MESSAGES.CHANGE_PASSWORD_FAILED_MESSAGE)
       return
     }
@@ -76,7 +79,7 @@ export default function PasswordChangePage() {
       },
     )
     if (sendingError) {
-      console.warn('fail sending mail', sendingError)
+      clientLogger.warn('fail sending mail', { error: sendingError })
     }
     showSnackbar(UI_MESSAGES.CHANGE_PASSWORD_SUCCESS_MESSAGE, 'success')
     router.replace(PROTECTED_PATHS.PROFILE)

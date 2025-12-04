@@ -16,6 +16,7 @@ import ReversalButton from '@/components/elements/reversal-button/ReversalButton
 import { ResetPasswordInput, resetPasswordSchema } from '@/lib/supabase/auth/types'
 import { resetPassword } from '@/lib/supabase/auth/auth'
 import { UI_MESSAGES } from '@/lib/constants/ui'
+import { clientLogger } from '@/stores/useClientLoggerStore'
 
 export default function PasswordResetPage() {
   const {
@@ -32,7 +33,7 @@ export default function PasswordResetPage() {
 
     const { success, message } = await resetPassword(input)
     if (!success) {
-      console.error(message)
+      clientLogger.error('Reset password failed', Error(message))
       setSubmitError(UI_MESSAGES.RESET_PASSWORD_FAILED_MESSAGE)
       return
     }

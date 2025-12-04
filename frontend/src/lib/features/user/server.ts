@@ -1,11 +1,14 @@
 import { PUBLIC_PATHS } from '@/lib/constants/routes'
-import { createClient } from '@/lib/supabase/client/serverComponentClient'
+import { getRequestLogger } from '@/lib/log/storage'
+import { createServerComponentClient } from '@/lib/supabase/client/serverComponentClient'
 import { UserProfile } from '@/lib/supabase/schema/utils'
 import { User } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 
 export async function getUserProfile(): Promise<{ user: User; profile: UserProfile }> {
-  const serverComponentClient = await createClient()
+  const serverComponentClient = await createServerComponentClient()
+
+  const logger = getRequestLogger()
 
   // 認証状態をチェック
   const {
@@ -14,7 +17,7 @@ export async function getUserProfile(): Promise<{ user: User; profile: UserProfi
   } = await serverComponentClient.auth.getUser()
 
   if (authError || !user) {
-    console.error('認証エラー:', authError)
+    logger.error('認証エラー:', authError)
     redirect(PUBLIC_PATHS.SIGNIN)
   }
 
@@ -25,7 +28,7 @@ export async function getUserProfile(): Promise<{ user: User; profile: UserProfi
     .eq('id', user.id)
     .single()
   if (profileError) {
-    console.error('プロフィール作成エラー:', profileError)
+    logger.error('プロフィール作成エラー:', profileError)
     redirect(PUBLIC_PATHS.SIGNIN)
   }
 

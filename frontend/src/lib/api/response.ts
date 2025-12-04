@@ -1,6 +1,6 @@
 // src/lib/errors.ts
 import { NextResponse } from 'next/server'
-import { ERROR_CODES, ErrorCode } from './errorCodes'
+import { ERROR_CODES, ERROR_MESSAGES, ErrorCode } from './errorCodes'
 import { z } from 'zod'
 
 /** 共通API正常系オブジェクトの型 */
@@ -84,20 +84,54 @@ export const Created = <T extends z.ZodTypeAny>(
   meta?: ApiSuccessObject<T>['meta'],
 ) => new ApiSuccess(201, data, message, meta)
 
-export const BadRequest = (msg = 'Bad request', details?: unknown) =>
-  new ApiError(400, ERROR_CODES.BAD_REQUEST, msg, details)
+type ApiErrorParams = {
+  msg?: string
+  details?: unknown
+}
+export const BadRequest = (params?: ApiErrorParams) =>
+  new ApiError(
+    400,
+    ERROR_CODES.BAD_REQUEST,
+    params?.msg ?? ERROR_MESSAGES.BAD_REQUEST,
+    params?.details,
+  )
 
-export const Unauthorized = (msg = 'Unauthorized', details?: unknown) =>
-  new ApiError(401, ERROR_CODES.UNAUTHORIZED, msg, details)
+export const Unauthorized = (params?: ApiErrorParams) =>
+  new ApiError(
+    401,
+    ERROR_CODES.UNAUTHORIZED,
+    params?.msg ?? ERROR_MESSAGES.UNAUTHORIZED,
+    params?.details,
+  )
 
-export const Forbidden = (msg = 'Forbidden', details?: unknown) =>
-  new ApiError(403, ERROR_CODES.FORBIDDEN, msg, details)
+export const Forbidden = (params?: ApiErrorParams) =>
+  new ApiError(
+    403,
+    ERROR_CODES.FORBIDDEN,
+    params?.msg ?? ERROR_MESSAGES.FORBIDDEN,
+    params?.details,
+  )
 
-export const NotFound = (msg = 'Not found', details?: unknown) =>
-  new ApiError(404, ERROR_CODES.NOT_FOUND, msg, details)
+export const NotFound = (params?: ApiErrorParams) =>
+  new ApiError(
+    404,
+    ERROR_CODES.NOT_FOUND,
+    params?.msg ?? ERROR_MESSAGES.NOT_FOUND,
+    params?.details,
+  )
 
-export const Conflict = (msg = 'Conflict', details?: unknown) =>
-  new ApiError(409, ERROR_CODES.CONFLICT, msg, details)
+export const Conflict = (params?: ApiErrorParams) =>
+  new ApiError(
+    409,
+    ERROR_CODES.CONFLICT,
+    params?.msg ?? ERROR_MESSAGES.CONFLICT,
+    params?.details,
+  )
 
-export const InternalError = (msg = 'Internal server error', details?: unknown) =>
-  new ApiError(500, ERROR_CODES.INTERNAL_SERVER, msg, details)
+export const InternalError = (params?: ApiErrorParams) =>
+  new ApiError(
+    500,
+    ERROR_CODES.INTERNAL_SERVER,
+    params?.msg ?? ERROR_MESSAGES.INTERNAL_SERVER,
+    params?.details,
+  )

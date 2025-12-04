@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/client/serverComponentClient'
+import { createServerComponentClient } from '@/lib/supabase/client/serverComponentClient'
 
 export async function GET(req: NextRequest) {
   if (process.env.E2E_ENABLED !== 'true') return new NextResponse(null, { status: 404 })
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  const supabase = await createClient()
+  const supabase = await createServerComponentClient()
 
   if (token) {
     const { error } = await supabase.auth.verifyOtp({ type: 'email', token_hash: token })

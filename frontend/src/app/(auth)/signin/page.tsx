@@ -26,6 +26,7 @@ import { browserClient } from '@/lib/supabase/client/browserClient'
 import GoogleSignInButton from '@/components/elements/google-button/GoogleButton'
 import PasskeySignInButton from '@/components/elements/passkey-button/PasskeyButton'
 import { S } from '../../../../test/e2e/const/selector'
+import { clientLogger } from '@/stores/useClientLoggerStore'
 
 export default function SignInPage() {
   const router = useRouter()
@@ -47,7 +48,7 @@ export default function SignInPage() {
     // サインイン処理
     const { success, message, requiresMfa, mfaFactors } = await signIn(input)
     if (!success) {
-      console.error(message)
+      clientLogger.error('Signin failed', Error(message))
       setSubmitError(UI_MESSAGES.SIGNIN_FAILED_MESSAGE)
       return
     }
@@ -165,7 +166,7 @@ export default function SignInPage() {
                   },
                 })
                 if (error) {
-                  console.error(error.message)
+                  clientLogger.error('Signin with OAuth failed', error)
                   setSubmitError(UI_MESSAGES.SIGNIN_FAILED_MESSAGE)
                   return
                 }

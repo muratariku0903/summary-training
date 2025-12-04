@@ -17,6 +17,7 @@ import { SignupInput, signupSchema } from '@/lib/supabase/auth/types'
 import { signUp } from '@/lib/supabase/auth/auth'
 import { UI_MESSAGES } from '@/lib/constants/ui'
 import { PUBLIC_PATHS } from '@/lib/constants/routes'
+import { clientLogger } from '@/stores/useClientLoggerStore'
 
 export default function SignUpPage() {
   const {
@@ -32,7 +33,8 @@ export default function SignUpPage() {
     setSubmitError(null)
 
     const { success, message } = await signUp(input)
-    console.log(message)
+    
+    clientLogger.error('Signup failed', Error(message))
     if (!success) {
       setSubmitError(UI_MESSAGES.UNEXPECTED_ERROR)
 

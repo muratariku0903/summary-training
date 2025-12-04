@@ -1,57 +1,56 @@
-import { NextRequest } from 'next/server'
-
 import { BadRequest, InternalError, Success, Unauthorized } from '@/lib/api/response'
 import { createClient } from '@supabase/supabase-js'
-import { getAccessTokenFromHeader } from '@/lib/api/utils'
-import { adminClient } from '@/lib/supabase/client/adminClient'
 import { checkValidSessionLevel } from '@/lib/supabase/auth/server'
+import { withAuth, withLogger } from '@/lib/api/wrapper'
+import { LOG_MESSAGES } from '@/lib/log/message'
 
-export async function POST(request: NextRequest) {
-  try {
-    // 認証ヘッダーからアクセストークンを取得
-    const accessToken = getAccessTokenFromHeader(request)
-    if (!accessToken) {
-      return Unauthorized('Authorization header required').toResponse()
+export const POST = withLogger(
+  withAuth(async (request, user, { logger }) => {
+    try {
+      logger.info(LOG_MESSAGES.PROCESSING.STARTED)
+
+      const { password } = await request.json()
+
+      // 検証用の独立したクライアント（サーバーサイドなのでセッション干渉なし）
+      const verificationClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      )
+
+      // セッションレベルチェック
+      logger.debug('Checking session level')
+      const { valid } = await checkValidSessionLevel(user)
+      if (!valid) {
+        logger.warn(LOG_MESSAGES.AUTH.INVALID_SESSION_LEVEL, {
+          userId: user.id,
+        })
+        return Unauthorized({
+          msg: LOG_MESSAGES.AUTH.INVALID_SESSION_LEVEL,
+        }).toResponse()
+      }
+      logger.debug('Session level valid')
+
+      // パスワード検証
+      logger.debug('Verifying password')
+      const { error: signInError } = await verificationClient.auth.signInWithPassword({
+        email: user.email ?? '',
+        password: password,
+      })
+      if (signInError) {
+        logger.warn('Password verification failed', {
+          errorCode: signInError.code,
+        })
+        return BadRequest().toResponse()
+      }
+
+      logger.info('Password verified successfully')
+      return Success({ valid: true }).toResponse()
+    } catch (err) {
+      logger.error(LOG_MESSAGES.PROCESSING.UNEXPECTED_ERROR, err)
+      return InternalError({
+        msg: LOG_MESSAGES.PROCESSING.UNEXPECTED_ERROR,
+        details: err,
+      }).toResponse()
     }
-
-    // アクセストークンからユーザー情報を取得
-    const {
-      data: { user },
-      error: userError,
-    } = await adminClient.auth.getUser(accessToken)
-
-    if (userError || !user) {
-      return Unauthorized('Invalid access token').toResponse()
-    }
-    if (!user.email) {
-      return Unauthorized('invalid user email').toResponse()
-    }
-
-    const { password } = await request.json()
-
-    // 検証用の独立したクライアント（サーバーサイドなのでセッション干渉なし）
-    const verificationClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    )
-
-    // セッションレベルチェック
-    const { valid } = await checkValidSessionLevel(user)
-    if (!valid) {
-      return Unauthorized('Invalid session level').toResponse()
-    }
-
-    const { error: signInError } = await verificationClient.auth.signInWithPassword({
-      email: user.email,
-      password: password,
-    })
-    if (signInError) {
-      return BadRequest().toResponse()
-    }
-
-    return Success({ valid: true }).toResponse()
-  } catch (err) {
-    console.error('mail sending error:', err)
-    return InternalError('Internal server error during sending mail').toResponse()
-  }
-}
+  }),
+)

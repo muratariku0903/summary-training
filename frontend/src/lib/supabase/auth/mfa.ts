@@ -15,6 +15,7 @@ import {
 } from './types'
 import { AUTH_MESSAGES, AUTH_LOG_MESSAGES } from '@/lib/constants/auth'
 import { ZodError } from 'zod'
+import { clientLogger } from '@/stores/useClientLoggerStore'
 
 // 移行の処理はSupabaseのクライアントSDKを使用しており、裏側でJWT検証をしてるのでフロント側から呼び出しても問題ない
 
@@ -31,7 +32,7 @@ export async function enrollTotpFactor(): Promise<TotpEnrollmentResponse> {
       }
     }
 
-    console.log(AUTH_LOG_MESSAGES.MFA_ENROLLMENT_ATTEMPT)
+    clientLogger.info(AUTH_LOG_MESSAGES.MFA_ENROLLMENT_ATTEMPT)
 
     // #region TOTP Enroll処理の詳細
     // TOTP登録（enroll）の裏側処理：
@@ -55,14 +56,14 @@ export async function enrollTotpFactor(): Promise<TotpEnrollmentResponse> {
       friendlyName: `${user.user.email}'s TOTP`,
     })
     if (factorError) {
-      console.error(AUTH_LOG_MESSAGES.MFA_ENROLLMENT_FAILED, factorError.message)
+      clientLogger.error(AUTH_LOG_MESSAGES.MFA_ENROLLMENT_FAILED, factorError)
       return {
         success: false,
         message: AUTH_MESSAGES.TOTP_SETUP_FAILED,
       }
     }
 
-    console.log(AUTH_LOG_MESSAGES.MFA_ENROLLMENT_SUCCESS)
+    clientLogger.info(AUTH_LOG_MESSAGES.MFA_ENROLLMENT_SUCCESS)
 
     return {
       success: true,
@@ -72,7 +73,7 @@ export async function enrollTotpFactor(): Promise<TotpEnrollmentResponse> {
       factorId: factorData.id,
     }
   } catch (error) {
-    console.error(AUTH_LOG_MESSAGES.UNEXPECTED_MFA_ERROR, error)
+    clientLogger.error(AUTH_LOG_MESSAGES.UNEXPECTED_MFA_ERROR, error)
     return {
       success: false,
       message: AUTH_MESSAGES.UNEXPECTED_ERROR,
@@ -117,7 +118,7 @@ export async function verifyTotp(
         factorId: factorId,
       })
     if (challengeError) {
-      console.error(AUTH_LOG_MESSAGES.MFA_CHALLENGE_FAILED, challengeError.message)
+      clientLogger.error(AUTH_LOG_MESSAGES.MFA_CHALLENGE_FAILED, challengeError)
       return {
         success: false,
         message: AUTH_MESSAGES.TOTP_SETUP_VERIFICATION_FAILED,
@@ -148,7 +149,7 @@ export async function verifyTotp(
       code: totpCode,
     })
     if (verifyError) {
-      console.error(AUTH_LOG_MESSAGES.MFA_SETUP_VERIFICATION_FAILED, verifyError.message)
+      clientLogger.error(AUTH_LOG_MESSAGES.MFA_SETUP_VERIFICATION_FAILED, verifyError)
       return {
         success: false,
         message: AUTH_MESSAGES.TOTP_CODE_INVALID,
@@ -171,7 +172,7 @@ export async function verifyTotp(
       }
     }
 
-    console.error(AUTH_LOG_MESSAGES.UNEXPECTED_MFA_ERROR, error)
+    clientLogger.error(AUTH_LOG_MESSAGES.UNEXPECTED_MFA_ERROR, error)
     return {
       success: false,
       message: AUTH_MESSAGES.UNEXPECTED_ERROR,
@@ -186,7 +187,7 @@ export async function getAvailableMfaFactors(): Promise<GetAvailableMfaFactorsRe
   try {
     const { data: factors, error } = await browserClient.auth.mfa.listFactors()
     if (error) {
-      console.error('❌ [MFA] Failed to get factors:', error.message)
+      clientLogger.error('❌ [MFA] Failed to get factors', error)
       return {
         success: false,
         message: 'MFA設定の取得に失敗しました',
@@ -202,7 +203,7 @@ export async function getAvailableMfaFactors(): Promise<GetAvailableMfaFactorsRe
       factors: mfaFactors,
     }
   } catch (error) {
-    console.error(AUTH_LOG_MESSAGES.UNEXPECTED_MFA_ERROR, error)
+    clientLogger.error(AUTH_LOG_MESSAGES.UNEXPECTED_MFA_ERROR, error)
     return {
       success: false,
       message: AUTH_MESSAGES.UNEXPECTED_ERROR,
@@ -266,7 +267,7 @@ export async function resetEnrollment(
       message: 'Success Unverified enrollment',
     }
   } catch (error) {
-    console.error(AUTH_LOG_MESSAGES.UNEXPECTED_MFA_ERROR, error)
+    clientLogger.error(AUTH_LOG_MESSAGES.UNEXPECTED_MFA_ERROR, error)
     return {
       success: false,
       message: AUTH_MESSAGES.UNEXPECTED_ERROR,
@@ -299,7 +300,7 @@ export async function listMfa(): Promise<ListMfaResponse> {
 
     return { success: true, data: [...factors.all, ...factors.phone, ...factors.totp] }
   } catch (error) {
-    console.error(AUTH_LOG_MESSAGES.UNEXPECTED_MFA_ERROR, error)
+    clientLogger.error(AUTH_LOG_MESSAGES.UNEXPECTED_MFA_ERROR, error)
     return {
       success: false,
       error: AUTH_MESSAGES.UNEXPECTED_ERROR,

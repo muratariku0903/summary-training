@@ -1,3 +1,4 @@
+import { getRequestLogger } from '@/lib/log/storage'
 import { findAuthUserIdByEmail } from '../auth/admin'
 import { adminClient } from '../client/adminClient'
 
@@ -37,6 +38,8 @@ export type EnsureResult = EnsureOk | EnsureErr
  * 4) 最後にリンク表を upsert
  */
 export const ensureShadowUser = async (args: EnsureArgs): Promise<EnsureResult> => {
+  const logger = getRequestLogger()
+
   const provider = args.provider?.trim()
   const externalUserId = args.externalUserId?.trim()
   if (!provider || !externalUserId) {
@@ -64,7 +67,7 @@ export const ensureShadowUser = async (args: EnsureArgs): Promise<EnsureResult> 
     try {
       authUserId = await findAuthUserIdByEmail(email)
     } catch (e: unknown) {
-      console.error(e)
+      logger.error('Failed find auth user id by email', e)
       return {
         success: false,
         code: 'user_search_failed',

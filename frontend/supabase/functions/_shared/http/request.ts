@@ -11,8 +11,6 @@ export const requestParse = async <T extends ZodRawShape>(
   req: Request,
   schema: z.ZodObject<T>,
 ): Promise<Result<z.infer<z.ZodObject<T>>>> => {
-  console.log('req: ', req)
-
   try {
     const body = await req.json()
 

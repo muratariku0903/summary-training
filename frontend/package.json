@@ -20,7 +20,8 @@
     "lh:collect": "lhci collect",
     "lh:assert": "lhci assert",
     "lh:upload": "lhci upload",
-    "lh:run": "lhci autorun"
+    "lh:run": "lhci autorun",
+    "dir-structure": "tree -L 3 -I '.git|node_modules|lhci-report|playwright-report|public|scripts|migrations'"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.2",

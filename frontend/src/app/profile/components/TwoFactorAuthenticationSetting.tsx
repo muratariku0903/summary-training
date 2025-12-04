@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation'
 import { PROTECTED_PATHS } from '@/lib/constants/routes'
 import { useSnackbarStore } from '@/stores/useSnackbarStore'
 import { UI_MESSAGES } from '@/lib/constants/ui'
+import { clientLogger } from '@/stores/useClientLoggerStore'
 
 type TwoFactorAuthenticationSettingProps = {
   factors: User['factors']
@@ -53,8 +54,8 @@ export default function TwoFactorAuthenticationSetting({
       name: 'SMS認証',
       desc: 'SMS経由でのワンタイムパスワード',
       enable: isMethodEnabled(state, MFA_TYPES.SMS),
-      onClickUpdate: () => console.log(''),
-      onClickReset: () => console.log(''),
+      onClickUpdate: () => clientLogger.info('SMS authentication update clicked'),
+      onClickReset: () => clientLogger.info('SMS authentication reset clicked'),
     },
   ]
 
@@ -71,12 +72,12 @@ export default function TwoFactorAuthenticationSetting({
           isOpen={true}
           onClose={() => setSettingMode(null)}
           onConfirm={async () => {
-            console.log('start reset enroll')
+            clientLogger.info('start reset enroll')
             const { success, message } = await resetEnrollment(
               settingMode.type,
-              'verified'
+              'verified',
             )
-            console.log('end reset enroll')
+            clientLogger.info('end reset enroll')
             if (!success) {
               setError(message)
               return
@@ -87,7 +88,9 @@ export default function TwoFactorAuthenticationSetting({
               error: listError,
             } = await listMfa()
             if (!listSuccess) {
-              console.log(listError)
+              clientLogger.error('Failed to list MFA', new Error(listError), {
+                error: listError,
+              })
               setError(listError)
               return
             }
@@ -164,7 +167,7 @@ export default function TwoFactorAuthenticationSetting({
 const isMethodEnabled = (factors: User['factors'], methodType: MfaType) => {
   if (!factors || factors.length === 0) return false
   return factors.some(
-    (factor) => factor.factor_type === methodType && factor.status === 'verified'
+    (factor) => factor.factor_type === methodType && factor.status === 'verified',
   )
 }
 

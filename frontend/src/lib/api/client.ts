@@ -1,4 +1,3 @@
-import { Logger } from '@/utils/log'
 import type {
   paths,
   // AuthRequiredEndpoints,
@@ -7,6 +6,7 @@ import type {
 import { ERROR_CODES, ErrorCode } from './errorCodes'
 import { ApiError } from './response'
 import { browserClient } from '../supabase/client/browserClient'
+import { clientLogger } from '@/stores/useClientLoggerStore'
 
 type Path = keyof paths
 type Method = 'get' | 'post' | 'patch' | 'delete'
@@ -112,13 +112,13 @@ export const request = async <U extends string, M extends Method>(
     ? [options: RequestOptionsFor<U, M>] // 認証必須の場合、optionsは必須
     : [options?: RequestOptionsFor<U, M>] // 認証不要の場合、optionsはオプション
 ): Promise<Response<ResponseOf<CanonicalPath<U>, M>>> => {
-  Logger.start(request.name)
+  clientLogger.start(request.name)
 
   const options = args[0] || ({} as RequestOptionsFor<U, M>)
   const { requireAuth = false, headers = {}, ...rest } = options
 
   try {
-    console.log(`🚀 [${method}] ${url}  (auth: ${requireAuth})`)
+    clientLogger.info(`🚀 [${method}] ${url}  (auth: ${requireAuth})`)
 
     // 認証ヘッダーを取得
     const authHeaders = await getAuthHeaders(requireAuth)
@@ -144,10 +144,10 @@ export const request = async <U extends string, M extends Method>(
     })
 
     const json = await res.json()
-    console.log(`📝 [${method}] Response:`, json)
+    clientLogger.debug(`📝 [${method}] Response:`, { response: json })
 
     if (!res.ok) {
-      Logger.error(request.name, json)
+      clientLogger.error(request.name, new Error('Request failed'), { response: json })
 
       if (ApiError.isApiErrorObject(json)) {
         return {
@@ -173,7 +173,7 @@ export const request = async <U extends string, M extends Method>(
       data: json.data,
     }
   } catch (e) {
-    Logger.error(request.name, e)
+    clientLogger.error(request.name, e)
     return {
       success: false,
       error: {
@@ -182,7 +182,7 @@ export const request = async <U extends string, M extends Method>(
       },
     }
   } finally {
-    Logger.end(request.name)
+    clientLogger.end(request.name)
   }
 }
 
@@ -203,7 +203,10 @@ const getAuthHeaders = async (
     } = await browserClient.auth.getSession()
 
     if (sessionError || !session) {
-      console.error('❌ [AUTH] No valid session for authenticated request')
+      clientLogger.error(
+        '❌ [AUTH] No valid session for authenticated request',
+        sessionError || new Error('No session'),
+      )
       return {
         status: 401,
         code: ERROR_CODES.UNAUTHORIZED,
@@ -214,7 +217,7 @@ const getAuthHeaders = async (
       Authorization: `Bearer ${session.access_token}`,
     }
   } catch (error) {
-    console.error('❌ [AUTH] Failed to get session:', error)
+    clientLogger.error('❌ [AUTH] Failed to get session', error)
     return {
       status: 500,
       code: ERROR_CODES.INTERNAL_SERVER,
