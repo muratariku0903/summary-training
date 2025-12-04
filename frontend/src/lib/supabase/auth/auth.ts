@@ -20,6 +20,7 @@ import {
 import { AUTH_MESSAGES, AUTH_LOG_MESSAGES } from '@/lib/constants/auth'
 import { ZodError } from 'zod'
 import { User } from '@supabase/supabase-js'
+import { clientLogger } from '@/stores/useClientLoggerStore'
 
 /**
  * サインイン処理
@@ -36,7 +37,7 @@ export async function signIn(input: SigninInput): Promise<SigninResponse> {
         password: validatedInput.password,
       })
     if (authError) {
-      console.error(AUTH_LOG_MESSAGES.SIGNIN_ERROR, authError.message)
+      clientLogger.error(AUTH_LOG_MESSAGES.SIGNIN_ERROR, authError)
       return {
         success: false,
         message: authError.message,
@@ -52,7 +53,7 @@ export async function signIn(input: SigninInput): Promise<SigninResponse> {
     // 利用可能なMFA設定を確認
     const { success, factors } = await getAvailableMfaFactors()
     if (!success) {
-      console.warn('⚠️ [SIGNIN] Could not check MFA factors, proceeding without MFA')
+      clientLogger.warn('⚠️ [SIGNIN] Could not check MFA factors, proceeding without MFA')
       // MFA確認に失敗した場合は通常ログインとして処理
       return {
         success: true,
@@ -63,7 +64,7 @@ export async function signIn(input: SigninInput): Promise<SigninResponse> {
 
     // MFA未設定の場合は通常ログイン完了
     if (!factors || factors.length === 0) {
-      console.log('✅ [SIGNIN] Login successful without MFA')
+      clientLogger.info('✅ [SIGNIN] Login successful without MFA')
       return {
         success: true,
         message: AUTH_MESSAGES.SIGNIN_SUCCESS,
@@ -71,7 +72,7 @@ export async function signIn(input: SigninInput): Promise<SigninResponse> {
       }
     }
 
-    console.log(`🔐 [SIGNIN] MFA required with ${factors.length} available factors`)
+    clientLogger.info(`🔐 [SIGNIN] MFA required with ${factors.length} available factors`)
 
     return {
       success: true,
@@ -87,7 +88,7 @@ export async function signIn(input: SigninInput): Promise<SigninResponse> {
       }
     }
 
-    console.error(AUTH_LOG_MESSAGES.UNEXPECTED_SIGNIN_ERROR, error)
+    clientLogger.error(AUTH_LOG_MESSAGES.UNEXPECTED_SIGNIN_ERROR, error)
     return {
       success: false,
       message: AUTH_MESSAGES.UNEXPECTED_ERROR,
@@ -117,7 +118,7 @@ export async function signUp(input: SignupInput): Promise<SignupResponse> {
       },
     })
     if (error) {
-      console.error(AUTH_LOG_MESSAGES.SIGNUP_ERROR, error.message)
+      clientLogger.error(AUTH_LOG_MESSAGES.SIGNUP_ERROR, error)
       return {
         success: false,
         message: error.message,
@@ -142,7 +143,7 @@ export async function signUp(input: SignupInput): Promise<SignupResponse> {
       }
     }
 
-    console.error(AUTH_LOG_MESSAGES.UNEXPECTED_SIGNUP_ERROR, error)
+    clientLogger.error(AUTH_LOG_MESSAGES.UNEXPECTED_SIGNUP_ERROR, error)
     return {
       success: false,
       message: AUTH_MESSAGES.UNEXPECTED_ERROR,
@@ -158,7 +159,7 @@ export async function signOut(): Promise<SignoutResponse> {
     const { error } = await browserClient.auth.signOut()
 
     if (error) {
-      console.error(AUTH_LOG_MESSAGES.SIGNOUT_ERROR, error.message)
+      clientLogger.error(AUTH_LOG_MESSAGES.SIGNOUT_ERROR, error)
       return {
         success: false,
         message: AUTH_MESSAGES.SIGNOUT_FAILED,
@@ -170,7 +171,7 @@ export async function signOut(): Promise<SignoutResponse> {
       message: AUTH_MESSAGES.SIGNOUT_SUCCESS,
     }
   } catch (error) {
-    console.error(AUTH_LOG_MESSAGES.UNEXPECTED_SIGNOUT_ERROR, error)
+    clientLogger.error(AUTH_LOG_MESSAGES.UNEXPECTED_SIGNOUT_ERROR, error)
     return {
       success: false,
       message: AUTH_MESSAGES.UNEXPECTED_ERROR,
@@ -189,7 +190,7 @@ export async function changePassword(
   try {
     const { data: userData, error: getUserError } = await browserClient.auth.getUser()
     if (getUserError) {
-      console.error(AUTH_LOG_MESSAGES.CHANGE_PASSWORD_ERROR, getUserError.message)
+      clientLogger.error(AUTH_LOG_MESSAGES.CHANGE_PASSWORD_ERROR, getUserError)
       return {
         success: false,
         message: AUTH_MESSAGES.CHANGE_PASSWORD_FAILED,
@@ -206,7 +207,10 @@ export async function changePassword(
     // GoogleやPasskeyがプライマリとして設定されている場合（GoogleやPasskeyのみの認証ユーザー）、パスワード変更不可能
     const emailPrimaryProvider = isEmailPrimaryProvider(userData.user.app_metadata)
     if (!emailPrimaryProvider) {
-      console.error('password not set up')
+      clientLogger.error(
+        'password not set up',
+        new Error('Email is not primary provider'),
+      )
       return {
         success: false,
         message: 'password not set up',
@@ -221,7 +225,7 @@ export async function changePassword(
       password: newPassword,
     })
     if (updError) {
-      console.error(AUTH_LOG_MESSAGES.CHANGE_PASSWORD_ERROR, updError.message)
+      clientLogger.error(AUTH_LOG_MESSAGES.CHANGE_PASSWORD_ERROR, updError)
       return {
         success: false,
         message: AUTH_MESSAGES.CHANGE_PASSWORD_FAILED,
@@ -233,7 +237,7 @@ export async function changePassword(
       message: AUTH_MESSAGES.CHANGE_PASSWORD_SUCCESS,
     }
   } catch (error) {
-    console.error(AUTH_LOG_MESSAGES.UNEXPECTED_SIGNOUT_ERROR, error)
+    clientLogger.error(AUTH_LOG_MESSAGES.UNEXPECTED_SIGNOUT_ERROR, error)
     return {
       success: false,
       message: AUTH_MESSAGES.UNEXPECTED_ERROR,
@@ -250,7 +254,7 @@ export async function changeEmail(input: ChangeEmailInput): Promise<ChangeEmailR
   try {
     const { data: userData, error: getUserError } = await browserClient.auth.getUser()
     if (getUserError) {
-      console.error(AUTH_LOG_MESSAGES.CHANGE_EMAIL_ERROR, getUserError.message)
+      clientLogger.error(AUTH_LOG_MESSAGES.CHANGE_EMAIL_ERROR, getUserError)
       return {
         success: false,
         message: AUTH_MESSAGES.CHANGE_EMAIL_FAILED,
@@ -273,7 +277,7 @@ export async function changeEmail(input: ChangeEmailInput): Promise<ChangeEmailR
       { emailRedirectTo: `${baseUrl}${PROTECTED_PATHS.EMAIL_CHANGE_CALLBACK}` },
     )
     if (updError) {
-      console.error(AUTH_LOG_MESSAGES.CHANGE_PASSWORD_ERROR, updError.message)
+      clientLogger.error(AUTH_LOG_MESSAGES.CHANGE_EMAIL_ERROR, updError)
       return {
         success: false,
         message: AUTH_MESSAGES.CHANGE_EMAIL_FAILED,
@@ -285,7 +289,7 @@ export async function changeEmail(input: ChangeEmailInput): Promise<ChangeEmailR
       message: AUTH_MESSAGES.CHANGE_EMAIL_SUCCESS,
     }
   } catch (error) {
-    console.error(AUTH_LOG_MESSAGES.CHANGE_EMAIL_ERROR, error)
+    clientLogger.error(AUTH_LOG_MESSAGES.CHANGE_EMAIL_ERROR, error)
     return {
       success: false,
       message: AUTH_MESSAGES.CHANGE_EMAIL_FAILED,
@@ -304,12 +308,14 @@ export async function resetPassword(
   try {
     // メール送信
     const baseUrl = window.location.origin
-    console.log(`emailRedirectTo: ${baseUrl}${PUBLIC_PATHS.PASSWORD_RESET_CALLBACK}`)
+    clientLogger.debug(
+      `emailRedirectTo: ${baseUrl}${PUBLIC_PATHS.PASSWORD_RESET_CALLBACK}`,
+    )
     const { error: resetError } = await browserClient.auth.resetPasswordForEmail(email, {
       redirectTo: `${baseUrl}${PUBLIC_PATHS.PASSWORD_RESET_CALLBACK}`,
     })
     if (resetError) {
-      console.error(AUTH_LOG_MESSAGES.RESET_PASSWORD_ERROR, resetError.message)
+      clientLogger.error('Reset password failed', resetError)
       return {
         success: false,
         message: AUTH_MESSAGES.RESET_PASSWORD_FAILED,
@@ -321,7 +327,7 @@ export async function resetPassword(
       message: AUTH_MESSAGES.RESET_PASSWORD_SUCCESS,
     }
   } catch (error) {
-    console.error(AUTH_LOG_MESSAGES.RESET_PASSWORD_ERROR, error)
+    clientLogger.error('Reset password failed', error)
     return {
       success: false,
       message: AUTH_MESSAGES.RESET_PASSWORD_FAILED,

@@ -17,6 +17,7 @@ import { ChangeEmailInput, changeEmailSchema } from '@/lib/supabase/auth/types'
 import { changeEmail } from '@/lib/supabase/auth/auth'
 import { UI_MESSAGES } from '@/lib/constants/ui'
 import { S } from '../../../../test/e2e/const/selector'
+import { clientLogger } from '@/stores/useClientLoggerStore'
 
 export default function EmailChangePage() {
   const {
@@ -33,7 +34,7 @@ export default function EmailChangePage() {
 
     const { success, message } = await changeEmail(input)
     if (!success) {
-      console.error(message)
+      clientLogger.error('Email change failed', new Error(message), { message })
       setSubmitError(UI_MESSAGES.CHANGE_EMAIL_FAILED_MESSAGE)
       return
     }

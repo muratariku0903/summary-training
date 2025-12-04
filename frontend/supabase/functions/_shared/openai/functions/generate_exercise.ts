@@ -117,7 +117,6 @@ export const generateExercise: LlmExerciseGenerator = async (
     let json: unknown
     try {
       json = JSON.parse(content)
-      console.log(json)
     } catch {
       return {
         success: false,

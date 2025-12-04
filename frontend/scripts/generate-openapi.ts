@@ -22,6 +22,10 @@ import {
   requestSchema as PasswordVerifyRequestSchema,
   responseSchema as PasswordVerifyResponseSchema,
 } from '../src/app/api/auth/password/verify/schema.ts'
+import {
+  requestSchema as ExerciseSubmissionsRequestSchema,
+  responseSchema as ExerciseSubmissionsResponseSchema,
+} from '../src/app/api/exercises/[exercise_id]/submissions/schema.ts'
 import * as fs from 'fs'
 import * as path from 'path'
 import { apiErrorObjectSchema, apiSuccessObjectSchema } from '../src/lib/api/response.ts'
@@ -297,6 +301,66 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: apiSuccessObjectSchema(PasswordVerifyResponseSchema),
+        },
+      },
+    },
+    400: {
+      description: '不正リクエスト',
+      content: {
+        'application/json': {
+          schema: apiErrorObjectSchema,
+        },
+      },
+    },
+    401: {
+      description: '認証が必要です',
+      content: {
+        'application/json': {
+          schema: apiErrorObjectSchema,
+        },
+      },
+    },
+    500: {
+      description: 'サーバーエラー',
+      content: {
+        'application/json': {
+          schema: apiErrorObjectSchema,
+        },
+      },
+    },
+  },
+})
+
+registry.registerPath({
+  method: 'post',
+  path: '/exercises/{exercise_id}/submissions',
+  summary: '演習評価',
+  description: 'ユーザーから入力をAIで添削します',
+  security: [{ BearerAuth: [] }], // JWT Token
+  parameters: [
+    {
+      name: 'exercise_id',
+      in: 'path',
+      required: true,
+      description: '演習ID (UUID)',
+      schema: { type: 'string', format: 'uuid' },
+    },
+  ],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: ExerciseSubmissionsRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: '',
+      content: {
+        'application/json': {
+          schema: apiSuccessObjectSchema(ExerciseSubmissionsResponseSchema),
         },
       },
     },

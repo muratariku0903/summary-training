@@ -9,8 +9,8 @@ import {
 import dayjs from 'dayjs'
 import { deleteTokenFromCookie } from './lib/api/utils'
 import { checkValidSessionLevel } from './lib/supabase/auth/server'
-import { sanitizeLog } from './utils/log'
 import { Session, SupabaseClient } from '@supabase/supabase-js'
+import { Logger } from '@/lib/log/serverLog'
 
 /**
  * Next.js ミドルウェア
@@ -19,8 +19,14 @@ import { Session, SupabaseClient } from '@supabase/supabase-js'
  * - 認証チェックとルーティング制御を行う
  */
 export async function middleware(req: NextRequest) {
-  console.log(
-    `🚀 Middleware triggered for: ${sanitizeLog(req.nextUrl.pathname)} at ${dayjs().format('YYYY-MM-DDTHH:mm:ss')}`,
+  const logger = Logger.getInstance().createRequestLogger(undefined, {
+    url: req.url,
+    method: req.method,
+    pathname: req.nextUrl.pathname,
+  })
+
+  logger.info(
+    `🚀 Middleware triggered for: ${req.nextUrl.pathname} at ${dayjs().format('YYYY-MM-DDTHH:mm:ss')}`,
   )
 
   // Edge Runtime専用クライアントを使用
@@ -41,6 +47,7 @@ export async function middleware(req: NextRequest) {
   // 認証がない状態で保護ルートにアクセスした場合、/auth/signin へリダイレクト
   if (isProtected) {
     if (!session) {
+      logger.info('No session found, redirecting to signin')
       const signinUrl = req.nextUrl.clone()
       signinUrl.pathname = PUBLIC_PATHS.SIGNIN
       return NextResponse.redirect(signinUrl)
@@ -49,8 +56,9 @@ export async function middleware(req: NextRequest) {
     // ユーザー情報を取得して、MFA設定をしてるユーザーであればセッションレベルがAAL2であるかチェック
     // AAL2でない場合はセッション情報を破棄してサインイン画面へリダイレクト
     // ただし、PROTECTED_PATHS.MFA_VERIFYは除く（OAuth認証後追加で、MFA認証が必要な場合に遷移させるため）
-    const validSession = await hasValidSession(supabaseMiddlerWareClient, session)
+    const validSession = await hasValidSession(supabaseMiddlerWareClient, session, logger)
     if (!validSession && pathname !== PROTECTED_PATHS.MFA_VERIFY) {
+      logger.warn('Invalid session detected, redirecting to signin')
       const signinUrl = req.nextUrl.clone()
       signinUrl.pathname = PUBLIC_PATHS.SIGNIN
       return await deleteTokenFromCookie(NextResponse.redirect(signinUrl))
@@ -59,11 +67,13 @@ export async function middleware(req: NextRequest) {
 
   // ログイン済ユーザーが未ログインユーザー画面にアクセスした場合、/dashboard へリダイレクト
   if (session && UNAUTHENTICATED_USER_PATHS.some((path) => pathname === path)) {
+    logger.info('Authenticated user accessing public path, redirecting to dashboard')
     const dashboardUrl = req.nextUrl.clone()
     dashboardUrl.pathname = PROTECTED_PATHS.DASHBOARD
     return NextResponse.redirect(dashboardUrl)
   }
 
+  logger.info('Middleware completed successfully')
   return updatedResponse
 }
 
@@ -82,12 +92,13 @@ export const config = {
 const hasValidSession = async (
   client: SupabaseClient,
   session: Session,
+  logger: Logger,
 ): Promise<boolean> => {
   const { data: user, error: getUserError } = await client.auth.getUser(
     session.access_token,
   )
   if (getUserError) {
-    console.warn('fail get user:', getUserError)
+    logger.warn('fail get user', { error: getUserError })
     return false
   }
   if (user.user) {

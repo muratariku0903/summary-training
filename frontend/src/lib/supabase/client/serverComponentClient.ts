@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { Database } from '../schema/schema'
 
-export async function createClient() {
+export async function createServerComponentClient() {
   // HTTPリクエストのCookieヘッダーを参照
   const cookieStore = await cookies()
 

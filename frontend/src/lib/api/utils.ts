@@ -5,15 +5,46 @@ import PasswordChangeNotification from '@/components/emails/PasswordChangeNotifi
 import { render } from '@react-email/render'
 import AccountDeletionNotification from '@/components/emails/styles/AccountDeleteNotification'
 import { cookies } from 'next/headers'
+import z, { ZodRawShape } from 'zod'
+import { Result } from '@/types/common'
+import { getRequestLogger } from '../log/storage'
 
 export const getAccessTokenFromHeader = (req: NextRequest): string | null => {
+  const logger = getRequestLogger()
   const authHeader = req.headers.get('Authorization')
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    console.error('❌ Not found Bearer token')
+    logger.warn('Bearer token not found in Authorization header')
     return null
   }
 
   return authHeader.replace('Bearer ', '')
+}
+
+export const requestParse = async <T extends ZodRawShape>(
+  req: Request,
+  schema: z.ZodObject<T>,
+): Promise<Result<z.infer<z.ZodObject<T>>>> => {
+  const logger = getRequestLogger()
+  try {
+    const body = await req.json()
+
+    const {
+      success: parseSuccess,
+      data: parseData,
+      error: parseError,
+    } = schema.safeParse(body)
+    if (!parseSuccess) {
+      logger.warn('Request body validation failed', {
+        errorDetails: parseError.message,
+      })
+      return { success: false, error: Error(String(parseError)) }
+    }
+
+    return { success: true, data: parseData }
+  } catch (e) {
+    logger.error('Failed to parse request body', e)
+    return { success: false, error: Error(String(e)) }
+  }
 }
 
 type CreateMailComponentParams = {
@@ -22,6 +53,7 @@ type CreateMailComponentParams = {
   supportEmail: string
 }
 export const createMailHTML = async (params: CreateMailComponentParams) => {
+  const logger = getRequestLogger()
   const { pattern, userName, supportEmail } = params
 
   try {
@@ -46,6 +78,13 @@ export const createMailHTML = async (params: CreateMailComponentParams) => {
         break
 
       default:
+        logger.error(
+          'Unsupported sending pattern',
+          new Error('Unsupported sending pattern'),
+          {
+            pattern,
+          },
+        )
         throw Error('Unsupported sending pattern')
     }
 
@@ -53,7 +92,7 @@ export const createMailHTML = async (params: CreateMailComponentParams) => {
 
     return { html, subject }
   } catch (e) {
-    console.error('Fail rendering email html', e)
+    logger.error('Failed to render email HTML', e)
     throw e
   }
 }

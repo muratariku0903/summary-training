@@ -19,6 +19,7 @@ import { PROTECTED_PATHS } from '@/lib/constants/routes'
 import { ChangePasswordInput, changePasswordSchema } from '@/lib/supabase/auth/types'
 import { changePassword } from '@/lib/supabase/auth/auth'
 import { UI_MESSAGES } from '@/lib/constants/ui'
+import { clientLogger } from '@/stores/useClientLoggerStore'
 
 // パスワード再設定メールアドレスのリンクからリダイレクトされる
 // PKCEに基づいて認可コードと引き換えに、アクセストークンを取得し、ログインする
@@ -41,7 +42,7 @@ export default function PasswordResetCallbackPage() {
     // パスワード変更処理
     const { success, message } = await changePassword(input)
     if (!success) {
-      console.error(message)
+      clientLogger.error('Change password failed', Error(message))
       setSubmitError(UI_MESSAGES.CHANGE_PASSWORD_FAILED_MESSAGE)
       return
     }
