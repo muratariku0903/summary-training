@@ -46,7 +46,7 @@ export function withLogger<P extends BasePathParams = BasePathParams>(
       // ロガーをコンテキストに追加してハンドラーを実行
       const response = await handler(request, { ...context, logger })
 
-      logger.info(`Request completed successfully`, {
+      logger.info(`Request completed result`, {
         statusCode: response.status,
       })
 

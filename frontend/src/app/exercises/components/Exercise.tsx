@@ -27,6 +27,7 @@ import {
   MessageType,
   OutlineMessage,
 } from '@/components/elements/outline-message/OutlineMessage'
+import { clientLogger } from '@/stores/useClientLoggerStore'
 
 interface ExerciseProps {
   exercise: ExerciseType
@@ -113,13 +114,14 @@ export function Exercise({ exercise, contentUrl }: ExerciseProps) {
                           { requireAuth: true },
                         )
                         if (!success) {
-                          console.error('evaluate error: ', error)
+                          clientLogger.error('Exercise submission failed', error, {
+                            exerciseId: exercise.id,
+                          })
                           setSubmitting(false)
                           setErrorMsg(UI_MESSAGES.SERVER_ERROR)
                           return
                         }
 
-                        console.log('evaluated data: ', data)
                         setResult({
                           evaluationId: data.evaluationId,
                           score: data.score,
