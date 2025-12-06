@@ -31,10 +31,14 @@ export function withLogger<P extends BasePathParams = BasePathParams>(
   handler: BaseHandler<P>,
 ) {
   return async (request: NextRequest, context: { params: Promise<P> }) => {
+    // セッションIDを取得
+    const sessionId = getSessionIdFromHeader(request)
+
     // リクエスト専用のロガーを作成
     const logger = Logger.getInstance().createRequestLogger(undefined, {
       url: request.url,
       method: request.method,
+      sessionId,
     })
 
     // AsyncLocalStorageにロガーを設定
@@ -92,4 +96,11 @@ export function withAuth<P extends BasePathParams = BasePathParams>(
     // 認証が成功したら、ユーザー情報を渡し、元のハンドラーを実行
     return handler(request, user, context)
   }
+}
+
+/**
+ * セッションIDをヘッダーから抽出
+ */
+function getSessionIdFromHeader(request: NextRequest): string | null {
+  return request.headers.get('x-session-id')
 }

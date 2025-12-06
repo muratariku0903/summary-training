@@ -19,11 +19,16 @@ import { Logger } from '@/lib/log/serverLog'
  * - 認証チェックとルーティング制御を行う
  */
 export async function middleware(req: NextRequest) {
-  const logger = Logger.getInstance().createRequestLogger(undefined, {
-    url: req.url,
-    method: req.method,
-    pathname: req.nextUrl.pathname,
-  })
+  const logger = Logger.getInstance().createRequestLogger(
+    undefined,
+    {
+      url: req.url,
+      method: req.method,
+      pathname: req.nextUrl.pathname,
+    },
+    '[MIDDLEWARE]',
+    '🔄',
+  )
 
   logger.info(
     `🚀 Middleware triggered for: ${req.nextUrl.pathname} at ${dayjs().format('YYYY-MM-DDTHH:mm:ss')}`,
