@@ -3,8 +3,6 @@
 import { clientLogger } from '@/stores/useClientLoggerStore'
 import { browserClient } from '../../client/browserClient'
 
-const SESSION_ID_KEY = 'app_session_id'
-
 /**
  * セッションIDを取得
  * - ログイン済み: ユーザーID
@@ -26,14 +24,5 @@ export async function getSessionId(): Promise<string> {
   } catch (error) {
     clientLogger.error('Failed to get session ID:', error)
     return crypto.randomUUID()
-  }
-}
-
-/**
- * セッションIDをクリア（ログアウト時などに使用）
- */
-export function clearSessionId(): void {
-  if (typeof window !== 'undefined' && window.sessionStorage) {
-    sessionStorage.removeItem(SESSION_ID_KEY)
   }
 }

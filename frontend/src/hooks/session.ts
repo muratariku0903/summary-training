@@ -2,8 +2,8 @@
 
 import { useEffect } from 'react'
 import { clientLogger } from '@/stores/useClientLoggerStore'
-import { browserClient } from '@/lib/supabase/client/browserClient'
 import { getSessionId } from '@/lib/supabase/auth/client/session'
+import { browserClient } from '@/lib/supabase/client/browserClient'
 
 /**
  * アプリケーション起動時にセッションIDをロガーに設定
@@ -24,18 +24,13 @@ export function useSessionInitializer() {
     const {
       data: { subscription },
     } = browserClient.auth.onAuthStateChange(async (event, session) => {
-      const sessionId = await getSessionId()
-      clientLogger.setSessionId(sessionId) 
-
       if (event === 'SIGNED_IN') {
+        const sessionId = await getSessionId()
+        clientLogger.setSessionId(sessionId)
         clientLogger.info('User signed in, session updated', {
           sessionId,
           userId: session?.user?.id,
         })
-      } else if (event === 'SIGNED_OUT') {
-        clientLogger.info('User signed out, session reset', { sessionId })
-      } else if (event === 'TOKEN_REFRESHED') {
-        clientLogger.debug('Token refreshed, session maintained', { sessionId })
       }
     })
 
