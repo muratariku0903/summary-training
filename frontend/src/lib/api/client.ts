@@ -118,6 +118,9 @@ export const request = async <U extends string, M extends Method>(
   const { requireAuth = false, headers = {}, ...rest } = options
 
   try {
+    // セッションIDは既にロガーのコンテキストに設定済み
+    const sessionId = clientLogger.getSessionId()
+
     clientLogger.info(`🚀 [${method}] ${url}  (auth: ${requireAuth})`)
 
     // 認証ヘッダーを取得
@@ -136,6 +139,7 @@ export const request = async <U extends string, M extends Method>(
       method: method.toUpperCase(),
       headers: {
         'Content-Type': 'application/json',
+        ...(sessionId ? { 'X-Session-Id': sessionId } : {}),
         ...authHeaders,
         ...headers,
       },

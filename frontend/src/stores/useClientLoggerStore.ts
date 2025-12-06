@@ -3,6 +3,8 @@ import { create } from 'zustand'
 
 type ClientLoggerState = {
   logger: ClientLogger
+  sessionId: string | null
+  setSessionId: (sessionId: string) => void
   setContext: (context: Record<string, unknown>) => void
   clearContext: () => void
 }
@@ -11,8 +13,14 @@ type ClientLoggerState = {
  * グローバルなクライアントロガーストア
  * どこからでもアクセス可能なロガーインスタンスを提供
  */
-export const useClientLoggerStore = create<ClientLoggerState>((_, get) => ({
+export const useClientLoggerStore = create<ClientLoggerState>((set, get) => ({
   logger: new ClientLogger({ type: 'client' }),
+  sessionId: null,
+
+  setSessionId: (sessionId: string) => {
+    set({ sessionId })
+    get().logger.setContext({ sessionId })
+  },
 
   setContext: (context: Record<string, unknown>) => {
     get().logger.setContext(context)
@@ -20,6 +28,7 @@ export const useClientLoggerStore = create<ClientLoggerState>((_, get) => ({
 
   clearContext: () => {
     get().logger.clearContext()
+    set({ sessionId: null })
   },
 }))
 
@@ -51,5 +60,11 @@ export const clientLogger = {
   },
   clearContext: () => {
     useClientLoggerStore.getState().clearContext()
+  },
+  setSessionId: (sessionId: string) => {
+    useClientLoggerStore.getState().setSessionId(sessionId)
+  },
+  getSessionId: () => {
+    return useClientLoggerStore.getState().sessionId
   },
 }

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import Snackbar from '@/components/elements/snackbar/Snackbar'
+import { SessionInitializer } from '@/components/providers/session-initializer/SessionInitializer'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -28,6 +29,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-black`}
       >
+        <SessionInitializer />
         <div className='min-h-screen flex flex-col max-w-screen-sm sm:max-w-screen-md md:max-w-screen-lg lg:max-w-screen-xl mx-auto'>
           {children}
         </div>
