@@ -14,7 +14,7 @@ import {
 import { Spacer } from '@/components/elements/spacer/Spacer'
 import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
 import { ChangeEmailInput, changeEmailSchema } from '@/lib/supabase/auth/types'
-import { changeEmail } from '@/lib/supabase/auth/auth'
+import { changeEmail } from '@/lib/supabase/auth/client/auth'
 import { UI_MESSAGES } from '@/lib/constants/ui'
 import { S } from '../../../../test/e2e/const/selector'
 import { clientLogger } from '@/stores/useClientLoggerStore'

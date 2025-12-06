@@ -3,7 +3,7 @@ import { testApiHandler } from 'next-test-api-route-handler'
 import * as handler from '@/app/api/auth/password/verify/route'
 import { getAccessTokenFromHeader } from '@/lib/api/utils'
 import { adminClient } from '@/lib/supabase/client/adminClient'
-import { checkValidSessionLevel } from '@/lib/supabase/auth/server'
+import { checkValidSessionLevel } from '@/lib/supabase/auth/server/server'
 import { AuthError, User } from '@supabase/supabase-js'
 
 vi.mock('@/lib/api/utils', () => ({

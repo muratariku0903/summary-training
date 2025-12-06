@@ -8,7 +8,7 @@ import {
 } from '@/lib/constants/routes'
 import dayjs from 'dayjs'
 import { deleteTokenFromCookie } from './lib/api/utils'
-import { checkValidSessionLevel } from './lib/supabase/auth/server'
+import { checkValidSessionLevel } from './lib/supabase/auth/server/server'
 import { Session, SupabaseClient } from '@supabase/supabase-js'
 import { Logger } from '@/lib/log/serverLog'
 

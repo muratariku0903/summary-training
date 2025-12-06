@@ -17,7 +17,7 @@ import { Spacer } from '@/components/elements/spacer/Spacer'
 import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
 import { PROTECTED_PATHS } from '@/lib/constants/routes'
 import { ChangePasswordInput, changePasswordSchema } from '@/lib/supabase/auth/types'
-import { changePassword } from '@/lib/supabase/auth/auth'
+import { changePassword } from '@/lib/supabase/auth/client/auth'
 import { UI_MESSAGES } from '@/lib/constants/ui'
 import { clientLogger } from '@/stores/useClientLoggerStore'
 

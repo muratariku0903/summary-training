@@ -1,5 +1,5 @@
 import { SupabaseClient, User } from '@supabase/supabase-js'
-import { createServerComponentClient } from '../client/serverComponentClient'
+import { createServerComponentClient } from '../../client/serverComponentClient'
 
 /**
  * ユーザー情報が適切なセッション情報を保持してるかチェック
