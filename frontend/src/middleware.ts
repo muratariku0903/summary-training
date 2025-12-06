@@ -31,7 +31,7 @@ export async function middleware(req: NextRequest) {
   )
 
   logger.info(
-    `🚀 Middleware triggered for: ${req.nextUrl.pathname} at ${dayjs().format('YYYY-MM-DDTHH:mm:ss')}`,
+    `Middleware triggered for: ${req.nextUrl.pathname} at ${dayjs().format('YYYY-MM-DDTHH:mm:ss')}`,
   )
 
   // Edge Runtime専用クライアントを使用

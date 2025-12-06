@@ -35,11 +35,16 @@ export function withLogger<P extends BasePathParams = BasePathParams>(
     const sessionId = getSessionIdFromHeader(request)
 
     // リクエスト専用のロガーを作成
-    const logger = Logger.getInstance().createRequestLogger(undefined, {
-      url: request.url,
-      method: request.method,
-      sessionId,
-    })
+    const logger = Logger.getInstance().createRequestLogger(
+      undefined,
+      {
+        url: request.url,
+        method: request.method,
+        sessionId,
+      },
+      '[API]',
+      '🚀',
+    )
 
     // AsyncLocalStorageにロガーを設定
     setRequestLogger(logger)

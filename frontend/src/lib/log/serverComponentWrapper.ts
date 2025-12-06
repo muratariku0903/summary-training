@@ -23,12 +23,16 @@ export async function withServerLogger<T>(
   context?: Record<string, unknown>,
 ): Promise<T> {
   // リクエスト専用のロガーを作成
-  const logger = Logger.getInstance().createRequestLogger(undefined, {
-    type: 'server_component',
-    ...context,
-  })
+  const logger = Logger.getInstance().createRequestLogger(
+    undefined,
+    {
+      type: 'server_component',
+      ...context,
+    },
+    '[SERVER_COMPONENT]',
+    '⚛️',
+  )
 
-  // AsyncLocalStorageにロガーを設定
   setRequestLogger(logger)
 
   logger.info(LOG_MESSAGES.SERVER_COMPONENT.EXECUTION_STARTED)

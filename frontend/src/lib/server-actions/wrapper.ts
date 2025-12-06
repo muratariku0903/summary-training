@@ -77,12 +77,17 @@ export function withServerAction<TInput, TOutput>(
 
   return async (input: TInput): Promise<ActionResult<TOutput>> => {
     // リクエスト専用のロガーを作成
-    const logger = Logger.getInstance().createRequestLogger(undefined, {
-      type: 'server_action',
-      actionName,
-      requireAuth,
-      ...context,
-    })
+    const logger = Logger.getInstance().createRequestLogger(
+      undefined,
+      {
+        type: 'server_action',
+        actionName,
+        requireAuth,
+        ...context,
+      },
+      '[SERVER_ACTION]',
+      '⚡',
+    )
 
     // AsyncLocalStorageにロガーを設定
     setRequestLogger(logger)
