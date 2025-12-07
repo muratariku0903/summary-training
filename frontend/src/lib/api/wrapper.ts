@@ -6,6 +6,8 @@ import { getAccessTokenFromHeader } from './utils'
 import { Logger } from '../log/serverLog'
 import { setRequestLogger } from '../log/storage'
 import { LOG_MESSAGES } from '../log/message'
+import { CUSTOM_HEADERS } from '../constants/http-header'
+import { getUserId } from '../supabase/auth/server/server'
 
 type BasePathParams = Record<keyof object, string | string[]>
 
@@ -31,8 +33,11 @@ export function withLogger<P extends BasePathParams = BasePathParams>(
   handler: BaseHandler<P>,
 ) {
   return async (request: NextRequest, context: { params: Promise<P> }) => {
-    // セッションIDを取得
-    const sessionId = getSessionIdFromHeader(request)
+    // リクエストIDを取得
+    const requestId = getRequestIdFromHeader(request)
+
+    // ユーザーIDを取得
+    const userId = await getUserId()
 
     // リクエスト専用のロガーを作成
     const logger = Logger.getInstance().createRequestLogger(
@@ -40,7 +45,8 @@ export function withLogger<P extends BasePathParams = BasePathParams>(
       {
         url: request.url,
         method: request.method,
-        sessionId,
+        requestId,
+        sessionId: userId,
       },
       '[API]',
       '🚀',
@@ -106,6 +112,6 @@ export function withAuth<P extends BasePathParams = BasePathParams>(
 /**
  * セッションIDをヘッダーから抽出
  */
-function getSessionIdFromHeader(request: NextRequest): string | null {
-  return request.headers.get('x-session-id')
+function getRequestIdFromHeader(request: NextRequest): string | null {
+  return request.headers.get(CUSTOM_HEADERS.REQUEST_ID)
 }

@@ -11,6 +11,7 @@ import { deleteTokenFromCookie } from './lib/api/utils'
 import { checkValidSessionLevel } from './lib/supabase/auth/server/server'
 import { Session, SupabaseClient } from '@supabase/supabase-js'
 import { Logger } from '@/lib/log/serverLog'
+import { CUSTOM_HEADERS } from './lib/constants/http-header'
 
 /**
  * Next.js ミドルウェア
@@ -19,8 +20,9 @@ import { Logger } from '@/lib/log/serverLog'
  * - 認証チェックとルーティング制御を行う
  */
 export async function middleware(req: NextRequest) {
+  const requestId = crypto.randomUUID()
   const logger = Logger.getInstance().createRequestLogger(
-    undefined,
+    requestId,
     {
       url: req.url,
       method: req.method,
@@ -37,6 +39,10 @@ export async function middleware(req: NextRequest) {
   // Edge Runtime専用クライアントを使用
   const { client: supabaseMiddlerWareClient, response: updatedResponse } =
     createMiddlewareSupabaseClient(req)
+
+  // リクエストヘッダーにトレースIDを追加
+  const requestHeaders = new Headers(req.headers)
+  requestHeaders.set(CUSTOM_HEADERS.REQUEST_ID, requestId)
 
   // 内部でCookieから認証情報を読み取り・検証
   //　トークン切れになっていた場合内部でリフレッシュしてトークンを更新
@@ -79,7 +85,13 @@ export async function middleware(req: NextRequest) {
   }
 
   logger.info('Middleware completed successfully')
-  return updatedResponse
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+    headers: updatedResponse.headers,
+  })
 }
 
 /**

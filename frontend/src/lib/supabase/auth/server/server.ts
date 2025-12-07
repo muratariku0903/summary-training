@@ -32,3 +32,20 @@ export async function checkValidSessionLevel(
     return { error: String(e) }
   }
 }
+
+/**
+ * 現在の認証ユーザーIDを取得
+ * ログインしていない場合はundefinedを返す
+ */
+export async function getUserId(): Promise<string | undefined> {
+  try {
+    const client = await createServerComponentClient()
+    const {
+      data: { session },
+    } = await client.auth.getSession()
+
+    return session?.user?.id
+  } catch (error) {
+    throw error
+  }
+}

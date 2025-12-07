@@ -1,7 +1,10 @@
+import { headers } from 'next/headers'
 import { ServerComponentExecutionError } from '../error/error'
 import { LOG_MESSAGES } from './message'
 import { Logger } from './serverLog'
 import { setRequestLogger } from './storage'
+import { getUserId } from '../supabase/auth/server/server'
+import { CUSTOM_HEADERS } from '../constants/http-header'
 
 type ServerComponentHandler<T> = (logger: Logger) => Promise<T>
 
@@ -22,11 +25,21 @@ export async function withServerLogger<T>(
   handler: ServerComponentHandler<T>,
   context?: Record<string, unknown>,
 ): Promise<T> {
+  // リクエストヘッダーからセッションIDを取得
+  const headersList = await headers()
+  const requestId = headersList.get(CUSTOM_HEADERS.REQUEST_ID)
+
+  // ユーザーIDを取得
+  const userId = await getUserId()
+
   // リクエスト専用のロガーを作成
   const logger = Logger.getInstance().createRequestLogger(
-    undefined,
+    requestId || undefined,
     {
       type: 'server_component',
+      requestId,
+      sessionId: userId,
+      userId,
       ...context,
     },
     '[SERVER_COMPONENT]',

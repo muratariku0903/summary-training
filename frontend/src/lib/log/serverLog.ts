@@ -48,6 +48,10 @@ export class Logger {
     Sentry.setTag('environment_type', Logger.ENVIRONMENT_TYPE)
 
     // 重要な情報はタグとしても設定（検索・フィルタリング用）
+    if (context.requestId && typeof context.requestId === 'string') {
+      Sentry.setTag('request_id', context.requestId)
+    }
+
     if (context.sessionId && typeof context.sessionId === 'string') {
       Sentry.setTag('session_id', context.sessionId)
     }
@@ -55,10 +59,6 @@ export class Logger {
     if (context.userId && typeof context.userId === 'string') {
       Sentry.setUser({ id: context.userId })
       Sentry.setTag('user_id', context.userId)
-    }
-
-    if (context.requestId && typeof context.requestId === 'string') {
-      Sentry.setTag('request_id', context.requestId)
     }
   }
 
