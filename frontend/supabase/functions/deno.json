@@ -13,6 +13,6 @@
     "types": ["./types/deno.d.ts"]
   },
   "tasks": {
-    "test": "deno test --no-check --allow-read --allow-env --allow-net"
+    "test": "deno test --no-check --allow-read --allow-env --allow-net --reload --lock=deno.lock"
   }
 }
