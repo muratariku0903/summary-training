@@ -1,6 +1,6 @@
 import { getRequestLogger } from '@/lib/log/storage'
-import { findAuthUserIdByEmail } from '../auth/admin'
-import { adminClient } from '../client/adminClient'
+import { adminClient } from '../../client/adminClient'
+import { findAuthUserIdByEmail } from './admin'
 
 export type EnsureArgs = {
   provider: 'descope' | string

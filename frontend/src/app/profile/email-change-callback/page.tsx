@@ -4,7 +4,7 @@ import Footer from '@/components/layouts/footer/Footer'
 import { getUserProfile } from '@/lib/features/user/server'
 import { adminClient } from '@/lib/supabase/client/adminClient'
 import { updateDescopeUserEmail } from '@/lib/descope/server/utils'
-import { convertMfaFactors } from '@/lib/supabase/auth/mfa'
+import { convertMfaFactors } from '@/lib/supabase/auth/client/mfa'
 import MfaSwitcher from '@/components/features/auth/MfaSwitcher'
 import { Logger } from '@/lib/log/serverLog'
 

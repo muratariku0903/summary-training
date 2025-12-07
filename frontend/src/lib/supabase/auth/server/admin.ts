@@ -1,4 +1,4 @@
-import { adminClient } from '../client/adminClient'
+import { adminClient } from '../../client/adminClient'
 
 /**
  * email で auth.users を探し、見つかったら UUID を返す（大小無視）
@@ -39,6 +39,6 @@ export async function getDescopeUserIdByAuthUserId(
     .limit(1)
 
   if (error) return { success: false, message: error.message }
-  
+
   return { success: true, descopeUserId: data?.[0]?.external_user_id ?? null }
 }

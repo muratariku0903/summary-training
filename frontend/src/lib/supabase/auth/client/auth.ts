@@ -1,6 +1,6 @@
 // src/lib/supabase/auth/auth.ts - 修正版
 import { PROTECTED_PATHS, PUBLIC_PATHS } from '@/lib/constants/routes'
-import { browserClient } from '../client/browserClient'
+import { browserClient } from '../../client/browserClient'
 import { getAvailableMfaFactors } from './mfa'
 import {
   signinSchema,
@@ -16,7 +16,7 @@ import {
   ChangeEmailResponse,
   ResetPasswordInput,
   ResetPasswordResponse,
-} from './types'
+} from '../types'
 import { AUTH_MESSAGES, AUTH_LOG_MESSAGES } from '@/lib/constants/auth'
 import { ZodError } from 'zod'
 import { User } from '@supabase/supabase-js'

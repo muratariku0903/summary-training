@@ -7,7 +7,11 @@ import { MFA_TYPES } from '@/lib/supabase/auth/types'
 import { useState } from 'react'
 import ConfirmDialog from '@/components/elements/confirm-dialog/ConfirmDialog'
 import TotpSetup from '@/components/features/auth/TotpSetup'
-import { enrollTotpFactor, listMfa, resetEnrollment } from '@/lib/supabase/auth/mfa'
+import {
+  enrollTotpFactor,
+  listMfa,
+  resetEnrollment,
+} from '@/lib/supabase/auth/client/mfa'
 import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
 import { useRouter } from 'next/navigation'
 import { PROTECTED_PATHS } from '@/lib/constants/routes'

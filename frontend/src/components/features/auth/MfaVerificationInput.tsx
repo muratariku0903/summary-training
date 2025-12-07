@@ -7,7 +7,7 @@ import AuthCodeInput, {
 } from '@/components/elements/auth-code/AuthCode'
 import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
 import { MfaFactor } from '@/lib/supabase/auth/types'
-import { verifyTotp } from '@/lib/supabase/auth/mfa'
+import { verifyTotp } from '@/lib/supabase/auth/client/mfa'
 import { MFA_TYPES } from '@/lib/supabase/auth/types'
 import { clientLogger } from '@/stores/useClientLoggerStore'
 

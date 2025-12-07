@@ -6,6 +6,8 @@ import { getAccessTokenFromHeader } from './utils'
 import { Logger } from '../log/serverLog'
 import { setRequestLogger } from '../log/storage'
 import { LOG_MESSAGES } from '../log/message'
+import { CUSTOM_HEADERS } from '../constants/http-header'
+import { getUserId } from '../supabase/auth/server/server'
 
 type BasePathParams = Record<keyof object, string | string[]>
 
@@ -31,11 +33,24 @@ export function withLogger<P extends BasePathParams = BasePathParams>(
   handler: BaseHandler<P>,
 ) {
   return async (request: NextRequest, context: { params: Promise<P> }) => {
+    // リクエストIDを取得
+    const requestId = getRequestIdFromHeader(request)
+
+    // ユーザーIDを取得
+    const userId = await getUserId()
+
     // リクエスト専用のロガーを作成
-    const logger = Logger.getInstance().createRequestLogger(undefined, {
-      url: request.url,
-      method: request.method,
-    })
+    const logger = Logger.getInstance().createRequestLogger(
+      undefined,
+      {
+        url: request.url,
+        method: request.method,
+        requestId,
+        sessionId: userId,
+      },
+      '[API]',
+      '🚀',
+    )
 
     // AsyncLocalStorageにロガーを設定
     setRequestLogger(logger)
@@ -92,4 +107,11 @@ export function withAuth<P extends BasePathParams = BasePathParams>(
     // 認証が成功したら、ユーザー情報を渡し、元のハンドラーを実行
     return handler(request, user, context)
   }
+}
+
+/**
+ * セッションIDをヘッダーから抽出
+ */
+function getRequestIdFromHeader(request: NextRequest): string | null {
+  return request.headers.get(CUSTOM_HEADERS.REQUEST_ID)
 }

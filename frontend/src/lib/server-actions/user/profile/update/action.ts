@@ -22,6 +22,7 @@ export const updateProfileAction = withServerAction<UpdateProfileSchema, UserPro
       display_name: input.display_name,
       bio: input.bio || null,
     }
+
     const { data, error } = await serverComponentClient
       .from('user_profiles')
       .update(updateData)

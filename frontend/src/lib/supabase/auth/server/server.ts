@@ -1,5 +1,5 @@
 import { SupabaseClient, User } from '@supabase/supabase-js'
-import { createServerComponentClient } from '../client/serverComponentClient'
+import { createServerComponentClient } from '../../client/serverComponentClient'
 
 /**
  * ユーザー情報が適切なセッション情報を保持してるかチェック
@@ -30,5 +30,22 @@ export async function checkValidSessionLevel(
     return { valid: true }
   } catch (e) {
     return { error: String(e) }
+  }
+}
+
+/**
+ * 現在の認証ユーザーIDを取得
+ * ログインしていない場合はundefinedを返す
+ */
+export async function getUserId(): Promise<string | undefined> {
+  try {
+    const client = await createServerComponentClient()
+    const {
+      data: { session },
+    } = await client.auth.getSession()
+
+    return session?.user?.id
+  } catch (error) {
+    throw error
   }
 }

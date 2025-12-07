@@ -3,7 +3,7 @@ import { getUserProfile } from '../../../lib/features/user/server'
 import Main from '@/components/layouts/main/Main'
 import Footer from '@/components/layouts/footer/Footer'
 import MfaSwitcher from '@/components/features/auth/MfaSwitcher'
-import { convertMfaFactors } from '@/lib/supabase/auth/mfa'
+import { convertMfaFactors } from '@/lib/supabase/auth/client/mfa'
 import { withServerLogger } from '@/lib/log/serverComponentWrapper'
 
 // 動的レンダリングを強制

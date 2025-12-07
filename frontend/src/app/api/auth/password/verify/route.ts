@@ -1,6 +1,6 @@
 import { BadRequest, InternalError, Success, Unauthorized } from '@/lib/api/response'
 import { createClient } from '@supabase/supabase-js'
-import { checkValidSessionLevel } from '@/lib/supabase/auth/server'
+import { checkValidSessionLevel } from '@/lib/supabase/auth/server/server'
 import { withAuth, withLogger } from '@/lib/api/wrapper'
 import { LOG_MESSAGES } from '@/lib/log/message'
 

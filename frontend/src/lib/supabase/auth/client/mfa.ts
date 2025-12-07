@@ -1,6 +1,6 @@
 // src/lib/supabase/auth/mfa.ts - 型安全性を向上
 import { AuthMFAListFactorsResponse } from '@supabase/supabase-js'
-import { browserClient } from '../client/browserClient'
+import { browserClient } from '../../client/browserClient'
 import {
   totpSetupVerificationSchema,
   TotpSetupVerificationInput,
@@ -12,7 +12,7 @@ import {
   TotpResetResponse,
   ListMfaResponse,
   MFA_TYPES,
-} from './types'
+} from '../types'
 import { AUTH_MESSAGES, AUTH_LOG_MESSAGES } from '@/lib/constants/auth'
 import { ZodError } from 'zod'
 import { clientLogger } from '@/stores/useClientLoggerStore'

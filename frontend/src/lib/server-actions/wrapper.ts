@@ -7,6 +7,9 @@ import { setRequestLogger } from '../log/storage'
 import { ActionResult } from '../server-actions/types'
 import { createServerComponentClient } from '../supabase/client/serverComponentClient'
 import { PUBLIC_PATHS } from '../constants/routes'
+import { headers } from 'next/headers'
+import { CUSTOM_HEADERS } from '../constants/http-header'
+import { getUserId } from '../supabase/auth/server/server'
 
 type ServerActionHandler<TInput, TOutput> = (
   input: TInput,
@@ -76,13 +79,28 @@ export function withServerAction<TInput, TOutput>(
   const { actionName, requireAuth = false, ...context } = options
 
   return async (input: TInput): Promise<ActionResult<TOutput>> => {
+    // リクエストヘッダーからセッションIDを取得
+    const headersList = await headers()
+    const requestId = headersList.get(CUSTOM_HEADERS.REQUEST_ID)
+
+    // ユーザーIDを取得
+    const userId = await getUserId()
+
     // リクエスト専用のロガーを作成
-    const logger = Logger.getInstance().createRequestLogger(undefined, {
-      type: 'server_action',
-      actionName,
-      requireAuth,
-      ...context,
-    })
+    const logger = Logger.getInstance().createRequestLogger(
+      undefined,
+      {
+        type: 'server_action',
+        actionName,
+        requestId,
+        sessionId: userId,
+        userId,
+        requireAuth,
+        ...context,
+      },
+      '[SERVER_ACTION]',
+      '⚡',
+    )
 
     // AsyncLocalStorageにロガーを設定
     setRequestLogger(logger)
