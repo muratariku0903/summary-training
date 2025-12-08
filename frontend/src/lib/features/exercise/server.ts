@@ -145,9 +145,12 @@ export async function getExerciseWithSingedUrl(
     logger.error('Failed to fetch exercise', dbError)
     throw new Error('演習の取得に失敗しました')
   }
-  logger.debug('Exercise fetched, generating signed URL', {
+  logger.info('Exercise fetched, generating signed URL', {
     storagePath: exercise.storage_path,
   })
+  // logger.debug('Exercise fetched, generating signed URL', {
+  //   storagePath: exercise.storage_path,
+  // })
 
   // 署名付きURLを生成（1時間有効）
   const { data: signedUrlData, error: signedUrlError } =
