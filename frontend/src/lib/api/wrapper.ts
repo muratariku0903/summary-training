@@ -41,7 +41,7 @@ export function withLogger<P extends BasePathParams = BasePathParams>(
 
     // リクエスト専用のロガーを作成
     const logger = Logger.getInstance().createRequestLogger(
-      undefined,
+      requestId || undefined,
       {
         url: request.url,
         method: request.method,
