@@ -88,7 +88,7 @@ export function withServerAction<TInput, TOutput>(
 
     // リクエスト専用のロガーを作成
     const logger = Logger.getInstance().createRequestLogger(
-      undefined,
+      requestId || undefined,
       {
         type: 'server_action',
         actionName,
