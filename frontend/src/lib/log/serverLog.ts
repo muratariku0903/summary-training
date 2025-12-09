@@ -1,3 +1,4 @@
+import { sanitizeLogMessage, sanitizePII } from '@/utils/pii'
 import * as Sentry from '@sentry/nextjs'
 
 /**
@@ -14,6 +15,16 @@ export class Logger {
   private context: Record<string, unknown> = {}
   private prefix: string
   private emoji: string
+
+  // サニタイズ設定をキャッシュ
+  private sanitizeOptions = {
+    maxDepth: 5,
+    maxArrayLength: 100,
+    maxObjectKeys: 50,
+    // セキュリティ重視: 開発環境でも基本的にはサニタイズ
+    // パフォーマンステスト時のみ環境変数で無効化可能
+    skip: process.env.DISABLE_PII_SANITIZE === 'true',
+  }
 
   private constructor(
     prefix: string = Logger.DEFAULT_PREFIX,
@@ -82,20 +93,30 @@ export class Logger {
     meta: Record<string, unknown> = {},
   ): void {
     const timestamp = new Date().toISOString()
+
+    // PIIマスク処理を適用
+    const sanitizedMessage = sanitizeLogMessage(message)
+    const metaResult = sanitizePII(meta, this.sanitizeOptions)
+    const contextResult = sanitizePII(this.context, this.sanitizeOptions)
+
+    // 型ガードで安全にキャスト
+    const sanitizedMeta = isRecord(metaResult) ? metaResult : {}
+    const sanitizedContext = isRecord(contextResult) ? contextResult : {}
+
     const logEntry = {
       timestamp,
       level,
-      message,
-      ...this.context,
-      ...meta,
+      message: sanitizedMessage,
+      ...sanitizedContext,
+      ...sanitizedMeta,
     }
 
-    // Sentryにブレッドクラムを追加（エラートレースに役立つ）
+    // Sentryにブレッドクラムを追加（サニタイズ済みデータを使用）
     if (level !== 'error' && level !== 'warn') {
       Sentry.addBreadcrumb({
-        message: `${this.prefix} ${message}`,
+        message: `${this.prefix} ${sanitizedMessage}`,
         level: level === 'debug' ? 'debug' : 'info',
-        data: { ...this.context, ...meta },
+        data: { ...sanitizedContext, ...sanitizedMeta }, // ← サニタイズ済み
         timestamp: Date.now() / 1000,
         category: 'server-log',
       })
@@ -151,16 +172,31 @@ export class Logger {
   public warn(message: string, meta: Record<string, unknown> = {}): void {
     this.log('warn', message, meta)
 
+    // PIIマスク処理を適用
+    const sanitizedMeta = sanitizePII(meta, {
+      ...this.sanitizeOptions,
+      skip: false, // 警告も常にサニタイズ
+    }) as Record<string, unknown>
+
+    const sanitizedContext = sanitizePII(this.context, {
+      ...this.sanitizeOptions,
+      skip: false,
+    }) as Record<string, unknown>
+
+    const sanitizedMessage = sanitizeLogMessage(message)
+
     // Sentryに警告レベルで報告
     Sentry.withScope((scope) => {
       scope.setLevel('warning')
-      scope.setContext('warning_details', meta)
+      scope.setContext('warning_details', sanitizedMeta)
       scope.setTag('runtime', Logger.RUNTIME)
       scope.setTag('environment_type', Logger.ENVIRONMENT_TYPE)
-      Object.entries(this.context).forEach(([key, value]) => {
+
+      Object.entries(sanitizedContext).forEach(([key, value]) => {
         scope.setTag(key, String(value))
       })
-      Sentry.captureMessage(`${this.prefix} ${message}`)
+
+      Sentry.captureMessage(`${this.prefix} ${sanitizedMessage}`)
     })
   }
 
@@ -222,16 +258,26 @@ export class Logger {
 
     this.log('error', message, errorMeta)
 
+    // PIIマスク処理を適用
+    const sanitizedErrorMeta = sanitizePII(errorMeta, {
+      ...this.sanitizeOptions,
+      skip: false,
+    }) as Record<string, unknown>
+    const sanitizedContext = sanitizePII(this.context, {
+      ...this.sanitizeOptions,
+      skip: false,
+    }) as Record<string, unknown>
+
     // Sentryにエラーを報告
     Sentry.withScope((scope) => {
       scope.setLevel('error')
-      scope.setContext('error_details', errorMeta)
-      scope.setContext('logger_message', { message })
+      scope.setContext('error_details', sanitizedErrorMeta)
+      scope.setContext('logger_message', { message: sanitizeLogMessage(message) })
       scope.setTag('runtime', Logger.RUNTIME)
       scope.setTag('environment_type', Logger.ENVIRONMENT_TYPE)
 
       // コンテキスト情報をタグとして設定（検索・フィルタリング用）
-      Object.entries(this.context).forEach(([key, value]) => {
+      Object.entries(sanitizedContext).forEach(([key, value]) => {
         scope.setTag(key, String(value))
       })
 
@@ -242,7 +288,11 @@ export class Logger {
           typeof value === 'number' ||
           typeof value === 'boolean'
         ) {
-          scope.setTag(`meta_${key}`, String(value))
+          const sanitized = sanitizePII(
+            { [key]: value },
+            { maxDepth: 1, skip: false },
+          ) as Record<string, unknown>
+          scope.setTag(`meta_${key}`, String(sanitized[key]))
         }
       })
 
@@ -297,6 +347,13 @@ export class Logger {
 }
 
 /**
+ * サニタイズ結果がRecord型であることを保証
+ */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+/**
  * unknownなオブジェクトがErrorのインスタンスであるかどうかをチェックする型ガード。
  */
 function isError(err: unknown): err is Error {
@@ -308,12 +365,23 @@ function isError(err: unknown): err is Error {
  * 循環参照やBigIntなどの問題を回避
  */
 function safeStringify(obj: unknown): string {
+  const seen = new WeakSet()
+
   try {
     return JSON.stringify(obj, (key, value) => {
+      // 循環参照チェック
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) {
+          return '[Circular Reference]'
+        }
+        seen.add(value)
+      }
+
       // BigIntの処理
       if (typeof value === 'bigint') {
         return value.toString()
       }
+
       return value
     })
   } catch (error) {
