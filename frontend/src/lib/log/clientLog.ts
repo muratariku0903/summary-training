@@ -43,7 +43,7 @@ export class ClientLogger {
    * 重要な情報はタグとして設定（検索・フィルタリング用）
    */
   private syncContextToSentry(): void {
-    // PIIマスク処理を適用してからSentryに送信
+    // PIIマスク処理を適用してからSentryに送信（コンテキスト用）
     const sanitizedContext = sanitizePII(this.context, {
       ...this.sanitizeOptions,
       skip: false, // Sentryへの送信時は常にサニタイズ
@@ -56,14 +56,24 @@ export class ClientLogger {
     Sentry.setTag('runtime', ClientLogger.RUNTIME)
     Sentry.setTag('environment_type', ClientLogger.ENVIRONMENT_TYPE)
 
-    // 重要な情報はタグとしても設定
-    if (sanitizedContext.sessionId && typeof sanitizedContext.sessionId === 'string') {
-      Sentry.setTag('session_id', sanitizedContext.sessionId)
-    }
+    // タグには識別子のみ設定（サニタイズ前の値を使用）
+    // PII情報ではない識別子のみをタグとして設定
+    const safeTagKeys = ['sessionId', 'type', 'userId']
 
-    if (sanitizedContext.type && typeof sanitizedContext.type === 'string') {
-      Sentry.setTag('logger_type', sanitizedContext.type)
-    }
+    Object.entries(this.context).forEach(([key, value]) => {
+      if (
+        safeTagKeys.includes(key) &&
+        (typeof value === 'string' || typeof value === 'number')
+      ) {
+        if (key === 'sessionId') {
+          Sentry.setTag('session_id', String(value))
+        } else if (key === 'type') {
+          Sentry.setTag('logger_type', String(value))
+        } else if (key === 'userId') {
+          Sentry.setTag('user_id', String(value))
+        }
+      }
+    })
   }
 
   private log(
@@ -127,13 +137,8 @@ export class ClientLogger {
   public warn(message: string, meta: Record<string, unknown> = {}): void {
     this.log('warn', message, meta)
 
-    // PIIマスク処理を適用
+    // PIIマスク処理を適用（コンテキスト用）
     const sanitizedMeta = sanitizePII(meta, {
-      ...this.sanitizeOptions,
-      skip: false, // 警告も常にサニタイズ
-    }) as Record<string, unknown>
-
-    const sanitizedContext = sanitizePII(this.context, {
       ...this.sanitizeOptions,
       skip: false,
     }) as Record<string, unknown>
@@ -147,19 +152,15 @@ export class ClientLogger {
       scope.setTag('runtime', ClientLogger.RUNTIME)
       scope.setTag('environment_type', ClientLogger.ENVIRONMENT_TYPE)
 
-      // コンテキスト情報をタグとして設定
-      Object.entries(sanitizedContext).forEach(([key, value]) => {
-        scope.setTag(key, String(value))
-      })
+      // タグには識別子のみ設定（サニタイズ前の値を使用）
+      const safeTagKeys = ['sessionId', 'type', 'userId', 'function', 'lifecycle']
 
-      // 追加メタデータもタグとして設定
-      Object.entries(sanitizedMeta).forEach(([key, value]) => {
+      Object.entries(this.context).forEach(([key, value]) => {
         if (
-          typeof value === 'string' ||
-          typeof value === 'number' ||
-          typeof value === 'boolean'
+          safeTagKeys.includes(key) &&
+          (typeof value === 'string' || typeof value === 'number')
         ) {
-          scope.setTag(`meta_${key}`, String(value))
+          scope.setTag(key, String(value))
         }
       })
 
@@ -172,7 +173,6 @@ export class ClientLogger {
     let errorForSentry: Error
 
     if (isError(err)) {
-      // ① Errorオブジェクトの場合
       errorMeta = {
         ...errorMeta,
         errorType: 'ErrorObject',
@@ -184,7 +184,6 @@ export class ClientLogger {
       errorForSentry.name = err.name
       errorForSentry.stack = err.stack
     } else if (typeof err === 'string') {
-      // ② 文字列の場合
       errorMeta = {
         ...errorMeta,
         errorType: 'StringError',
@@ -197,7 +196,6 @@ export class ClientLogger {
       'message' in err &&
       typeof err.message === 'string'
     ) {
-      // ③ オブジェクトでmessageプロパティを持つ場合
       errorMeta = {
         ...errorMeta,
         errorType: 'ObjectWithMessage',
@@ -206,7 +204,6 @@ export class ClientLogger {
       }
       errorForSentry = new Error(`${ClientLogger.PREFIX} ${message}: ${err.message}`)
     } else {
-      // ④ その他の未知の型の場合
       errorMeta = {
         ...errorMeta,
         errorType: 'UnknownType',
@@ -218,13 +215,8 @@ export class ClientLogger {
 
     this.log('error', message, errorMeta)
 
-    // PIIマスク処理を適用
+    // PIIマスク処理を適用（コンテキスト用）
     const sanitizedErrorMeta = sanitizePII(errorMeta, {
-      ...this.sanitizeOptions,
-      skip: false,
-    }) as Record<string, unknown>
-
-    const sanitizedContext = sanitizePII(this.context, {
       ...this.sanitizeOptions,
       skip: false,
     }) as Record<string, unknown>
@@ -237,17 +229,31 @@ export class ClientLogger {
       scope.setTag('runtime', ClientLogger.RUNTIME)
       scope.setTag('environment_type', ClientLogger.ENVIRONMENT_TYPE)
 
-      // コンテキスト情報をタグとして設定
-      Object.entries(sanitizedContext).forEach(([key, value]) => {
-        scope.setTag(key, String(value))
+      // タグには識別子のみ設定（サニタイズ前の値を使用）
+      const safeTagKeys = [
+        'sessionId',
+        'type',
+        'userId',
+        'function',
+        'lifecycle',
+        'errorType',
+      ]
+
+      // コンテキスト情報から安全なキーのみタグ設定
+      Object.entries(this.context).forEach(([key, value]) => {
+        if (
+          safeTagKeys.includes(key) &&
+          (typeof value === 'string' || typeof value === 'number')
+        ) {
+          scope.setTag(key, String(value))
+        }
       })
 
-      // 追加メタデータをタグとして設定
-      Object.entries(sanitizedErrorMeta).forEach(([key, value]) => {
+      // エラーメタデータから安全なキーのみタグ設定
+      Object.entries(errorMeta).forEach(([key, value]) => {
         if (
-          typeof value === 'string' ||
-          typeof value === 'number' ||
-          typeof value === 'boolean'
+          safeTagKeys.includes(key) &&
+          (typeof value === 'string' || typeof value === 'number')
         ) {
           scope.setTag(`meta_${key}`, String(value))
         }

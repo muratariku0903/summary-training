@@ -166,34 +166,43 @@ export class Logger {
 
   /**
    * 警告レベルのログを出力
-   * @param message ログメッセージ
-   * @param meta 構造化するための追加メタデータ（オブジェクト）
    */
   public warn(message: string, meta: Record<string, unknown> = {}): void {
     this.log('warn', message, meta)
 
-    // PIIマスク処理を適用
+    // PIIマスク処理を適用（コンテキスト用）
     const sanitizedMeta = sanitizePII(meta, {
-      ...this.sanitizeOptions,
-      skip: false, // 警告も常にサニタイズ
-    }) as Record<string, unknown>
-
-    const sanitizedContext = sanitizePII(this.context, {
       ...this.sanitizeOptions,
       skip: false,
     }) as Record<string, unknown>
 
     const sanitizedMessage = sanitizeLogMessage(message)
 
-    // Sentryに警告レベルで報告
     Sentry.withScope((scope) => {
       scope.setLevel('warning')
       scope.setContext('warning_details', sanitizedMeta)
       scope.setTag('runtime', Logger.RUNTIME)
       scope.setTag('environment_type', Logger.ENVIRONMENT_TYPE)
 
-      Object.entries(sanitizedContext).forEach(([key, value]) => {
-        scope.setTag(key, String(value))
+      // タグには識別子のみ設定（サニタイズ前の値を使用）
+      // PII情報ではない識別子のみをタグとして設定
+      const safeTagKeys = [
+        'requestId',
+        'sessionId',
+        'userId',
+        'type',
+        'function',
+        'lifecycle',
+      ]
+
+      Object.entries(this.context).forEach(([key, value]) => {
+        // 安全なキーのみタグとして設定
+        if (
+          safeTagKeys.includes(key) &&
+          (typeof value === 'string' || typeof value === 'number')
+        ) {
+          scope.setTag(key, String(value))
+        }
       })
 
       Sentry.captureMessage(`${this.prefix} ${sanitizedMessage}`)
@@ -202,17 +211,12 @@ export class Logger {
 
   /**
    * エラーレベルのログを出力
-   * Errorオブジェクトとメッセージを組み合わせて出力し、スタックトレースを含める
-   * @param message ログメッセージ
-   * @param err unknown型でキャッチされたエラー（Error, string, その他の可能性）
-   * @param meta 構造化するための追加メタデータ（オブジェクト）
    */
   public error(message: string, err: unknown, meta: Record<string, unknown> = {}): void {
     let errorMeta: Record<string, unknown> = { ...meta }
     let errorForSentry: Error
 
     if (isError(err)) {
-      // ① Errorオブジェクトの場合：name, message, stackを安全に抽出
       errorMeta = {
         ...errorMeta,
         errorType: 'ErrorObject',
@@ -224,7 +228,6 @@ export class Logger {
       errorForSentry.name = err.name
       errorForSentry.stack = err.stack
     } else if (typeof err === 'string') {
-      // ② 文字列の場合：メッセージとして記録
       errorMeta = {
         ...errorMeta,
         errorType: 'StringError',
@@ -237,7 +240,6 @@ export class Logger {
       'message' in err &&
       typeof err.message === 'string'
     ) {
-      // ③ オブジェクトでmessageプロパティを持つ場合（例: { message: '...' }）
       errorMeta = {
         ...errorMeta,
         errorType: 'ObjectWithMessage',
@@ -246,7 +248,6 @@ export class Logger {
       }
       errorForSentry = new Error(`${this.prefix} ${message}: ${err.message}`)
     } else {
-      // ④ その他の未知の型の場合：型情報を記録
       errorMeta = {
         ...errorMeta,
         errorType: 'UnknownType',
@@ -258,17 +259,12 @@ export class Logger {
 
     this.log('error', message, errorMeta)
 
-    // PIIマスク処理を適用
+    // PIIマスク処理を適用（コンテキスト用）
     const sanitizedErrorMeta = sanitizePII(errorMeta, {
       ...this.sanitizeOptions,
       skip: false,
     }) as Record<string, unknown>
-    const sanitizedContext = sanitizePII(this.context, {
-      ...this.sanitizeOptions,
-      skip: false,
-    }) as Record<string, unknown>
 
-    // Sentryにエラーを報告
     Sentry.withScope((scope) => {
       scope.setLevel('error')
       scope.setContext('error_details', sanitizedErrorMeta)
@@ -276,23 +272,35 @@ export class Logger {
       scope.setTag('runtime', Logger.RUNTIME)
       scope.setTag('environment_type', Logger.ENVIRONMENT_TYPE)
 
-      // コンテキスト情報をタグとして設定（検索・フィルタリング用）
-      Object.entries(sanitizedContext).forEach(([key, value]) => {
-        scope.setTag(key, String(value))
+      // タグには識別子のみ設定（サニタイズ前の値を使用）
+      // PII情報ではない識別子のみをタグとして設定
+      const safeTagKeys = [
+        'requestId',
+        'sessionId',
+        'userId',
+        'type',
+        'function',
+        'lifecycle',
+        'errorType',
+      ]
+
+      // コンテキスト情報から安全なキーのみタグ設定
+      Object.entries(this.context).forEach(([key, value]) => {
+        if (
+          safeTagKeys.includes(key) &&
+          (typeof value === 'string' || typeof value === 'number')
+        ) {
+          scope.setTag(key, String(value))
+        }
       })
 
-      // 追加メタデータをタグとして設定
-      Object.entries(meta).forEach(([key, value]) => {
+      // エラーメタデータから安全なキーのみタグ設定
+      Object.entries(errorMeta).forEach(([key, value]) => {
         if (
-          typeof value === 'string' ||
-          typeof value === 'number' ||
-          typeof value === 'boolean'
+          safeTagKeys.includes(key) &&
+          (typeof value === 'string' || typeof value === 'number')
         ) {
-          const sanitized = sanitizePII(
-            { [key]: value },
-            { maxDepth: 1, skip: false },
-          ) as Record<string, unknown>
-          scope.setTag(`meta_${key}`, String(sanitized[key]))
+          scope.setTag(`meta_${key}`, String(value))
         }
       })
 
