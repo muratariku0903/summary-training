@@ -36,16 +36,37 @@ export async function checkValidSessionLevel(
 /**
  * 現在の認証ユーザーIDを取得
  * ログインしていない場合はundefinedを返す
+ *
+ * @description
+ * getSession()ではなくgetUser()を使用してサーバー側で認証を検証
+ * getSession()はクッキーから直接取得するため、改ざんされている可能性がある
  */
 export async function getUserId(): Promise<string | undefined> {
   try {
     const client = await createServerComponentClient()
+
+    // getSession()でアクセストークンを取得
     const {
       data: { session },
     } = await client.auth.getSession()
 
-    return session?.user?.id
-  } catch (error) {
-    throw error
+    // セッションがない場合は早期リターン
+    if (!session?.access_token) {
+      return undefined
+    }
+
+    // getUser()でトークンを検証してユーザー情報を取得
+    const {
+      data: { user },
+      error,
+    } = await client.auth.getUser(session.access_token)
+
+    if (error || !user) {
+      return undefined
+    }
+
+    return user.id
+  } catch {
+    return undefined
   }
 }
