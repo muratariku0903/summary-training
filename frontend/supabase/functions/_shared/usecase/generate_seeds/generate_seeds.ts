@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { z } from 'https://esm.sh/zod@3.23.8'
+import { z } from 'zod'
 import { Database } from '../../types/database.ts'
 import { ExerciseGeneratorSeedsRow } from '../../types/exercise_generator_seeds.ts'
 import { Result } from '../../types/common.ts'

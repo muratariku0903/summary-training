@@ -4,7 +4,8 @@
     "npm:@supabase/supabase-js@2": "2.57.2",
     "npm:drizzle-orm@0.33.0": "0.33.0_postgres@3.4.5",
     "npm:postgres@3.4.5": "3.4.5",
-    "npm:winston@3.11.0": "3.11.0"
+    "npm:winston@3.11.0": "3.11.0",
+    "npm:zod@3.23.8": "3.23.8"
   },
   "npm": {
     "@colors/colors@1.6.0": {
@@ -242,6 +243,9 @@
     },
     "ws@8.18.3": {
       "integrity": "sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg=="
+    },
+    "zod@3.23.8": {
+      "integrity": "sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g=="
     }
   },
   "remote": {
@@ -454,16 +458,15 @@
     "https://esm.sh/openai@4.55.3/denonext/resources/uploads/uploads.mjs": "31eedb625b106c24bce1d5fe5968b35a2333a17fdbc1530b20fc1684b4b89a7a",
     "https://esm.sh/openai@4.55.3/denonext/streaming.mjs": "1b6fcdff353d13ce3dfcb3c4eb26bde14fba08b5884e841b1792c1c2fa459d72",
     "https://esm.sh/openai@4.55.3/denonext/uploads.mjs": "059505256ebdea55ba253e302071420c6a7601efd1c3a870beb854c827fbf95e",
-    "https://esm.sh/openai@4.55.3/denonext/version.mjs": "f58aee53671a291a17a018b46a5b0b443a9567dd40201d397b52d7ed7715c910",
-    "https://esm.sh/zod@3.23.8": "15e60c792ac21d4818f181671c7c74bf33bf7526d487dc524911e42785d8b5c2",
-    "https://esm.sh/zod@3.23.8/denonext/zod.mjs": "6ee0474ec5a765b112eca12525d7e30c8e77eedbe2f2ac5e19f2af468b759517"
+    "https://esm.sh/openai@4.55.3/denonext/version.mjs": "f58aee53671a291a17a018b46a5b0b443a9567dd40201d397b52d7ed7715c910"
   },
   "workspace": {
     "dependencies": [
       "npm:@supabase/supabase-js@2",
       "npm:drizzle-orm@0.33.0",
       "npm:postgres@3.4.5",
-      "npm:winston@3.11.0"
+      "npm:winston@3.11.0",
+      "npm:zod@3.23.8"
     ]
   }
 }

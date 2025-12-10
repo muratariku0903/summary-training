@@ -7,7 +7,7 @@ import {
   Result,
 } from '../../types/common.ts'
 
-import { z } from 'https://esm.sh/zod@3.23.8'
+import { z } from 'zod'
 import { logger } from '../../log/log.ts'
 import { InvalidRequestError, LlmError, UnexpectedError } from '../../error/error.ts'
 import { ERROR_CODES } from '../../error/code.ts'
