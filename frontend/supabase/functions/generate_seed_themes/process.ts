@@ -1,4 +1,4 @@
-import { z } from 'https://esm.sh/zod@3.23.8'
+import { z } from 'zod'
 import { baseRequestSchema } from '../_shared/http/request.ts'
 import { RawShapeOf, RunJobParams } from '../_shared/job_runner.ts'
 import { deps } from './deps.ts'

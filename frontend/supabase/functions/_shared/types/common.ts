@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { z } from 'https://esm.sh/zod@3.23.8'
+import { z } from 'zod'
 import { Json } from './database.ts'
 import { BaseError } from '../error/error.ts'
 // Result型の定義

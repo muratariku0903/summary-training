@@ -1,4 +1,4 @@
-import { UnknownKeysParam, z, ZodTypeAny } from 'https://esm.sh/zod@3.23.8'
+import { UnknownKeysParam, z, ZodTypeAny } from 'zod'
 import { logger } from './log/log.ts'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database, Json, Tables } from '../_shared/types/database.ts'

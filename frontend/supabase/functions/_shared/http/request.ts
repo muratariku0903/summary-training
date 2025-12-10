@@ -1,4 +1,4 @@
-import { z, ZodRawShape } from 'https://esm.sh/zod@3.23.8'
+import { z, ZodRawShape } from 'zod'
 import { Result } from '../types/common.ts'
 import { Constants } from '../types/database.ts'
 

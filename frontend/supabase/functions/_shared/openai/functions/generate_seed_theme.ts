@@ -3,7 +3,7 @@ import { LlmError } from '../../error/error.ts'
 import { logger } from '../../log/log.ts'
 import { Result } from '../../types/common.ts'
 import { openai } from '../openai_client.ts'
-import { z } from 'https://esm.sh/zod@3.23.8'
+import { z } from 'zod'
 
 export const generateSeedThemeData = z
   .object({
