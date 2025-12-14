@@ -5,5 +5,5 @@ import { createBrowserClient } from '@supabase/ssr'
 // セキュリティ: ブラウザで実行されるため、このクライアントを通じて行われる操作は Supabase の Row Level Security (RLS) ポリシーによって厳しく制限されます。これにより、意図しないデータアクセスや改ざんを防ぎます。
 export const browserClient = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 )
