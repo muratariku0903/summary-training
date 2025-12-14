@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createBrowserClient } from '@supabase/ssr'
 
 // 用途: 主にブラウザ環境（Webアプリケーションのフロントエンドなど）で使用されます。
@@ -6,4 +7,9 @@ import { createBrowserClient } from '@supabase/ssr'
 export const browserClient = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      lock: async (fn: any) => await fn(),
+    },
+  },
 )
