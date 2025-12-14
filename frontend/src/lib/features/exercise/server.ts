@@ -281,6 +281,17 @@ export async function evaluateSubmissionByLlm(
     rubricsCount: rubrics.length,
   })
 
+  // TODO マージ前に削除
+  if (input === 'エラー') {
+    logger.error('Unsupported error', new Error('unsupported input'), {
+      vendor,
+    })
+    return {
+      success: false,
+      error: new Error('Unsupported error'),
+    }
+  }
+
   switch (vendor) {
     case 'openai': {
       logger.debug('Calling OpenAI evaluation API')
