@@ -7,6 +7,12 @@ import * as Sentry from '@sentry/nextjs'
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
+  ignoreErrors: [
+    'A listener indicated an asynchronous response by returning true',
+    'message channel closed before a response was received',
+    'ResizeObserver loop limit exceeded',
+  ],
+
   // Add optional integrations for additional features
   integrations: [Sentry.replayIntegration()],
 
