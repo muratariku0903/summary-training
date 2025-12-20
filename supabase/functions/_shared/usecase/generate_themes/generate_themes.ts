@@ -4,7 +4,7 @@ import {
   DatabaseQueryError,
   OperationError,
 } from '../../error/error.ts'
-import { generateSeedTheme } from '../../openai/functions/generate_seed_theme.ts'
+import { generateSeedTheme } from '../../llm/openai/functions/generate_seed_theme.ts'
 import {
   isExactSimilarTheme,
   isSimilarTheme,

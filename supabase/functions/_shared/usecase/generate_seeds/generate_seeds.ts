@@ -6,7 +6,6 @@ import { Result } from '../../types/common.ts'
 import { getTheme } from '../../repository/seed_generator_themes.ts'
 import { getLLMById, getLLMByVendorAndModel } from '../../repository/llms.ts'
 import { logger } from '../../log/log.ts'
-import { generateSeed } from '../../openai/functions/generate_seed.ts'
 import {
   DupHit,
   findSimilarByRawText,
@@ -14,6 +13,7 @@ import {
 } from '../../repository/exercise_generator_seeds.ts'
 import { BaseError, OperationError, UnexpectedError } from '../../error/error.ts'
 import { ERROR_CODES } from '../../error/code.ts'
+import { generateSeed } from "../../llm/openai/functions/generate_seed.ts";
 
 type GenerateSeedResult = {
   locale: string
