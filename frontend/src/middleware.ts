@@ -36,13 +36,28 @@ export async function middleware(req: NextRequest) {
     `Middleware triggered for: ${req.nextUrl.pathname} at ${dayjs().format('YYYY-MM-DDTHH:mm:ss')}`,
   )
 
-  // Edge Runtime専用クライアントを使用
-  const { client: supabaseMiddlerWareClient, response: updatedResponse } =
-    createMiddlewareSupabaseClient(req)
-
   // リクエストヘッダーにトレースIDを追加
   const requestHeaders = new Headers(req.headers)
   requestHeaders.set(CUSTOM_HEADERS.REQUEST_ID, requestId)
+
+  /**
+   * APIルートは「requestId 付与だけ」して早期 return
+   * - JSON/API通信でリダイレクトが混ざるとクライアントが壊れやすい
+   * - 認証は各Route Handler側（withAuth等）で完結させる
+   */
+  if (req.nextUrl.pathname.startsWith('/api')) {
+    logger.debug('API request detected. Skipping auth/redirect in middleware.', {
+      pathname: req.nextUrl.pathname,
+    })
+
+    return NextResponse.next({
+      request: { headers: requestHeaders },
+    })
+  }
+
+  // Edge Runtime専用クライアントを使用
+  const { client: supabaseMiddlerWareClient, response: updatedResponse } =
+    createMiddlewareSupabaseClient(req)
 
   // 内部でCookieから認証情報を読み取り・検証
   //　トークン切れになっていた場合内部でリフレッシュしてトークンを更新
@@ -101,7 +116,7 @@ export async function middleware(req: NextRequest) {
  */
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|\\.well-known|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    '/((?!monitoring|_next/static|_next/image|favicon.ico|\\.well-known|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 }
 
