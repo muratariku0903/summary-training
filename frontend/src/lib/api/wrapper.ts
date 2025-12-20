@@ -1,13 +1,13 @@
 import { User } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { adminClient } from '../supabase/client/adminClient'
-import { Unauthorized } from './response'
+import { Forbidden, Unauthorized } from './response'
 import { getAccessTokenFromHeader } from './utils'
 import { Logger } from '../log/serverLog'
 import { setRequestLogger } from '../log/storage'
 import { LOG_MESSAGES } from '../log/message'
 import { CUSTOM_HEADERS } from '../constants/http-header'
-import { getUserId } from '../supabase/auth/server/server'
+import { checkValidSessionLevel, getUserId } from '../supabase/auth/server/server'
 
 type BasePathParams = Record<keyof object, string | string[]>
 
@@ -103,6 +103,28 @@ export function withAuth<P extends BasePathParams = BasePathParams>(
     }
 
     logger.setContext({ userId: user.id })
+
+    /**
+     * 2段階認証（AAL2）チェック（全APIで実施）
+     * - verified factor があるユーザーは currentLevel が aal2 であること
+     * - checkValidSessionLevel は例外を throw する可能性があるため try/catch で扱う
+     */
+    try {
+      const aal = await checkValidSessionLevel(user)
+      if (!aal.valid) {
+        logger.warn('Session assurance level is not aal2', { userId: user.id })
+        return Forbidden({
+          msg: 'Multi-factor authentication required',
+        }).toResponse()
+      }
+    } catch (e) {
+      logger.error('Failed to check session assurance level', e, {
+        errorType: 'MfaAssuranceLevelCheckFailed',
+      })
+      return Unauthorized({
+        msg: 'Failed to verify session assurance level',
+      }).toResponse()
+    }
 
     // 認証が成功したら、ユーザー情報を渡し、元のハンドラーを実行
     return handler(request, user, context)
