@@ -9,7 +9,7 @@ import { ERROR_CATEGORIES, ERROR_CODES } from '../_shared/error/code.ts'
 import {
   seedGeneratorThemeCategories,
   seedGeneratorThemes,
-} from '../_shared/drizzle/schema.ts'
+} from '../_shared/db/drizzle/schema.ts'
 import { DrizzleError } from 'drizzle-orm/errors'
 
 export const reqSchema = baseRequestSchema.extend({
@@ -20,7 +20,7 @@ export type ShapeOfReqSchema = RawShapeOf<typeof reqSchema>
 export const createJobProcess = (d = deps) => {
   const jobProcess: RunJobParams<ShapeOfReqSchema>['jobProcess'] = async (
     supabase,
-    params,
+    params
   ) => {
     const { generate_theme_count } = params
 
@@ -96,7 +96,7 @@ export const createJobProcess = (d = deps) => {
               .returning()
 
             return { insertedTheme, insertedThemeCategories }
-          },
+          }
         )
         metrics = {
           ...metrics,
@@ -134,7 +134,7 @@ export const createJobProcess = (d = deps) => {
     return {
       success: true,
       data: {
-        status: (metrics?.errors?.length ?? 0 > 0) ? 'warn' : 'success',
+        status: metrics?.errors?.length ?? 0 > 0 ? 'warn' : 'success',
         metrics,
       },
     }
