@@ -141,19 +141,19 @@ jobs:
         run: |
           echo "Using Supabase config for '${{env.ENVIRONMENT}}'"
           cp config.${{env.ENVIRONMENT}}.toml config.toml
-        working-directory: ${{env.APP_DIR}}/supabase
+        working-directory: supabase
 
       - name: Link Supabase project (non-interactive) #  Supabaseに接続
         run: |
           supabase link --project-ref "${{ env.SUPABASE_PROJECT_ID}}" \
                         --password "${{ env.SUPABASE_DATABASE_PASSWORD }}"
-        working-directory: ${{env.APP_DIR}}/supabase
+        working-directory: supabase
 
       - name: Run migrations + seed # Supabaseにマイグレーション実行 DB接続はマイグレーション用にSessionPooler（port 5432）を使用
         # SUPABASE_SESSION_POOLER_URLはDBの設定を変更する（パスワードを変更等）と書き変わるので注意
         run: |
           supabase db push --include-seed --db-url "${{env.SUPABASE_SESSION_POOLER_URL}}"
-        working-directory: ${{env.APP_DIR}}/supabase
+        working-directory: supabase
 
       - name: Deploy to Vercel # Vercelへのデプロイ
         uses: amondnet/vercel-action@v25 # 内部でVercel CLIを自動インストール
