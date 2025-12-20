@@ -105,6 +105,7 @@ export function Exercise({ exercise, contentUrl }: ExerciseProps) {
                       onClick={async () => {
                         setSubmitting(true)
                         setResult(null)
+                        setErrorMsg(null)
                         const { success, data, error } = await request(
                           `/exercises/${exercise.id}/submissions`,
                           'post',

@@ -20,7 +20,7 @@ import {
   ChangePasswordInput,
   changePasswordSchemaRequireCurrentPassword,
 } from '@/lib/supabase/auth/types'
-import { changePassword } from '@/lib/supabase/auth/auth'
+import { changePassword } from '@/lib/supabase/auth/client/auth'
 import { UI_MESSAGES } from '@/lib/constants/ui'
 import { request } from '@/lib/api/client'
 import { SENDING_PATTERN } from '@/lib/constants/email'

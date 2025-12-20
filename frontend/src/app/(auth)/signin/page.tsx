@@ -14,7 +14,7 @@ import {
   OutlineMessage,
 } from '@/components/elements/outline-message/OutlineMessage'
 import { MfaFactor, SigninInput, signinSchema } from '@/lib/supabase/auth/types'
-import { signIn } from '@/lib/supabase/auth/auth'
+import { signIn } from '@/lib/supabase/auth/client/auth'
 import { useRouter } from 'next/navigation'
 import { PROTECTED_PATHS, PUBLIC_PATHS } from '@/lib/constants/routes'
 import { UI_MESSAGES } from '@/lib/constants/ui'

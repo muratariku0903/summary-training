@@ -10,7 +10,7 @@ import { PROTECTED_PATHS } from '@/lib/constants/routes'
 import { MfaType } from '@/lib/supabase/auth/types'
 import { MFA_TYPES } from '@/lib/supabase/auth/types'
 import TotpSetup from '@/components/features/auth/TotpSetup'
-import { enrollTotpFactor } from '@/lib/supabase/auth/mfa'
+import { enrollTotpFactor } from '@/lib/supabase/auth/client/mfa'
 import { useSnackbarStore } from '@/stores/useSnackbarStore'
 import { UI_MESSAGES } from '@/lib/constants/ui'
 

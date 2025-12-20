@@ -2,11 +2,11 @@ import { NextRequest } from 'next/server'
 import { adminClient } from '@/lib/supabase/client/adminClient'
 import { Success, InternalError, Unauthorized } from '@/lib/api/response'
 import { deleteTokenFromCookie } from '@/lib/api/utils'
-import { getDescopeUserIdByAuthUserId } from '@/lib/supabase/auth/admin'
 import { deleteDescopeUser } from '@/lib/descope/server/utils'
-import { checkValidSessionLevel } from '@/lib/supabase/auth/server'
+import { checkValidSessionLevel } from '@/lib/supabase/auth/server/server'
 import { withAuth, withLogger } from '@/lib/api/wrapper'
 import { LOG_MESSAGES } from '@/lib/log/message'
+import { getDescopeUserIdByAuthUserId } from '@/lib/supabase/auth/server/admin'
 
 export const DELETE = withLogger(
   withAuth(async (_: NextRequest, user, { logger }) => {

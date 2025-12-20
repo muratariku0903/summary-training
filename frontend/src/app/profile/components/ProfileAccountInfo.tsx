@@ -7,7 +7,7 @@ import {
 } from '@/components/elements/outline-message/OutlineMessage'
 import TextInput from '@/components/elements/text-input/TextInput'
 import { PROTECTED_PATHS } from '@/lib/constants/routes'
-import { isEmailPrimaryProvider } from '@/lib/supabase/auth/auth'
+import { isEmailPrimaryProvider } from '@/lib/supabase/auth/client/auth'
 import { AUTH_PROVIDERS, AuthProviders } from '@/lib/supabase/auth/types'
 import { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'

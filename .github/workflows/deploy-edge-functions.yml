@@ -9,8 +9,8 @@ on:
       - develop
       - feat-**
     paths:
-      - frontend/supabase/functions/** # 関数が変わったら
-      - frontend/supabase/config.*.toml # 環境別 config を変えたら
+      - supabase/functions/** # 関数が変わったら
+      - supabase/config.*.toml # 環境別 config を変えたら
       - .github/workflows/deploy-edge-functions.yml
   workflow_dispatch: {} # 手動実行もOK
 
@@ -23,7 +23,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  APP_DIR: frontend
   # 環境名をブランチから決定（prod / stage / dev）
   ENVIRONMENT: ${{ github.ref == 'refs/heads/prod' && 'prod' || github.ref == 'refs/heads/stage' && 'stage' || 'dev' }}
 
@@ -52,7 +51,7 @@ jobs:
         run: |
           echo "Using Supabase config for '${{ env.ENVIRONMENT }}'"
           cp config.${{ env.ENVIRONMENT }}.toml config.toml
-        working-directory: ${{ env.APP_DIR }}/supabase
+        working-directory: supabase
 
       - name: Link Supabase project (non-interactive)
         env:
@@ -60,7 +59,7 @@ jobs:
         run: |
           supabase link --project-ref "${{ env.SUPABASE_PROJECT_ID }}" \
                         --password "${{ env.SUPABASE_DATABASE_PASSWORD }}"
-        working-directory: ${{ env.APP_DIR }}/supabase
+        working-directory: supabase
 
       - name: Prepare branch-specific function (feat-* only) # feat環境ごと分けてデプロイ
         if: startsWith(github.ref_name, 'feat-')
@@ -98,10 +97,10 @@ jobs:
           done
 
           echo "Done copying all functions for feat branch."
-        working-directory: ${{ env.APP_DIR }}/supabase
+        working-directory: supabase
 
       - name: Deploy Edge Functions
         run: |
           supabase functions deploy --project-ref "${{ env.SUPABASE_PROJECT_ID }}"  --use-api --import-map "functions/deno.json"
           supabase functions list
-        working-directory: ${{ env.APP_DIR }}/supabase
+        working-directory: supabase

@@ -8,9 +8,10 @@ import {
 } from '@/lib/constants/routes'
 import dayjs from 'dayjs'
 import { deleteTokenFromCookie } from './lib/api/utils'
-import { checkValidSessionLevel } from './lib/supabase/auth/server'
+import { checkValidSessionLevel } from './lib/supabase/auth/server/server'
 import { Session, SupabaseClient } from '@supabase/supabase-js'
 import { Logger } from '@/lib/log/serverLog'
+import { CUSTOM_HEADERS } from './lib/constants/http-header'
 
 /**
  * Next.js ミドルウェア
@@ -19,15 +20,40 @@ import { Logger } from '@/lib/log/serverLog'
  * - 認証チェックとルーティング制御を行う
  */
 export async function middleware(req: NextRequest) {
-  const logger = Logger.getInstance().createRequestLogger(undefined, {
-    url: req.url,
-    method: req.method,
-    pathname: req.nextUrl.pathname,
-  })
+  const requestId = crypto.randomUUID()
+  const logger = Logger.getInstance().createRequestLogger(
+    requestId,
+    {
+      url: req.url,
+      method: req.method,
+      pathname: req.nextUrl.pathname,
+    },
+    '[MIDDLEWARE]',
+    '🔄',
+  )
 
   logger.info(
-    `🚀 Middleware triggered for: ${req.nextUrl.pathname} at ${dayjs().format('YYYY-MM-DDTHH:mm:ss')}`,
+    `Middleware triggered for: ${req.nextUrl.pathname} at ${dayjs().format('YYYY-MM-DDTHH:mm:ss')}`,
   )
+
+  // リクエストヘッダーにトレースIDを追加
+  const requestHeaders = new Headers(req.headers)
+  requestHeaders.set(CUSTOM_HEADERS.REQUEST_ID, requestId)
+
+  /**
+   * APIルートは「requestId 付与だけ」して早期 return
+   * - JSON/API通信でリダイレクトが混ざるとクライアントが壊れやすい
+   * - 認証は各Route Handler側（withAuth等）で完結させる
+   */
+  if (req.nextUrl.pathname.startsWith('/api')) {
+    logger.debug('API request detected. Skipping auth/redirect in middleware.', {
+      pathname: req.nextUrl.pathname,
+    })
+
+    return NextResponse.next({
+      request: { headers: requestHeaders },
+    })
+  }
 
   // Edge Runtime専用クライアントを使用
   const { client: supabaseMiddlerWareClient, response: updatedResponse } =
@@ -74,7 +100,13 @@ export async function middleware(req: NextRequest) {
   }
 
   logger.info('Middleware completed successfully')
-  return updatedResponse
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+    headers: updatedResponse.headers,
+  })
 }
 
 /**
@@ -84,7 +116,7 @@ export async function middleware(req: NextRequest) {
  */
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|\\.well-known|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    '/((?!monitoring|_next/static|_next/image|favicon.ico|\\.well-known|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 }
 

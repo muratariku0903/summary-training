@@ -1,10 +1,67 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, beforeEach, expect, vi } from 'vitest'
 import { testApiHandler } from 'next-test-api-route-handler'
 import * as handler from '@/app/api/auth/password/verify/route'
 import { getAccessTokenFromHeader } from '@/lib/api/utils'
 import { adminClient } from '@/lib/supabase/client/adminClient'
-import { checkValidSessionLevel } from '@/lib/supabase/auth/server'
 import { AuthError, User } from '@supabase/supabase-js'
+import { checkValidSessionLevel } from '@/lib/supabase/auth/server/server'
+
+vi.mock('@/lib/api/wrapper', () => ({
+  withLogger: vi.fn((handler) => handler),
+  withAuth: vi.fn((handler) => {
+    return async (request: any, context: any) => {
+      // getAccessTokenFromHeaderの結果を使って認証をシミュレート
+      const { getAccessTokenFromHeader } = await import('@/lib/api/utils')
+      const { adminClient } = await import('@/lib/supabase/client/adminClient')
+
+      const accessToken = getAccessTokenFromHeader(request)
+      if (!accessToken) {
+        return new Response(
+          JSON.stringify({
+            error: { code: 'UNAUTHORIZED', message: 'Authorization header required' },
+          }),
+          { status: 401, headers: { 'content-type': 'application/json' } },
+        )
+      }
+
+      const {
+        data: { user },
+        error: userError,
+      } = await adminClient.auth.getUser(accessToken)
+
+      if (userError || !user) {
+        return new Response(
+          JSON.stringify({
+            error: { code: 'UNAUTHORIZED', message: 'Invalid access token' },
+          }),
+          { status: 401, headers: { 'content-type': 'application/json' } },
+        )
+      }
+
+      if (!user.email) {
+        return new Response(
+          JSON.stringify({
+            error: { code: 'UNAUTHORIZED', message: 'invalid user email' },
+          }),
+          { status: 401, headers: { 'content-type': 'application/json' } },
+        )
+      }
+
+      const mockLogger = {
+        info: vi.fn(),
+        debug: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        setContext: vi.fn(),
+        clearContext: vi.fn(),
+      }
+
+      // 実際のハンドラーを呼び出し（userを渡す）
+      return handler(request, user, { ...context, logger: mockLogger })
+    }
+  }),
+}))
 
 vi.mock('@/lib/api/utils', () => ({
   getAccessTokenFromHeader: vi.fn(),
@@ -18,8 +75,29 @@ vi.mock('@/lib/supabase/client/adminClient', () => ({
   },
 }))
 
-vi.mock('@/lib/supabase/auth/server', () => ({
+vi.mock('@/lib/supabase/auth/server/server', () => ({
   checkValidSessionLevel: vi.fn(),
+  getCurrentUserId: vi.fn(),
+}))
+
+vi.mock('@/lib/log/serverLog', () => ({
+  Logger: {
+    getInstance: vi.fn(() => ({
+      createRequestLogger: vi.fn(() => ({
+        info: vi.fn(),
+        debug: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        setContext: vi.fn(),
+        clearContext: vi.fn(),
+      })),
+    })),
+  },
+}))
+
+vi.mock('@/lib/log/storage', () => ({
+  setRequestLogger: vi.fn(),
+  getRequestLogger: vi.fn(),
 }))
 
 // createClient は戻り値（.auth.signInWithPassword）だけ使うので全面モック
@@ -37,6 +115,7 @@ const mockedCheckLevel = vi.mocked(checkValidSessionLevel)
 describe('POST /api/auth/password/verify (Route Handler)', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
+    vi.clearAllMocks()
     mockedGetToken.mockReset()
     mockedGetUser.mockReset()
     mockedCheckLevel.mockReset()

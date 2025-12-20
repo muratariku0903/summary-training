@@ -1,3 +1,4 @@
+import { sanitizeLogMessage, sanitizePII } from '@/utils/pii'
 import * as Sentry from '@sentry/nextjs'
 
 /**
@@ -5,18 +6,74 @@ import * as Sentry from '@sentry/nextjs'
  * Sentryとコンソールにログを出力します。
  */
 export class ClientLogger {
+  private static readonly PREFIX = '[CLIENT]'
+  private static readonly EMOJI = '🌐'
+  private static readonly RUNTIME = 'client'
+  private static readonly ENVIRONMENT_TYPE = 'browser'
+
   private context: Record<string, unknown> = {}
+
+  // サニタイズ設定をキャッシュ
+  private sanitizeOptions = {
+    maxDepth: 5,
+    maxArrayLength: 100,
+    maxObjectKeys: 50,
+    // セキュリティ重視: 開発環境でも基本的にはサニタイズ
+    // パフォーマンステスト時のみ環境変数で無効化可能
+    skip: process.env.NEXT_PUBLIC_DISABLE_PII_SANITIZE === 'true',
+  }
 
   constructor(initialContext: Record<string, unknown> = {}) {
     this.context = initialContext
+    this.syncContextToSentry()
   }
 
   public setContext(context: Record<string, unknown>): void {
     this.context = { ...this.context, ...context }
+    this.syncContextToSentry()
   }
 
   public clearContext(): void {
     this.context = {}
+    Sentry.setContext('logger_context', null)
+  }
+
+  /**
+   * コンテキスト情報をSentryに同期
+   * 重要な情報はタグとして設定（検索・フィルタリング用）
+   */
+  private syncContextToSentry(): void {
+    // PIIマスク処理を適用してからSentryに送信（コンテキスト用）
+    const sanitizedContext = sanitizePII(this.context, {
+      ...this.sanitizeOptions,
+      skip: false, // Sentryへの送信時は常にサニタイズ
+    }) as Record<string, unknown>
+
+    // コンテキスト全体を設定
+    Sentry.setContext('logger_context', sanitizedContext)
+
+    // 環境タグを設定（クライアント/サーバー判別用）
+    Sentry.setTag('runtime', ClientLogger.RUNTIME)
+    Sentry.setTag('environment_type', ClientLogger.ENVIRONMENT_TYPE)
+
+    // タグには識別子のみ設定（サニタイズ前の値を使用）
+    // PII情報ではない識別子のみをタグとして設定
+    const safeTagKeys = ['sessionId', 'type', 'userId']
+
+    Object.entries(this.context).forEach(([key, value]) => {
+      if (
+        safeTagKeys.includes(key) &&
+        (typeof value === 'string' || typeof value === 'number')
+      ) {
+        if (key === 'sessionId') {
+          Sentry.setTag('session_id', String(value))
+        } else if (key === 'type') {
+          Sentry.setTag('logger_type', String(value))
+        } else if (key === 'userId') {
+          Sentry.setTag('user_id', String(value))
+        }
+      }
+    })
   }
 
   private log(
@@ -24,32 +81,43 @@ export class ClientLogger {
     message: string,
     meta: Record<string, unknown> = {},
   ): void {
+    // PIIマスク処理を適用
+    const sanitizedMessage = sanitizeLogMessage(message)
+    const metaResult = sanitizePII(meta, this.sanitizeOptions)
+    const contextResult = sanitizePII(this.context, this.sanitizeOptions)
+
+    // 型ガードで安全にキャスト
+    const sanitizedMeta = isRecord(metaResult) ? metaResult : {}
+    const sanitizedContext = isRecord(contextResult) ? contextResult : {}
+
     const logData = {
       level,
-      message,
+      message: sanitizedMessage,
       timestamp: new Date().toISOString(),
-      ...this.context,
-      ...meta,
+      ...sanitizedContext,
+      ...sanitizedMeta,
     }
 
     // コンソールに出力
-    if (process.env.NODE_ENV === 'development') {
+    if (
+      process.env.NODE_ENV === 'development' ||
+      process.env.NEXT_PUBLIC_VERCEL_ENV === 'preview'
+    ) {
+      const prefix = `${ClientLogger.EMOJI} ${ClientLogger.PREFIX}`
       console[level === 'debug' ? 'log' : level](
-        `[${level.toUpperCase()}] ${message}`,
+        `${prefix} [${level.toUpperCase()}] ${message}`,
         logData,
       )
     }
 
-    // Sentryに送信（infoとdebug以外）
-    if (level === 'error') {
-      Sentry.captureException(new Error(message), {
-        level: 'error',
-        extra: logData,
-      })
-    } else if (level === 'warn') {
-      Sentry.captureMessage(message, {
-        level: 'warning',
-        extra: logData,
+    // Sentryにブレッドクラムを追加（サニタイズ済みデータを使用）
+    if (level !== 'error' && level !== 'warn') {
+      Sentry.addBreadcrumb({
+        message: `${ClientLogger.PREFIX} ${sanitizedMessage}`,
+        level: level === 'debug' ? 'debug' : 'info',
+        data: { ...sanitizedContext, ...sanitizedMeta },
+        timestamp: Date.now() / 1000,
+        category: 'client-log',
       })
     }
   }
@@ -59,51 +127,195 @@ export class ClientLogger {
   }
 
   public debug(message: string, meta: Record<string, unknown> = {}): void {
+    // 本番環境ではdebugログを出力しない（パフォーマンス向上）
+    if (
+      process.env.NODE_ENV === 'production' &&
+      process.env.NEXT_PUBLIC_LOG_LEVEL !== 'debug'
+    ) {
+      return
+    }
     this.log('debug', message, meta)
   }
 
   public warn(message: string, meta: Record<string, unknown> = {}): void {
     this.log('warn', message, meta)
+
+    // PIIマスク処理を適用（コンテキスト用）
+    const sanitizedMeta = sanitizePII(meta, {
+      ...this.sanitizeOptions,
+      skip: false,
+    }) as Record<string, unknown>
+
+    const sanitizedMessage = sanitizeLogMessage(message)
+
+    // Sentryに警告を送信
+    Sentry.withScope((scope) => {
+      scope.setLevel('warning')
+      scope.setContext('warning_details', sanitizedMeta)
+      scope.setTag('runtime', ClientLogger.RUNTIME)
+      scope.setTag('environment_type', ClientLogger.ENVIRONMENT_TYPE)
+
+      // タグには識別子のみ設定（サニタイズ前の値を使用）
+      const safeTagKeys = ['sessionId', 'type', 'userId', 'function', 'lifecycle']
+
+      Object.entries(this.context).forEach(([key, value]) => {
+        if (
+          safeTagKeys.includes(key) &&
+          (typeof value === 'string' || typeof value === 'number')
+        ) {
+          scope.setTag(key, String(value))
+        }
+      })
+
+      Sentry.captureMessage(`${ClientLogger.PREFIX} ${sanitizedMessage}`)
+    })
   }
 
   public error(message: string, err: unknown, meta: Record<string, unknown> = {}): void {
-    const errorMeta = {
-      ...meta,
-      error:
-        err instanceof Error
-          ? {
-              name: err.name,
-              message: err.message,
-              stack: err.stack,
-            }
-          : String(err),
-    }
+    let errorMeta: Record<string, unknown> = { ...meta }
+    let errorForSentry: Error
 
-    // Sentryに実際のErrorオブジェクトを渡す
-    if (err instanceof Error) {
-      Sentry.captureException(err, {
-        level: 'error',
-        extra: {
-          customMessage: message,
-          ...this.context,
-          ...meta,
-        },
-      })
+    if (isError(err)) {
+      errorMeta = {
+        ...errorMeta,
+        errorType: 'ErrorObject',
+        errorName: err.name,
+        errorMessage: err.message,
+        stack: err.stack,
+      }
+      errorForSentry = new Error(`${ClientLogger.PREFIX} ${message}: ${err.message}`)
+      errorForSentry.name = err.name
+      errorForSentry.stack = err.stack
+    } else if (typeof err === 'string') {
+      errorMeta = {
+        ...errorMeta,
+        errorType: 'StringError',
+        errorMessage: err,
+      }
+      errorForSentry = new Error(`${ClientLogger.PREFIX} ${message}: ${err}`)
+    } else if (
+      err &&
+      typeof err === 'object' &&
+      'message' in err &&
+      typeof err.message === 'string'
+    ) {
+      errorMeta = {
+        ...errorMeta,
+        errorType: 'ObjectWithMessage',
+        errorMessage: err.message,
+        fullErrorObject: safeStringify(err),
+      }
+      errorForSentry = new Error(`${ClientLogger.PREFIX} ${message}: ${err.message}`)
     } else {
-      Sentry.captureException(new Error(message), {
-        level: 'error',
-        extra: errorMeta,
-      })
+      errorMeta = {
+        ...errorMeta,
+        errorType: 'UnknownType',
+        errorMessage: 'An unknown error occurred.',
+        errorValue: safeStringify(err),
+      }
+      errorForSentry = new Error(`${ClientLogger.PREFIX} ${message}`)
     }
 
     this.log('error', message, errorMeta)
+
+    // PIIマスク処理を適用（コンテキスト用）
+    const sanitizedErrorMeta = sanitizePII(errorMeta, {
+      ...this.sanitizeOptions,
+      skip: false,
+    }) as Record<string, unknown>
+
+    // Sentryにエラーを送信
+    Sentry.withScope((scope) => {
+      scope.setLevel('error')
+      scope.setContext('error_details', sanitizedErrorMeta)
+      scope.setContext('logger_message', { message: sanitizeLogMessage(message) })
+      scope.setTag('runtime', ClientLogger.RUNTIME)
+      scope.setTag('environment_type', ClientLogger.ENVIRONMENT_TYPE)
+
+      // タグには識別子のみ設定（サニタイズ前の値を使用）
+      const safeTagKeys = [
+        'sessionId',
+        'type',
+        'userId',
+        'function',
+        'lifecycle',
+        'errorType',
+      ]
+
+      // コンテキスト情報から安全なキーのみタグ設定
+      Object.entries(this.context).forEach(([key, value]) => {
+        if (
+          safeTagKeys.includes(key) &&
+          (typeof value === 'string' || typeof value === 'number')
+        ) {
+          scope.setTag(key, String(value))
+        }
+      })
+
+      // エラーメタデータから安全なキーのみタグ設定
+      Object.entries(errorMeta).forEach(([key, value]) => {
+        if (
+          safeTagKeys.includes(key) &&
+          (typeof value === 'string' || typeof value === 'number')
+        ) {
+          scope.setTag(`meta_${key}`, String(value))
+        }
+      })
+
+      Sentry.captureException(errorForSentry)
+    })
   }
 
   public start(processName: string, meta: Record<string, unknown> = {}): void {
-    this.info(`${processName} started`, meta)
+    const startMeta = { ...meta, function: processName, lifecycle: 'start' }
+    this.debug(`Process started: ${processName}`, startMeta)
   }
 
   public end(processName: string, meta: Record<string, unknown> = {}): void {
-    this.info(`${processName} completed`, meta)
+    const endMeta = { ...meta, function: processName, lifecycle: 'end' }
+    this.info(`Process finished: ${processName}`, endMeta)
+  }
+}
+
+/**
+ * サニタイズ結果がRecord型であることを保証
+ */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+/**
+ * unknownなオブジェクトがErrorのインスタンスであるかどうかをチェックする型ガード
+ */
+function isError(err: unknown): err is Error {
+  return err instanceof Error
+}
+
+/**
+ * オブジェクトを安全にJSON文字列化する
+ * 循環参照やBigIntなどの問題を回避
+ */
+function safeStringify(obj: unknown): string {
+  const seen = new WeakSet()
+
+  try {
+    return JSON.stringify(obj, (key, value) => {
+      // 循環参照チェック
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) {
+          return '[Circular Reference]'
+        }
+        seen.add(value)
+      }
+
+      // BigIntの処理
+      if (typeof value === 'bigint') {
+        return value.toString()
+      }
+
+      return value
+    })
+  } catch (error) {
+    return `[Unstringifiable object: ${error}]`
   }
 }

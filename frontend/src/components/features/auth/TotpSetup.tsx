@@ -3,7 +3,7 @@
 import { MFA_TYPES } from '@/lib/supabase/auth/types'
 import QrCodeDisplay from '@/components/elements/qr-code-display/QrCodeDisplay'
 import { Spacer } from '@/components/elements/spacer/Spacer'
-import { resetEnrollment } from '@/lib/supabase/auth/mfa'
+import { resetEnrollment } from '@/lib/supabase/auth/client/mfa'
 import ReversalButton from '@/components/elements/reversal-button/ReversalButton'
 import MfaVerificationInput from './MfaVerificationInput'
 
