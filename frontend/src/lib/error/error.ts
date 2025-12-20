@@ -25,3 +25,19 @@ export class ServerActionExecutionError extends Error {
     Object.setPrototypeOf(this, ServerActionExecutionError.prototype)
   }
 }
+
+/**
+ * セッション取得のタイムアウトエラー
+ * Supabase Auth の _acquireLock がハングした場合に発生
+ */
+export class SessionTimeoutError extends Error {
+  constructor(
+    message: string = 'Session acquisition timed out',
+    public readonly timeout: number,
+    public readonly context?: Record<string, unknown>,
+  ) {
+    super(message)
+    this.name = 'SessionTimeoutError'
+    Object.setPrototypeOf(this, SessionTimeoutError.prototype)
+  }
+}

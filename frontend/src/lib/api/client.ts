@@ -7,6 +7,7 @@ import { ERROR_CODES, ErrorCode } from './errorCodes'
 import { ApiError } from './response'
 import { browserClient } from '../supabase/client/browserClient'
 import { clientLogger } from '@/stores/useClientLoggerStore'
+import { SessionTimeoutError } from '../error/error'
 
 type Path = keyof paths
 type Method = 'get' | 'post' | 'patch' | 'delete'
@@ -101,6 +102,9 @@ type ResponseOf<P extends string, M extends Method> = P extends keyof paths
     : unknown
   : unknown
 
+// タイムアウト設定
+const SESSION_TIMEOUT = 30000 // ３０秒
+
 /**
  * 汎用 HTTP Request ラッパー（認証要件自動推論）
  */
@@ -188,6 +192,7 @@ export const request = async <U extends string, M extends Method>(
 
 /**
  * 認証ヘッダーを取得する内部関数
+ * 修正点: タイムアウト処理を追加し、無限待機（ハング）を防止
  */
 const getAuthHeaders = async (
   requireAuth: boolean,
@@ -197,16 +202,30 @@ const getAuthHeaders = async (
   }
 
   try {
+    // タイムアウト付きでgetSessionを呼ぶ
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(
+        () =>
+          reject(
+            new SessionTimeoutError('Session acquisition timed out', SESSION_TIMEOUT),
+          ),
+        SESSION_TIMEOUT,
+      ),
+    )
+
+    const sessionPromise = browserClient.auth.getSession()
+
     const {
       data: { session },
       error: sessionError,
-    } = await browserClient.auth.getSession()
+    } = await Promise.race([sessionPromise, timeoutPromise])
 
     if (sessionError || !session) {
       clientLogger.error(
         '❌ [AUTH] No valid session for authenticated request',
         sessionError || new Error('No session'),
       )
+
       return {
         status: 401,
         code: ERROR_CODES.UNAUTHORIZED,
@@ -218,6 +237,11 @@ const getAuthHeaders = async (
     }
   } catch (error) {
     clientLogger.error('❌ [AUTH] Failed to get session', error)
+
+    if (error instanceof SessionTimeoutError) {
+      clientLogger.warn('⚠️ [AUTH] Session timeout detected')
+    }
+
     return {
       status: 500,
       code: ERROR_CODES.INTERNAL_SERVER,

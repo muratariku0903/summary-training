@@ -21,22 +21,24 @@ export function useSessionInitializer() {
     initializeSession()
 
     // 認証状態の変化を監視してセッションIDを更新
-    const {
-      data: { subscription },
-    } = browserClient.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN') {
-        const sessionId = await getSessionId()
+    const { data } = browserClient.auth.onAuthStateChange(async (event, session) => {
+      // 必要なイベントだけ処理（ノイズ/負荷低減）
+      if (event !== 'SIGNED_IN' && event !== 'TOKEN_REFRESHED' && event !== 'SIGNED_OUT')
+        return
+
+      const sessionId = session?.user?.id ?? null
+      if (sessionId) {
         clientLogger.setSessionId(sessionId)
-        clientLogger.info('User signed in, session updated', {
-          sessionId,
-          userId: session?.user?.id,
-        })
       }
+      clientLogger.info('Auth state changed, session updated', {
+        event,
+        sessionId,
+        userId: sessionId,
+      })
     })
 
-    // クリーンアップ
     return () => {
-      subscription.unsubscribe()
+      data.subscription.unsubscribe()
     }
   }, [])
 }

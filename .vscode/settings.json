@@ -7,6 +7,7 @@
     "magiclink",
     "MAILPIT",
     "Postgrest",
+    "unsub",
     "vercel"
   ],
   "github.copilot.advanced": {},
