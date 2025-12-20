@@ -7,7 +7,7 @@ import { stub } from 'https://deno.land/std@0.208.0/testing/mock.ts'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { SeedGeneratorCategoriesRow } from '../../../functions/_shared/types/seed_generator_categories.ts'
 import { GenerateThemeResponse } from '../../../functions/_shared/usecase/generate_themes/generate_themes.ts'
-import { Database } from '../../../functions/_shared/types/database.ts'
+import { Database } from '../../_shared/types/db_schema.ts'
 import {
   DatabaseQueryError,
   OperationError,

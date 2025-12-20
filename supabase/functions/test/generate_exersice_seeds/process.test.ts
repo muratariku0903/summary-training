@@ -8,7 +8,7 @@ import {
 } from 'https://deno.land/std@0.208.0/assert/mod.ts'
 import { stub } from 'https://deno.land/std@0.208.0/testing/mock.ts'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { Database } from '../../../functions/_shared/types/database.ts'
+import { Database } from '../../_shared/types/db_schema.ts'
 import { createJobProcess } from '../../../functions/generate_exersice_seeds/process.ts'
 import { SeedGeneratorProfilesRow } from '../../_shared/types/seed_generator_profiles.ts'
 import {

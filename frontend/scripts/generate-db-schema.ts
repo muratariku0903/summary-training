@@ -37,7 +37,7 @@ try {
   // Supabase Functionsの方にも出力
   const outputPathForSupabaseFunctions = path.resolve(
     process.cwd(),
-    'supabase/functions/_shared/types/database.ts',
+    '../supabase/functions/_shared/types/db_schema.ts',
   )
   fs.writeFileSync(outputPathForSupabaseFunctions, output)
   console.log('Database schema file generated successfully!')

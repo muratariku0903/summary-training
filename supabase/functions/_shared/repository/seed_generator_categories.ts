@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Database } from '../types/database.ts'
+import type { Database } from '../types/db_schema.ts'
 import type { SeedGeneratorCategoriesRow } from '../types/seed_generator_categories.ts'
 import { Result } from '../types/common.ts'
 import { DatabaseQueryError, EmptyTableError } from '../error/error.ts'

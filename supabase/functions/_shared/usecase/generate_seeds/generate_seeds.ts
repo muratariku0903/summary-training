@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { z } from 'zod'
-import { Database } from '../../types/database.ts'
+import { Database } from '../../types/db_schema.ts'
 import { ExerciseGeneratorSeedsRow } from '../../types/exercise_generator_seeds.ts'
 import { Result } from '../../types/common.ts'
 import { getTheme } from '../../repository/seed_generator_themes.ts'

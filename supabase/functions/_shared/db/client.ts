@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { Pool } from 'https://deno.land/x/postgres@v0.17.2/mod.ts'
-import { Database } from '../types/database.ts'
+import { Database } from '../types/db_schema.ts'
 
 export const TRANSACTION_POOLER_URL = Deno.env.get('TRANSACTION_POOLER_URL')!
 

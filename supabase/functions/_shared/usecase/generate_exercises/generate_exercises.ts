@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Database, Tables } from '../../../_shared/types/database.ts'
+import type { Database, Tables } from '../../types/db_schema.ts'
 import { LlmExerciseGeneratorResponse, Result } from '../../types/common.ts'
 import { ExerciseGeneratorProfile } from '../../repository/exercise_generator_profiles.ts'
 import { run } from '../../db/process.ts'

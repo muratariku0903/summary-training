@@ -1,4 +1,4 @@
-import type { Database } from './database.ts'
+import type { Database } from './db_schema.ts'
 
 export type ExerciseGeneratorSeedsRow =
   Database['public']['Tables']['exercise_generator_seeds']['Row']

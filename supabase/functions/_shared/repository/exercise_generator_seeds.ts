@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "../types/database.ts";
+import type { Database } from "../types/db_schema.ts";
 import { Result } from "../types/common.ts";
 import { ExerciseGeneratorSeedsInsertRow } from "../types/exercise_generator_seeds.ts";
 import { DatabaseQueryError } from "../error/error.ts";

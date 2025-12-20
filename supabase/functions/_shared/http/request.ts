@@ -1,6 +1,6 @@
 import { z, ZodRawShape } from 'zod'
 import { Result } from '../types/common.ts'
-import { Constants } from '../types/database.ts'
+import { Constants } from '../types/db_schema.ts'
 
 // 基本的な共通スキーマ
 export const baseRequestSchema = z.object({

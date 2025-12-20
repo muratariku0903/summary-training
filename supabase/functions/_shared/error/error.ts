@@ -1,5 +1,5 @@
 import { PostgrestError } from '@supabase/supabase-js'
-import { Database, Tables } from '../types/database.ts'
+import { Database, Tables } from '../types/db_schema.ts'
 import {
   DatabaseQueryOperation,
   ERROR_CATEGORIES,

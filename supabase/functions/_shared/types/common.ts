@@ -1,7 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { z } from 'zod'
-import { Json } from './database.ts'
+import { Json } from './db_schema.ts'
 import { BaseError } from '../error/error.ts'
 // Result型の定義
 export type Result<T, E = Error> =

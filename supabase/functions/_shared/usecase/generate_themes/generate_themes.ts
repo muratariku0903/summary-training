@@ -10,7 +10,7 @@ import {
   isSimilarTheme,
 } from '../../repository/seed_generator_themes.ts'
 import { Result } from '../../types/common.ts'
-import { Database } from '../../types/database.ts'
+import { Database } from '../../types/db_schema.ts'
 import { SeedGeneratorCategoriesRow } from '../../types/seed_generator_categories.ts'
 import { normalizeCanonical } from '../../utils/utils.ts'
 import { logger } from '../../log/log.ts'

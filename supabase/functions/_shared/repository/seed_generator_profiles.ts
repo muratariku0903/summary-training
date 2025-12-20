@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Database } from '../types/database.ts'
+import type { Database } from '../types/db_schema.ts'
 import type { SeedGeneratorProfilesRow } from '../types/seed_generator_profiles.ts'
 import { Result } from '../types/common.ts'
 import { DatabaseQueryError, OperationError } from '../error/error.ts'

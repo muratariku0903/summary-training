@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Database } from '../types/database.ts'
+import type { Database } from '../types/db_schema.ts'
 import { SeedGeneratorThemesRow } from '../types/seed_generator_themes.ts'
 import { logger } from '../log/log.ts'
 import { Result } from '../types/common.ts'

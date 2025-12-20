@@ -910,19 +910,6 @@ export type Database = {
       pick_random_unused_source_pattern:
         | {
             Args: {
-              p_allow_duplicates?: boolean
-              p_kmax?: number
-              p_kmin?: number
-              p_max_attempts?: number
-              p_profile_id: string
-            }
-            Returns: {
-              pattern_id: string
-              source_ids: string[]
-            }[]
-          }
-        | {
-            Args: {
               p_kmax?: number
               p_kmin?: number
               p_max_attempts?: number
@@ -933,6 +920,19 @@ export type Database = {
               pattern_size: number
               source_ids: string[]
               source_set_key: string
+            }[]
+          }
+        | {
+            Args: {
+              p_allow_duplicates?: boolean
+              p_kmax?: number
+              p_kmin?: number
+              p_max_attempts?: number
+              p_profile_id: string
+            }
+            Returns: {
+              pattern_id: string
+              source_ids: string[]
             }[]
           }
       show_limit: { Args: never; Returns: number }

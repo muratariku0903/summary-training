@@ -1,7 +1,7 @@
 import { UnknownKeysParam, z, ZodTypeAny } from 'zod'
 import { logger } from './log/log.ts'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Database, Json, Tables } from '../_shared/types/database.ts'
+import type { Database, Json, Tables } from './types/db_schema.ts'
 import { Result } from './types/common.ts'
 import {
   BaseError,
