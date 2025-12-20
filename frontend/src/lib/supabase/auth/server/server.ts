@@ -11,7 +11,7 @@ export async function checkValidSessionLevel(
   | { valid: boolean; error?: never }
   | {
       valid?: never
-      error: string
+      error: unknown
     }
 > {
   try {
@@ -29,7 +29,7 @@ export async function checkValidSessionLevel(
 
     return { valid: true }
   } catch (e) {
-    return { error: String(e) }
+    return { error: e }
   }
 }
 
